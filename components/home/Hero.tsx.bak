@@ -1,0 +1,115 @@
+"use client";
+
+import { motion } from "framer-motion";
+import Button from "@/components/ui/Button";
+
+const HERO_SLIDES = [
+  "/image-01.jpeg",
+  "/image-02.jpeg",
+  "/image-03.jpeg",
+];
+
+const STATS = [
+  { value: "500+", label: "Acres Developed" },
+  { value: "1,200+", label: "Happy Families" },
+  { value: "40+", label: "Premium Projects" },
+  { value: "10+", label: "Years of Trust" },
+];
+
+export default function Hero() {
+  return (
+    <section className="relative flex min-h-screen items-center overflow-hidden bg-navy-950">
+      {/* === Background slideshow === */}
+      <div className="absolute inset-0">
+        {HERO_SLIDES.map((src, i) => (
+          <div key={i} className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${src})`, opacity: i === 0 ? 1 : 0, animation: `heroFade 15s ease-in-out ${i * 5}s infinite` }}
+          />
+        ))}
+        {/* Multi-layer gradient for depth & text legibility */}
+        <div className="absolute inset-0 bg-gradient-to-br from-navy-950/90 via-navy-900/75 to-navy-950/90" />
+        <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-transparent to-navy-950/40" />
+        {/* Subtle vignette */}
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, transparent 30%, rgba(5,15,36,0.6) 100%)" }} />
+      </div>
+
+      {/* === Decorative orbs === */}
+      <div className="absolute top-1/4 left-10 h-40 w-40 rounded-full bg-gold/10 blur-3xl animate-float" />
+      <div className="absolute bottom-1/4 right-10 h-56 w-56 rounded-full bg-gold/[0.06] blur-3xl animate-float" style={{ animationDelay: "2s" }} />
+
+      {/* === Corner ornaments === */}
+      <div className="absolute top-32 left-8 h-20 w-20 border-l border-t border-gold/25 hidden md:block" />
+      <div className="absolute bottom-32 right-8 h-20 w-20 border-r border-b border-gold/25 hidden md:block" />
+
+      {/* === Content === */}
+      <div className="container-luxury relative z-10 pt-28 pb-20">
+        <div className="max-w-5xl">
+          {/* Eyebrow */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
+            className="mb-7">
+            <span className="inline-flex items-center gap-3 rounded-full border border-gold/30 bg-gold/[0.08] px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-gold-champagne backdrop-blur-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse" />
+              Premium Land Developer Since 2015
+            </span>
+          </motion.div>
+
+          {/* Headline */}
+          <motion.h1 initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }}
+            className="font-serif text-display-xl font-bold text-cream text-balance leading-[1.02]">
+            Where Legacy
+            <br />
+            Meets the <span className="relative inline-block">
+              <span className="text-gradient-gold italic">Land</span>
+              <svg className="absolute -bottom-2 left-0 w-full" height="12" viewBox="0 0 200 12" fill="none" preserveAspectRatio="none">
+                <path d="M2 9C50 3 150 3 198 9" stroke="url(#hg)" strokeWidth="2.5" strokeLinecap="round" />
+                <defs><linearGradient id="hg" x1="0" y1="0" x2="200" y2="0" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#e0bb6b" /><stop offset="1" stopColor="#b8924a" />
+                </linearGradient></defs>
+              </svg>
+            </span>
+          </motion.h1>
+
+          {/* Subheadline */}
+          <motion.p initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6 }}
+            className="mt-8 max-w-2xl text-lg md:text-xl leading-relaxed text-cream/75">
+            Discover Bangladesh's finest residential plots in prime locations. Premium land, transparent transactions, and a legacy you can build on.
+          </motion.p>
+
+          {/* CTAs */}
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.8 }}
+            className="mt-11 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <Button href="/properties" variant="gold" showArrow className="w-full sm:w-auto">Explore Properties</Button>
+            <Button href="/about" variant="outline-light" className="w-full sm:w-auto">Our Story</Button>
+          </motion.div>
+
+          {/* Stats */}
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 1 }}
+            className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-px overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm max-w-4xl">
+            {STATS.map((stat, i) => (
+              <div key={i} className="group relative px-6 py-7 text-center transition-colors duration-300 hover:bg-white/[0.03]">
+                <p className="font-serif text-3xl md:text-4xl font-bold text-gradient-gold">{stat.value}</p>
+                <p className="mt-1.5 text-[11px] uppercase tracking-[0.15em] text-cream/55">{stat.label}</p>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Scroll indicator */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 hidden md:flex">
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-[10px] uppercase tracking-[0.3em] text-cream/40">Scroll</span>
+          <div className="h-12 w-px bg-gradient-to-b from-gold to-transparent animate-pulse" />
+        </div>
+      </motion.div>
+
+      <style jsx>{`
+        @keyframes heroFade {
+          0%, 100% { opacity: 0; }
+          20%, 53% { opacity: 1; }
+        }
+      `}</style>
+    </section>
+  );
+}

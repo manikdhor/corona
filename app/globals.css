@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   CORONA PROPERTIES — GLOBAL STYLES
+   Ultra Premium Design System
+   ============================================ */
+
+@layer base {
+  :root {
+    --font-playfair: "Playfair Display", Georgia, serif;
+    --font-cormorant: "Cormorant Garamond", Georgia, serif;
+    --font-inter: "Inter", system-ui, sans-serif;
+    --navy: #0a1a3e;
+    --gold: #c9a96e;
+  }
+
+  * { @apply border-navy-100/40; }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-cream text-charcoal font-sans;
+    font-feature-settings: "ss01", "cv01", "cv03";
+    overflow-x: hidden;
+  }
+
+  ::selection { @apply bg-gold/30 text-navy; }
+
+  h1, h2, h3, h4, h5, h6 { @apply font-serif; }
+
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { @apply bg-navy-50; }
+  ::-webkit-scrollbar-thumb { @apply bg-gradient-to-b from-gold-400 to-gold-600 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply from-gold-500 to-gold-700; }
+}
+
+@layer components {
+  .container-luxury { @apply mx-auto w-full max-w-[1400px] px-5 sm:px-8 lg:px-12; }
+  .container-narrow { @apply mx-auto w-full max-w-5xl px-5 sm:px-8; }
+  .section-padding { @apply py-20 md:py-28 lg:py-32; }
+
+  /* === TYPOGRAPHY === */
+  .eyebrow { @apply inline-flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-gold-600; }
+  .eyebrow::before { content: ""; @apply h-px w-10 bg-gradient-to-r from-transparent to-gold-500; }
+
+  .heading-1 { @apply font-serif text-display-lg font-bold text-navy; }
+  .heading-2 { @apply font-serif text-display-md font-bold text-navy; }
+  .heading-3 { @apply font-serif text-display-sm font-bold text-navy; }
+  .text-balance { text-wrap: balance; }
+
+  .text-gradient-gold { @apply bg-gradient-gold bg-clip-text text-transparent; }
+  .text-gradient-navy { @apply bg-gradient-navy bg-clip-text text-transparent; }
+
+  /* === BUTTONS === */
+  .btn-base { @apply relative inline-flex items-center justify-center gap-2.5 overflow-hidden px-8 py-4 text-sm font-semibold uppercase tracking-wider transition-all duration-500 ease-luxury; }
+  .btn-gold { @apply btn-base bg-gradient-gold text-navy shadow-gold hover:shadow-gold-lg hover:-translate-y-0.5; }
+  .btn-navy { @apply btn-base bg-navy text-cream hover:bg-navy-700 hover:-translate-y-0.5 shadow-navy; }
+  .btn-outline { @apply btn-base border-2 border-gold/60 text-navy hover:bg-gold hover:text-navy hover:border-gold; }
+  .btn-outline-light { @apply btn-base border-2 border-cream/40 text-cream hover:bg-cream hover:text-navy; }
+
+  /* === CARDS === */
+  .card-luxury { @apply relative bg-white rounded-2xl overflow-hidden shadow-card transition-all duration-500 ease-luxury hover:shadow-card-hover hover:-translate-y-1; }
+  .card-glass { @apply relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl; }
+
+  /* === DECORATIVE === */
+  .divider-gold { @apply relative h-px w-24 bg-gradient-to-r from-transparent via-gold to-transparent; }
+  .corner-decoration::before, .corner-decoration::after { content: ""; @apply absolute h-6 w-6 border-gold; }
+  .corner-decoration::before { @apply top-0 left-0 border-t-2 border-l-2; }
+  .corner-decoration::after { @apply bottom-0 right-0 border-b-2 border-r-2; }
+  .ornament-line { @apply relative flex items-center justify-center gap-3; }
+  .ornament-line::before, .ornament-line::after { content: ""; @apply h-px w-16 bg-gradient-to-r from-transparent to-gold; }
+  .ornament-line::after { @apply bg-gradient-to-l from-transparent to-gold; }
+}
+
+@layer utilities {
+  .shimmer-gold {
+    background: linear-gradient(110deg, transparent 25%, rgba(255, 255, 255, 0.4) 50%, transparent 75%);
+    background-size: 200% 100%;
+    animation: shimmer 3s linear infinite;
+  }
+  .text-shimmer {
+    background: linear-gradient(90deg, #c9a96e, #e8d4a8, #c9a96e, #e8d4a8);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 4s linear infinite;
+  }
+  .perspective-1000 { perspective: 1000px; }
+  .preserve-3d { transform-style: preserve-3d; }
+  .backface-hidden { backface-visibility: hidden; }
+  .texture-noise { position: relative; }
+  .texture-noise::after {
+    content: ""; position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+    opacity: 0.04; pointer-events: none; mix-blend-mode: overlay;
+  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .hover-lift { transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+  .hover-lift:hover { transform: translateY(-6px); }
+  .glow-gold { box-shadow: 0 0 25px rgba(201, 169, 110, 0.3), inset 0 0 25px rgba(201, 169, 110, 0.05); }
+  .bg-navy-overlay { background: linear-gradient(135deg, rgba(10, 26, 62, 0.95) 0%, rgba(10, 26, 62, 0.7) 100%); }
+}
+
+/* ============================================
+   PRELOADER ANIMATION
+   ============================================ */
+.preloader-overlay { position: fixed; inset: 0; z-index: 9999; background: #0a1a3e; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+.preloader-logo { animation: preloaderPulse 1.5s ease-in-out infinite; }
+@keyframes preloaderPulse { 0%, 100% { opacity: 0.5; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1); } }
+.preloader-bar { width: 200px; height: 2px; background: rgba(201, 169, 110, 0.2); margin-top: 2rem; overflow: hidden; border-radius: 999px; }
+.preloader-bar::after { content: ""; display: block; height: 100%; width: 40%; background: linear-gradient(90deg, transparent, #c9a96e, transparent); animation: preloaderSlide 1.5s ease-in-out infinite; }
+@keyframes preloaderSlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
+
+/* ============================================
+   FONTS IMPORT (FALLBACK if not using next/font)
+   ============================================ */
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap");
