@@ -60,7 +60,7 @@ export const PROJECTS: Project[] = [
     tagline: "Where Maple Canopy Meets Bangladeshi Aspiration",
     taglineBn: "কানাডার স্বপ্ন, বাংলাদেশের মাটিতে",
     subtitle:
-      "A master-planned residential enclave of 1,800+ premium plots in Purbachal — inspired by Toronto's finest urban living.",
+      "A master-planned residential enclave of 2,504 premium plots in Purbachal — inspired by Toronto's finest urban living.",
     heroImage: "/image-06.webp",
     overview:
       "Maple Leaf Garden City is a meticulously master-planned residential enclave in Purbachal, Dhaka. Conceived by visionary Bangladeshi expatriates inspired by the serenity and architectural discipline of Toronto's planned neighbourhoods, this community brings international-grade living to Bangladesh's most ambitious new town. Here, wide tree-lined boulevards, luxury leisure amenities, and a gated community converge beneath a canopy of mature maple trees.",
@@ -68,7 +68,7 @@ export const PROJECTS: Project[] = [
       "The idea was born from a simple question: 'Can families in Bangladesh experience the same quality of life we found abroad?' That conviction transformed into a mission — to build something that does not yet exist here. A place where the discipline of planned urbanism meets the warmth of Bangladeshi community life.",
     location: "Purbachal, Dhaka — 1212",
     coordinates: { lat: 23.8103, lng: 90.4125 },
-    totalPlots: 1800,
+    totalPlots: 2504,
     totalArea: "Approximately 90 Acres",
     roadPrimary: "80 ft Wide Arterial Roads",
     roadSecondary: "40 ft Wide Access Roads",
@@ -109,7 +109,7 @@ export const PROJECTS: Project[] = [
       "Strategically located at Purbachal's growth nexus",
     ],
     features: [
-      "Over 1,800 individually titled residential plots",
+      "Over 2,504 individually titled residential plots",
       "Wide tree-lined boulevards with pedestrian walkways",
       "Underground electricity and city-gas connectivity",
       "Modern sewage treatment and drainage system",
@@ -117,7 +117,7 @@ export const PROJECTS: Project[] = [
       "Community cemetery with dignified landscaping",
     ],
     specs: [
-      { label: "Total Plots", value: "1,800+" },
+      { label: "Total Plots", value: "2,504" },
       { label: "Total Area", value: "~90 Acres" },
       { label: "Planning Authority", value: "RAJUK Approved" },
       { label: "Arterial Roads", value: "80 ft / 40 ft" },
@@ -125,7 +125,7 @@ export const PROJECTS: Project[] = [
     seo: {
       title: "Maple Leaf Garden City — Premium Residential Plots in Purbachal, Dhaka",
       description:
-        "Discover Maple Leaf Garden City, a master-planned residential community of 1,800+ premium plots in Purbachal, Dhaka. RAJUK-approved with world-class amenities.",
+        "Discover Maple Leaf Garden City, a master-planned residential community of 2,504 premium plots in Purbachal, Dhaka. RAJUK-approved with world-class amenities.",
     },
     assets: {
       layoutPlan: "/Layout-Plan.pdf",

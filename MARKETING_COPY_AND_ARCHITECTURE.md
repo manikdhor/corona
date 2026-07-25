@@ -15,7 +15,7 @@ Where Maple Canopy Meets Bangladeshi Aspiration
 Purbachal's Most Distinguished Address Awaits.
 
 **Subheadline:**
-A meticulously master-planned residential enclave of 1,800+ residential plots, designed to deliver an unparalleled quality of life — where wide tree-lined boulevards, luxury leisure amenities, and a gated community converge beneath a canopy of mature maple trees.
+A meticulously master-planned residential enclave of 2,504 residential plots, designed to deliver an unparalleled quality of life — where wide tree-lined boulevards, luxury leisure amenities, and a gated community converge beneath a canopy of mature maple trees.
 
 **Primary CTA:**
 Book Your Plot Today
@@ -42,7 +42,7 @@ We didn't simply replicate a concept. We envisioned a place where the serenity o
 
 **Overall Masterplan**
 - **Total Project Area:** 1,800+ Katha (Approx. ~90 Acres of premium residential land)
-- **Total Residential Plots:** 1,800+ individually titled units
+- **Total Residential Plots:** 2,504 individually titled units
 - **Planning Authority:** RAJUK-Approved Master Layout with full compliance
 - **Infrastructure:** All-weather wide roads, underground utility network, modern sewage treatment, and city-gas pipeline connectivity
 
@@ -104,7 +104,7 @@ Purbachal is emerging as Dhaka's most planned new town, with 10,000+ residential
 Purbachal is not a speculative zone. It is the official next-generation satellite town sanctioned by RAJUK, with master drainage, utility pipelines, and road networks already being executed. Investing here is not speculation; it is alignment with infrastructure that is already arriving.
 
 2. **Limited Plot Availability**
-With 1,800+ plots across five size categories and a targeted community of discerning homeowners, scarcity is built into the architecture of value. Once fully plotted, this community will not expand.
+With 2,504 plots across five size categories and a targeted community of discerning homeowners, scarcity is built into the architecture of value. Once fully plotted, this community will not expand.
 
 3. **Appreciation Trajectory**
 Land in planned Purbachal communities has historically outperformed general Dhaka real estate benchmarks by 30–50% within the first 3 years of possession. As commercial and institutional development densifies the surrounding zone, your asset's trajectory is structurally supported.
@@ -123,7 +123,7 @@ Every plot is delivered with full RAJUK approval, clear title, and legally docum
 <section class="hero-full">
   <div class="hero-badge">Flagship Project — Maple Leaf Garden City, Purbachal</div>
   <h1>Where Maple Canopy<br>Meets Bangladeshi Aspiration.</h1>
-  <p>A master-planned residential enclave of 1,800+ premium plots — curated for those who demand the extraordinary.</p>
+  <p>A master-planned residential enclave of 2,504 premium plots — curated for those who demand the extraordinary.</p>
   <div class="cta-group">
     <a href="#book" class="btn-primary">Book Your Plot Today</a>
     <a href="#masterplan" class="btn-secondary">Explore the Masterplan</a>
@@ -140,7 +140,7 @@ Every plot is delivered with full RAJUK approval, clear title, and legally docum
   <h3>The Masterplan at a Glance</h3>
   <div class="spec-grid">
     <div class="spec-card">
-      <span class="spec-number">1,800+</span>
+      <span class="spec-number">2,504</span>
       <span class="spec-label">Total Residential Plots</span>
     </div>
     <div class="spec-card">
