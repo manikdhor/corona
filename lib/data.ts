@@ -453,7 +453,7 @@ export const TEAM: TeamMember[] = [
   {
     id: "2",
     name: "Kazi Saiful Islam",
-    role: "M.D",
+    role: "Managing Director",
     bio: "Dear Customers, Investors, and Valued Well-Wishers,\n\nWelcome to Corona Properties Ltd.\n\nAt Corona Properties Ltd., we believe that real estate is more than an investment — it is the foundation of a secure future, a better lifestyle, and a lasting legacy for generations. With this vision, we proudly present Maple Leaf Garden City Purbachal, a modern and thoughtfully planned residential community conveniently located near Kanchan Bridge.\n\nInspired by our commitment to bring \"The Dream of Canada to the Soil of Bangladesh,\" we are creating a unique living environment that blends international standards, modern infrastructure, natural beauty, and sustainable development. Designed with wide roads, green open spaces, essential civic facilities, and future-ready planning, Maple Leaf Garden City is set to become a landmark residential destination.\n\nWe understand that purchasing land is one of the most important decisions in a person's life. Therefore, transparency, integrity, and customer confidence remain at the heart of everything we do. We proudly ensure 100% land handover guarantee, supported by full legal compliance and adherence to RAJUK regulations and applicable land laws of Bangladesh.\n\nOur mission extends beyond selling plots; we are committed to building a vibrant, secure, and prosperous community where families can thrive and future generations can flourish.\n\nOn behalf of the entire Corona Properties family, I sincerely thank you for your trust and confidence. We look forward to accompanying you on your journey toward a brighter and more prosperous future.",
     image: "/Kazi_Saiful_Islam_Managing_Director.jpeg",
   },
@@ -531,7 +531,7 @@ export const BLOG_POSTS: BlogPost[] = [
     ],
     category: "Investment Guide",
     author: "Kazi Saiful Islam",
-    authorRole: "M.D",
+    authorRole: "Managing Director",
     date: "July 10, 2026",
     readTime: "8 min read",
     image:
