@@ -54,12 +54,12 @@ export default function Footer() {
 
       <div className="relative z-10">
         {/* Main footer */}
-        <div className="container-luxury py-20">
-          <div className="grid gap-12 lg:grid-cols-12">
+        <div className="container-luxury py-12 md:py-20">
+          <div className="grid gap-10 md:gap-12 lg:grid-cols-12">
             {/* Brand column */}
             <div className="lg:col-span-4">
               <div className="flex items-center gap-3">
-                <div className="relative h-16 w-16">
+                <div className="relative h-12 w-12 md:h-16 md:w-16">
                   <Image
                     src={SITE_CONFIG.logo}
                     alt={SITE_CONFIG.name}
@@ -68,19 +68,19 @@ export default function Footer() {
                   />
                 </div>
                 <div>
-                  <p className="font-serif text-xl font-bold text-cream">Corona</p>
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-gold">
+                  <p className="font-serif text-lg font-bold text-cream md:text-xl">Corona</p>
+                  <p className="text-[9px] uppercase tracking-[0.3em] text-gold md:text-[10px]">
                     Properties Limited
                   </p>
                 </div>
               </div>
-              <p className="mt-6 text-sm leading-relaxed text-cream/70">
+              <p className="mt-4 text-sm leading-relaxed text-cream/70 md:mt-6">
                 {SITE_CONFIG.description}
               </p>
 
-              {/* Newsletter */}
-              <div className="mt-8">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold mb-3">
+              {/* Newsletter - moved up on mobile */}
+              <div className="mt-6 md:mt-8">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold mb-2 md:mb-3">
                   Subscribe to our newsletter
                 </p>
                 <form onSubmit={handleSubscribe} className="relative">
@@ -90,14 +90,14 @@ export default function Footer() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Your email address"
                     required
-                    className="w-full rounded-full border border-white/20 bg-white/5 px-5 py-3.5 pr-14 text-sm text-cream placeholder:text-cream/40 focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold/50 transition-colors"
+                    className="w-full rounded-full border border-white/20 bg-white/5 px-4 py-3 pr-12 text-sm text-cream placeholder:text-cream/40 focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold/50 transition-colors md:px-5 md:py-3.5"
                   />
                   <button
                     type="submit"
                     aria-label="Subscribe"
-                    className="absolute right-1.5 top-1.5 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-gold text-navy transition-transform hover:scale-105"
+                    className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-gold text-navy transition-transform hover:scale-105 md:right-1.5 md:top-1.5 md:h-9 md:w-9"
                   >
-                    <Send className="h-4 w-4" />
+                    <Send className="h-3.5 w-3.5 md:h-4 md:w-4" />
                   </button>
                 </form>
                 {subscribed && (
@@ -108,54 +108,55 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Quick links */}
-            <div className="lg:col-span-2">
-              <h4 className="font-serif text-lg font-semibold text-cream mb-5">
-                Company
-              </h4>
-              <ul className="space-y-3">
-                {FOOTER_LINKS.company.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="group flex items-center gap-2 text-sm text-cream/70 transition-colors hover:text-gold"
-                    >
-                      <ArrowRight className="h-3 w-3 -translate-x-2 text-gold opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {/* Quick links + Services - stacked on mobile */}
+            <div className="grid grid-cols-2 gap-8 md:contents md:gap-12">
+              <div className="lg:col-span-2">
+                <h4 className="font-serif text-base font-semibold text-cream mb-4 md:text-lg md:mb-5">
+                  Company
+                </h4>
+                <ul className="space-y-2.5 md:space-y-3">
+                  {FOOTER_LINKS.company.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="group flex items-center gap-2 text-sm text-cream/70 transition-colors hover:text-gold"
+                      >
+                        <ArrowRight className="h-3 w-3 -translate-x-2 text-gold opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-            {/* Services links */}
-            <div className="lg:col-span-2">
-              <h4 className="font-serif text-lg font-semibold text-cream mb-5">
-                Services
-              </h4>
-              <ul className="space-y-3">
-                {FOOTER_LINKS.services.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="group flex items-center gap-2 text-sm text-cream/70 transition-colors hover:text-gold"
-                    >
-                      <ArrowRight className="h-3 w-3 -translate-x-2 text-gold opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <div className="lg:col-span-2">
+                <h4 className="font-serif text-base font-semibold text-cream mb-4 md:text-lg md:mb-5">
+                  Services
+                </h4>
+                <ul className="space-y-2.5 md:space-y-3">
+                  {FOOTER_LINKS.services.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="group flex items-center gap-2 text-sm text-cream/70 transition-colors hover:text-gold"
+                      >
+                        <ArrowRight className="h-3 w-3 -translate-x-2 text-gold opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
 
             {/* Contact */}
             <div className="lg:col-span-4">
-              <h4 className="font-serif text-lg font-semibold text-cream mb-5">
+              <h4 className="font-serif text-base font-semibold text-cream mb-4 md:text-lg md:mb-5">
                 Get in Touch
               </h4>
-              <ul className="space-y-4">
+              <ul className="space-y-3">
                 <li className="flex gap-3">
-                  <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold md:h-5 md:w-5" />
                   <span className="text-sm leading-relaxed text-cream/70">
                     {CONTACT_INFO.address}
                   </span>
@@ -165,7 +166,7 @@ export default function Footer() {
                     href={`tel:${CONTACT_INFO.phoneRaw}`}
                     className="flex items-center gap-3 text-sm text-cream/70 transition-colors hover:text-gold"
                   >
-                    <Phone className="h-5 w-5 shrink-0 text-gold" />
+                    <Phone className="h-4 w-4 shrink-0 text-gold md:h-5 md:w-5" />
                     {CONTACT_INFO.phone}
                   </a>
                 </li>
@@ -174,14 +175,14 @@ export default function Footer() {
                     href={`mailto:${CONTACT_INFO.email}`}
                     className="flex items-center gap-3 text-sm text-cream/70 transition-colors hover:text-gold"
                   >
-                    <Mail className="h-5 w-5 shrink-0 text-gold" />
+                    <Mail className="h-4 w-4 shrink-0 text-gold md:h-5 md:w-5" />
                     {CONTACT_INFO.email}
                   </a>
                 </li>
               </ul>
 
               {/* Socials */}
-              <div className="mt-6 flex items-center gap-3">
+              <div className="mt-5 flex items-center gap-2.5 md:mt-6 md:gap-3">
                 {[
                   { Icon: Facebook, href: SOCIAL_LINKS.facebook, label: "Facebook" },
                   { Icon: Instagram, href: SOCIAL_LINKS.instagram, label: "Instagram" },
@@ -194,9 +195,9 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={label}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-cream/70 transition-all duration-300 hover:border-gold hover:bg-gold hover:text-navy"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 text-cream/70 transition-all duration-300 hover:border-gold hover:bg-gold hover:text-navy md:h-10 md:w-10"
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
                   </a>
                 ))}
               </div>

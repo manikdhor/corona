@@ -239,7 +239,7 @@ Every plot is delivered with full RAJUK approval, clear title, and legally docum
 
 ## PART II: Scalable Website Architecture & Visual Framework
 
-### Design Philosophy
+## Design Philosophy
 
 **The "Repository & Registry" Model**
 The architecture is built around a `Property` schema that functions as both a content model and a brand palette. Every project — whether Maple Leaf Garden City today or Green Valley Heights tomorrow — inherits the same design grammar. The brand does not change; the content rotates.

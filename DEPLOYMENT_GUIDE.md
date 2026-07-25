@@ -178,8 +178,10 @@ git clone --depth 1 https://github.com/username/repo.git .
 | **Application mode** | Production |
 | **Application root** | `/home/username/myapp/` |
 | **Application URL** | `https://yourdomain.com` or subdomain |
-| **Application startup file** | `server.js` or `index.js` (for custom server) |
-   - **OR** for Next.js standalone: leave blank and use command below |
+| **Application startup file** | `server.js` or `index.js` (for custom server), or leave blank for Next.js standalone |
+
+> **Alternative for Next.js standalone:** Leave the startup file blank and use the command `node_modules/next/dist/bin/next start -p $PORT` below.
+
 | **Passenger log file** | Leave default or specify `~/myapp/logs/app.log` |
 
 ### 3.3 Startup File for Next.js

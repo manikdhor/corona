@@ -7,6 +7,7 @@ import TopBar from "@/components/layout/TopBar";
 import Preloader from "@/components/layout/Preloader";
 import ScrollProgress from "@/components/ui/ScrollProgress";
 import ScrollToTop from "@/components/ui/ScrollToTop";
+import BottomNav from "@/components/layout/BottomNav";
 import { SITE_CONFIG } from "@/lib/constants";
 
 const playfair = Playfair_Display({
@@ -29,6 +30,12 @@ const inter = Inter({
   display: "swap",
   weight: ["300", "400", "500", "600", "700", "800"],
 });
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_CONFIG.url),
@@ -102,6 +109,7 @@ export default function RootLayout({
         <main>{children}</main>
         <Footer />
         <ScrollToTop />
+        <BottomNav />
 
         {/* JSON-LD Structured Data */}
         <script

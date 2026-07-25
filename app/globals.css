@@ -28,6 +28,7 @@
     @apply bg-cream text-charcoal font-sans;
     font-feature-settings: "ss01", "cv01", "cv03";
     overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
   }
 
   ::selection { @apply bg-gold/30 text-navy; }
@@ -106,8 +107,10 @@
   .hover-lift { transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
   .hover-lift:hover { transform: translateY(-6px); }
   .glow-gold { box-shadow: 0 0 25px rgba(201, 169, 110, 0.3), inset 0 0 25px rgba(201, 169, 110, 0.05); }
-  .bg-navy-overlay { background: linear-gradient(135deg, rgba(10, 26, 62, 0.95) 0%, rgba(10, 26, 62, 0.7) 100%); }
-}
+   .bg-navy-overlay { background: linear-gradient(135deg, rgba(10, 26, 62, 0.95) 0%, rgba(10, 26, 62, 0.7) 100%); }
+   .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+   .safe-top { padding-top: env(safe-area-inset-top, 0px); }
+ }
 
 /* ============================================
    PRELOADER ANIMATION

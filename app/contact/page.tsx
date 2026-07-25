@@ -17,7 +17,7 @@ const CONTACT_CARDS = [
     icon: MapPin,
     title: "Visit Our Office",
     lines: [CONTACT_INFO.address],
-    action: { label: "Get Directions", href: "https://maps.google.com/?q=Gulshan+1+Dhaka" },
+    action: { label: "Get Directions", href: "https://maps.google.com/?q=Mar+garden,+House+%23145,+Flat+%23704,+Road+%233,+Block+A,+Niketon,+Gulshan+01,+Dhaka+1212" },
   },
   {
     icon: Phone,
@@ -165,8 +165,8 @@ export default function ContactPage() {
         </div>
         <div className="h-[450px] w-full">
           <iframe
-            title="Corona Properties office location"
-            src="https://www.google.com/maps?q=Gulshan+1+Dhaka+Bangladesh&z=14&output=embed"
+            title="Corona Properties Ltd"
+            src="https://www.google.com/maps?q=Mar+garden,+House+%23145,+Flat+%23704,+Road+%233,+Block+A,+Niketon,+Gulshan+01,+Dhaka+1212&z=16&output=embed"
             className="h-full w-full border-0 grayscale-[0.3]"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"

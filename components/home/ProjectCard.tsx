@@ -23,8 +23,8 @@ export default function ProjectCard({ project, index = 0 }: { project: Project; 
       transition={{ duration: 0.6, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
       className="group relative overflow-hidden rounded-2xl bg-white shadow-card transition-all duration-500 hover:shadow-card-hover hover:-translate-y-1.5"
     >
-      <div className="relative aspect-[4/3] overflow-hidden">
-        <Link href={`/projects/${project.slug}`}>
+      <Link href={`/projects/${project.slug}`} className="block">
+        <div className="relative aspect-[4/3] overflow-hidden">
           <Image
             src={project.heroImage}
             alt={project.name}
@@ -32,34 +32,33 @@ export default function ProjectCard({ project, index = 0 }: { project: Project; 
             className="object-cover transition-transform duration-[1200ms] group-hover:scale-110"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
-        </Link>
-        <div className="absolute inset-0 bg-gradient-to-t from-navy-950/70 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-85" />
+          <div className="absolute inset-0 bg-gradient-to-t from-navy-950/70 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-85" />
 
-        <div className="absolute top-4 left-4">
-          <span className={cn("rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm", statusStyles[project.status])}>
-            {project.status.replace("-", " ")}
-          </span>
-        </div>
+          <div className="absolute top-4 left-4">
+            <span className={cn("rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm", statusStyles[project.status])}>
+              {project.status.replace("-", " ")}
+            </span>
+          </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-5">
-          <h3 className="font-serif text-xl font-bold text-cream group-hover:text-gold-champagne transition-colors">
-            <Link href={`/projects/${project.slug}`}>{project.name}</Link>
-          </h3>
-          <p className="mt-1 text-sm text-cream/80 line-clamp-1">{project.tagline}</p>
-          <div className="mt-2 flex items-center gap-2 text-xs text-cream/70">
-            <MapPin className="h-3.5 w-3.5 text-gold" />
-            {project.location}
+          <div className="absolute bottom-0 left-0 right-0 p-5">
+            <h3 className="font-serif text-xl font-bold text-cream group-hover:text-gold-champagne transition-colors">
+              {project.name}
+            </h3>
+            <p className="mt-1 text-sm text-cream/80 line-clamp-1">{project.tagline}</p>
+            <div className="mt-2 flex items-center gap-2 text-xs text-cream/70">
+              <MapPin className="h-3.5 w-3.5 text-gold" />
+              {project.location}
+            </div>
+          </div>
+
+          <div
+            className="absolute bottom-5 right-5 flex h-11 w-11 translate-y-4 items-center justify-center rounded-full bg-gradient-to-br from-gold-300 via-gold-500 to-gold-600 text-navy opacity-0 shadow-gold transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100"
+            aria-hidden="true"
+          >
+            <ArrowUpRight className="h-5 w-5" />
           </div>
         </div>
-
-        <Link
-          href={`/projects/${project.slug}`}
-          className="absolute bottom-5 right-5 flex h-11 w-11 translate-y-4 items-center justify-center rounded-full bg-gradient-to-br from-gold-300 via-gold-500 to-gold-600 text-navy opacity-0 shadow-gold transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100"
-          aria-label={`View ${project.name}`}
-        >
-          <ArrowUpRight className="h-5 w-5" />
-        </Link>
-      </div>
+      </Link>
 
       <div className="p-6">
         <p className="text-sm text-navy-400 line-clamp-2">{project.subtitle}</p>

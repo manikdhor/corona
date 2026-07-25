@@ -38,7 +38,67 @@ export default function Navbar() {
       {/* === NAVBAR === */}
       <header
         className={cn(
-          "sticky top-0 z-50 transition-all duration-600",
+          "sticky top-0 z-50 transition-all duration-600 md:hidden",
+          scrolled
+            ? "bg-cream/90 backdrop-blur-2xl shadow-[0_1px_0_0_rgba(201,169,110,0.15),0_8px_40px_rgba(10,26,62,0.06)]"
+            : "bg-navy-950/70 backdrop-blur-lg"
+        )}
+      >
+        <nav className="flex h-14 items-center justify-between px-5">
+          <Link href="/" className="flex items-center gap-2.5" aria-label={SITE_CONFIG.name}>
+            <div className="relative h-9 w-9 overflow-hidden rounded-lg bg-white/10 p-1">
+              <Image
+                src={SITE_CONFIG.logo}
+                alt={SITE_CONFIG.name}
+                fill
+                className="object-contain"
+                priority
+                sizes="36px"
+              />
+            </div>
+            <div className="flex flex-col leading-none">
+              <span
+                className={cn(
+                  "font-serif text-sm font-bold tracking-wide transition-colors duration-500",
+                  scrolled ? "text-navy" : "text-cream"
+                )}
+              >
+                Corona
+              </span>
+              <span
+                className={cn(
+                  "text-[7px] uppercase tracking-[0.3em] font-semibold transition-colors duration-500",
+                  scrolled ? "text-gold-600" : "text-gold-champagne"
+                )}
+              >
+                Properties
+              </span>
+            </div>
+          </Link>
+
+          <button
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open menu"
+            className={cn(
+              "flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-sm transition-all",
+              scrolled
+                ? "text-navy hover:bg-navy-50"
+                : "text-cream hover:bg-white/15"
+            )}
+          >
+            <Menu className="h-5 w-5" strokeWidth={1.5} />
+          </button>
+        </nav>
+        <div className={cn(
+          "h-px w-full transition-opacity duration-600",
+          scrolled ? "bg-gradient-to-r from-transparent via-gold/40 to-transparent opacity-100" : "opacity-0"
+        )} />
+      </header>
+
+      {/* Desktop Navbar */}
+      <header
+        className={cn(
+          "sticky top-0 z-50 hidden md:block transition-all duration-600",
           scrolled
             ? "bg-cream/90 backdrop-blur-2xl shadow-[0_1px_0_0_rgba(201,169,110,0.15),0_8px_40px_rgba(10,26,62,0.06)]"
             : "bg-navy-950/70 backdrop-blur-lg"
@@ -97,7 +157,6 @@ export default function Navbar() {
                   )}
                 >
                   <span className="relative z-10">{link.label}</span>
-                  {/* Animated underline */}
                   <span
                     className={cn(
                       "absolute bottom-1 left-1/2 h-[2px] -translate-x-1/2 rounded-full bg-gradient-to-r from-gold-400 to-gold-600 transition-all duration-400",
@@ -109,9 +168,8 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Right Side: CTA + Mobile Toggle */}
+          {/* Right Side: CTA */}
           <div className="flex items-center gap-3">
-            {/* CTA Button (desktop) */}
             <Link
               href="/contact"
               className={cn(
@@ -124,24 +182,8 @@ export default function Navbar() {
               <Diamond className="h-3.5 w-3.5" />
               Book a Visit
             </Link>
-
-            {/* Mobile hamburger */}
-            <button
-              onClick={() => setMobileOpen(true)}
-              aria-label="Open menu"
-              className={cn(
-                "flex h-11 w-11 items-center justify-center rounded-full backdrop-blur-sm transition-all duration-300 xl:hidden",
-                scrolled
-                  ? "text-navy hover:bg-navy-50"
-                  : "text-cream hover:bg-white/15"
-              )}
-            >
-              <Menu className="h-5 w-5" strokeWidth={1.5} />
-            </button>
           </div>
         </nav>
-
-        {/* Subtle gold accent line at bottom when scrolled */}
         <div className={cn(
           "h-px w-full transition-opacity duration-600",
           scrolled ? "bg-gradient-to-r from-transparent via-gold/40 to-transparent opacity-100" : "opacity-0"
@@ -193,19 +235,19 @@ export default function Navbar() {
                </div>
                <nav className="flex-1 overflow-y-auto px-8 py-6">
                  <div className="space-y-1">
-                   {NAV_LINKS.map((link, i) => {
-                     const active = isActive(link.href);
-                     return (
-                       <motion.div key={link.href} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 + i * 0.04, duration: 0.4 }}>
-                         <Link href={link.href} className={cn("group flex items-center justify-between rounded-xl px-4 py-4 text-[15px] font-medium transition-all duration-300",
-                           active ? "bg-gold/10 text-gold" : "text-cream/80 hover:bg-white/[0.04] hover:text-cream")}>
-                           <span>{link.label}</span>
-                           <ChevronRight className={cn("h-4 w-4 transition-all duration-300",
-                             active ? "text-gold translate-x-0" : "text-cream/30 opacity-0")} />
-                         </Link>
-                       </motion.div>
-                     );
-                   })}
+                    {NAV_LINKS.map((link, i) => {
+                      const active = isActive(link.href);
+                      return (
+                        <motion.div key={link.href} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 + i * 0.04, duration: 0.4 }}>
+                          <Link href={link.href} onClick={() => setMobileOpen(false)} className={cn("group flex items-center justify-between rounded-xl px-4 py-4 text-[15px] font-medium transition-all duration-300",
+                            active ? "bg-gold/10 text-gold" : "text-cream/80 hover:bg-white/[0.04] hover:text-cream")}>
+                            <span>{link.label}</span>
+                            <ChevronRight className={cn("h-4 w-4 transition-all duration-300",
+                              active ? "text-gold translate-x-0" : "text-cream/30 opacity-0")} />
+                          </Link>
+                        </motion.div>
+                      );
+                    })}
                  </div>
                </nav>
                <div className="border-t border-white/[0.06] px-8 py-6">
