@@ -66,8 +66,8 @@ export const PROJECTS: Project[] = [
       "Maple Leaf Garden City is a meticulously master-planned residential enclave in Purbachal, Dhaka. Conceived by visionary Bangladeshi expatriates inspired by the serenity and architectural discipline of Toronto's planned neighbourhoods, this community brings international-grade living to Bangladesh's most ambitious new town. Here, wide tree-lined boulevards, luxury leisure amenities, and a gated community converge beneath a canopy of mature maple trees.",
     genesis:
       "The idea was born from a simple question: 'Can families in Bangladesh experience the same quality of life we found abroad?' That conviction transformed into a mission — to build something that does not yet exist here. A place where the discipline of planned urbanism meets the warmth of Bangladeshi community life.",
-    location: "Purbachal, Dhaka — 1212",
-    coordinates: { lat: 23.8103, lng: 90.4125 },
+    location: "Purbachal, Dhaka — Bholabo Union",
+    coordinates: { lat: 23.86489, lng: 90.56470 },
     totalPlots: 2504,
     totalArea: "Approximately 90 Acres",
     roadPrimary: "80 ft Wide Arterial Roads",

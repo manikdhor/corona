@@ -138,6 +138,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
               <KeyAssets
                 assets={project.assets}
                 mapCoordinates={project.coordinates}
+                mapHref={`https://www.google.com/maps?q=${encodeURIComponent(project.name + " Purbachal")}&z=14&output=embed`}
                 className="!mt-12"
               />
 
@@ -274,16 +275,16 @@ export default function ProjectDetailPage({ params }: PageProps) {
                 <div className="rounded-2xl border border-navy-50 bg-white p-6 shadow-card">
                   <h3 className="font-serif text-lg font-bold text-navy mb-4">Location</h3>
                   <div className="relative aspect-video overflow-hidden rounded-xl bg-navy-50">
-                    <iframe
-                      title={`${project.name} location`}
-                      src={`https://www.google.com/maps?q=${project.coordinates.lat},${project.coordinates.lng}&z=14&output=embed`}
-                      className="absolute inset-0 h-full w-full"
-                      loading="lazy"
-                    />
+                      <iframe
+                        title={`${project.name} location`}
+                        src={`https://www.google.com/maps?q=${encodeURIComponent(project.name + " Purbachal")}&z=14&output=embed`}
+                        className="absolute inset-0 h-full w-full"
+                        loading="lazy"
+                      />
                   </div>
                   <div className="mt-4 flex flex-col gap-2">
                     <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${project.coordinates.lat},${project.coordinates.lng}`}
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(project.name + " Purbachal")}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-gold px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-navy transition-all hover:shadow-gold hover:-translate-y-0.5"

@@ -14,6 +14,11 @@ import {
   Headphones,
   MapPin,
   Maximize,
+  Truck,
+  Ship,
+  Anchor,
+  Globe,
+  Video,
   type LucideIcon,
 } from "lucide-react";
 
@@ -701,9 +706,166 @@ export const CORE_VALUES = [
 ] as const;
 
 /* ============================================
-   EXPORTED ICONS (for reuse)
-   ============================================ */
-export { MapPin, Maximize };
+    CORONA GROUP DATA
+    ============================================ */
+export interface SisterConcern {
+  id: string;
+  name: string;
+  established: number;
+  tagline: string;
+  description: string;
+  strengths: string[];
+  icon: LucideIcon;
+  color: string;
+}
+
+export interface OfficeLocation {
+  city: string;
+  name: string;
+  description: string;
+}
+
+export const SISTER_CONCERNS: SisterConcern[] = [
+  {
+    id: "corona-trade-transport",
+    name: "Corona Trade & Transport Ltd.",
+    established: 1987,
+    tagline: "Pioneering Land Logistics Across Bangladesh",
+    description:
+      "The foundational pillar of Corona Group. A pioneer in Bangladesh's transportation and logistics industry, providing dependable nationwide cargo movement through a modern, well-maintained fleet.",
+    strengths: [
+      "Fleet of 80 cover vans",
+      "4 heavy-duty long vehicles for oversized and project cargo",
+      "Nationwide transportation and distribution",
+      "Integrated logistics and supply chain solutions",
+    ],
+    icon: Truck,
+    color: "navy",
+  },
+  {
+    id: "far-eastern-shipping",
+    name: "Far Eastern Shipping Agency",
+    established: 1990,
+    tagline: "Licensed Customs Agency & Shipping Support",
+    description:
+      "Professional customs agency and shipping support services, ensuring smooth and efficient cargo handling for domestic and international clients across Bangladesh.",
+    strengths: [
+      "Licensed Customs Agency",
+      "Shipping Documentation",
+      "Freight Coordination",
+      "Logistics Support Services",
+    ],
+    icon: Ship,
+    color: "gold",
+  },
+  {
+    id: "corona-associates",
+    name: "Corona Associates — Customs Clearing & Forwarding (C&F) Agent",
+    established: 1997,
+    tagline: "Flagship Customs Solutions Across Every Port",
+    description:
+      "One of the Group's flagship service companies, delivering comprehensive Customs Clearing and Forwarding solutions through Bangladesh's major ports and logistics gateways.",
+    strengths: [
+      "Hazrat Shahjalal International Airport, Dhaka",
+      "Chattogram Sea Port",
+      "Benapole Land Port",
+      "ICD Kamalapur, EPZs, and Pangaon Inland Container Terminal",
+    ],
+    icon: ShieldCheck,
+    color: "navy",
+  },
+  {
+    id: "corona-shipping-lines",
+    name: "Corona Shipping Lines",
+    established: 2008,
+    tagline: "Inland & Coastal Cargo Transportation",
+    description:
+      "Operates in the inland and coastal shipping sector, providing dependable cargo transportation through its growing fleet of vessels.",
+    strengths: [
+      "2 cargo vessels including M.V. Corona",
+      "Inland Waterway Transportation",
+      "Coastal Shipping Services",
+      "Bulk and general cargo handling",
+    ],
+    icon: Anchor,
+    color: "gold",
+  },
+  {
+    id: "sohel-trading",
+    name: "Sohel Trading",
+    established: 2010,
+    tagline: "Global Trade Facilitation & Sourcing",
+    description:
+      "Specializes in international sourcing, indenting, import management, and global trade facilitation, connecting businesses with trusted international suppliers.",
+    strengths: [
+      "Indenting & Import Management",
+      "International Trade",
+      "Global Sourcing & Supplier Verification",
+    ],
+    icon: Globe,
+    color: "navy",
+  },
+  {
+    id: "sj-motion-pictures",
+    name: "S J Motion Pictures",
+    established: 2014,
+    tagline: "Creative Media & Production House",
+    description:
+      "The creative media arm of Corona Group, producing high-quality television, film, and digital content while offering professional media production services.",
+    strengths: [
+      "Television Production",
+      "Film Production",
+      "Commercial & Corporate Productions",
+      "Creative Media Solutions",
+    ],
+    icon: Video,
+    color: "gold",
+  },
+];
+
+export const GROUP_STATS = [
+  { value: "1987", suffix: "", label: "Founded", icon: Landmark },
+  { value: "6", suffix: "+", label: "Operational Divisions", icon: Building2 },
+  { value: "37+", suffix: "", label: "Years of Excellence", icon: TrendingUp },
+  { value: "National", suffix: "", label: "Footprint", icon: MapPin },
+] as const;
+
+export const VISION_MISSION = {
+  vision:
+    "To be one of Bangladesh's most trusted and diversified business groups, recognized for excellence, innovation, and sustainable growth.",
+  mission:
+    "To deliver reliable, efficient, and customer-centric solutions across logistics, shipping, customs services, international trade, and media while maintaining the highest standards of ethics, safety, and professional excellence.",
+};
+
+export const OFFICE_LOCATIONS: OfficeLocation[] = [
+  {
+    city: "Dhaka",
+    name: "Corporate Headquarters",
+    description: "Strategic command center overseeing all Group operations, corporate affairs, and executive decision-making.",
+  },
+  {
+    city: "Chattogram",
+    name: "Sea Port Operations",
+    description: "Dedicated seaport logistics hub managing international shipping and customs clearing at Bangladesh's primary commercial port.",
+  },
+  {
+    city: "DEPZ, Savar",
+    name: "Industrial & Export Services",
+    description: "Focused unit serving export processing zones with streamlined customs, logistics, and supply chain solutions.",
+  },
+  {
+    city: "Benapole",
+    name: "Land Port Operations",
+    description: "Strategic border office managing overland logistics at the busiest Indo-Bangladesh trade gateway.",
+  },
+];
+
+/* ============================================
+    EXPORTED ICONS (for reuse)
+    ============================================ */
+export {
+  MapPin, Maximize, Truck, Ship, Anchor, Globe, Video, Landmark,
+};
 
 /* ============================================
    HELPER FUNCTIONS

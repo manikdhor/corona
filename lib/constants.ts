@@ -9,7 +9,7 @@ export const SITE_CONFIG = {
   tagline: "Premium Land. Lasting Legacy.",
   description:
     "Corona Properties Limited is a leading residential land developer in Bangladesh, crafting premium plots and exclusive communities with integrity, vision, and unmatched quality.",
-  logo: "https://coronapropertiesltd.com/images/corona-logo.png",
+  logo: "/corona-logo.png",
   url: "https://coronapropertiesltd.com",
 } as const;
 
@@ -36,6 +36,7 @@ export const SOCIAL_LINKS = {
 export const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
+  { label: "Group Profile", href: "/corona-group" },
   { label: "Management", href: "/team" },
   { label: "Projects", href: "/projects" },
   { label: "Services", href: "/services" },
@@ -46,6 +47,7 @@ export const NAV_LINKS = [
 export const FOOTER_LINKS = {
   company: [
     { label: "About Us", href: "/about" },
+    { label: "Group Profile", href: "/corona-group" },
     { label: "Management Messages", href: "/team" },
     { label: "Our Projects", href: "/projects" },
     { label: "Services", href: "/services" },
