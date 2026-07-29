@@ -202,6 +202,27 @@ export default function Navbar() {
               />
             </Link>
             <Link
+              href="/blog"
+              className={cn(
+                "relative px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.1em] transition-all duration-300",
+                scrolled
+                  ? isActive("/blog")
+                    ? "text-gold-600"
+                    : "text-navy-700 hover:text-gold-600"
+                  : isActive("/blog")
+                  ? "text-gold-champagne"
+                  : "text-cream/90 hover:text-gold-champagne"
+              )}
+            >
+              <span className="relative z-10">Blog</span>
+              <span
+                className={cn(
+                  "absolute bottom-0 left-1/2 h-[2px] -translate-x-1/2 rounded-full bg-gradient-to-r from-gold-400 to-gold-600 transition-all duration-400",
+                  isActive("/blog") ? "w-5" : "w-0"
+                )}
+              />
+            </Link>
+            <Link
               href="/contact"
               className={cn(
                 "relative px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.1em] transition-all duration-300",
@@ -328,6 +349,9 @@ export default function Navbar() {
                     </div>
                     <Link href="/gallery" onClick={() => setMobileOpen(false)} className={cn("group flex items-center justify-between rounded-xl px-4 py-3.5 text-[14px] font-medium transition-all duration-300", pathname.startsWith("/gallery") ? "bg-gold/10 text-gold" : "text-cream/80 hover:bg-white/[0.04] hover:text-cream")}>
                       <span>Gallery</span>
+                    </Link>
+                    <Link href="/blog" onClick={() => setMobileOpen(false)} className={cn("group flex items-center justify-between rounded-xl px-4 py-3 text-[13px] font-medium transition-all duration-300", pathname.startsWith("/blog") ? "bg-gold/10 text-gold" : "text-cream/80 hover:bg-white/[0.04] hover:text-cream")}>
+                      <span>Blog</span>
                     </Link>
                     <Link href="/contact" onClick={() => setMobileOpen(false)} className={cn("group flex items-center justify-between rounded-xl px-4 py-3.5 text-[14px] font-medium transition-all duration-300", pathname.startsWith("/contact") ? "bg-gold/10 text-gold" : "text-cream/80 hover:bg-white/[0.04] hover:text-cream")}>
                       <span>Contact</span>
