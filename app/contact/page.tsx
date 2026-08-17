@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Linkedin, Youtube, MessageCircle } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Linkedin, Twitter, Youtube, MessageCircle } from "lucide-react";
 import PageHero from "@/components/ui/PageHero";
 import SectionHeading from "@/components/ui/SectionHeading";
 import LeadForm from "@/components/lead/LeadForm";
 import FAQ from "@/components/contact/FAQ";
 import { CONTACT_INFO, SOCIAL_LINKS } from "@/lib/constants";
+import PinterestIcon from "@/components/ui/PinterestIcon";
 
 export const metadata: Metadata = {
   title: "Contact Us",
@@ -133,6 +134,8 @@ export default function ContactPage() {
                     { Icon: Facebook, href: SOCIAL_LINKS.facebook, label: "Facebook" },
                     { Icon: Instagram, href: SOCIAL_LINKS.instagram, label: "Instagram" },
                     { Icon: Linkedin, href: SOCIAL_LINKS.linkedin, label: "LinkedIn" },
+                    { Icon: Twitter, href: SOCIAL_LINKS.twitter, label: "Twitter" },
+                    { Icon: PinterestIcon, href: SOCIAL_LINKS.pinterest, label: "Pinterest" },
                     { Icon: Youtube, href: SOCIAL_LINKS.youtube, label: "YouTube" },
                   ].map(({ Icon, href, label }) => (
                     <a

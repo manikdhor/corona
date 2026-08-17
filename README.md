@@ -54,7 +54,7 @@ lib/              → Data, constants, utilities
 
 ## 📋 Company Info
 - **Address:** Mar garden, House # 145, Flat # 704, Road # 3, Block A, Niketon, Gulshan 01, Dhaka 1212
-- **Email:** info@coronaproperties.com
+- **Email:** cplcoronapropertiesltd@gmail.com
 - **Phone:** +880 18 0575 9297
 
 ---

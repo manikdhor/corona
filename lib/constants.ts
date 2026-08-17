@@ -17,7 +17,7 @@ export const CONTACT_INFO = {
   address:
     "Mar garden, House # 145, Flat # 704, Road # 3, Block A, Niketon, Gulshan 01, Dhaka 1212",
   addressShort: "Gulshan 01, Dhaka 1212, Bangladesh",
-  email: "info@coronapropertiesltd.com",
+  email: "cplcoronapropertiesltd@gmail.com",
   phone: "+880 18 0575 9297",
   phoneRaw: "+8801805759297",
   hours: "Saturday – Thursday: 9:00 AM – 6:00 PM",
@@ -26,10 +26,12 @@ export const CONTACT_INFO = {
 } as const;
 
 export const SOCIAL_LINKS = {
-  facebook: "https://facebook.com",
-  instagram: "https://instagram.com",
+  facebook: "https://www.facebook.com/coronapropertieslimited",
+  instagram: "https://www.instagram.com/coronapropertiesltd/",
+  twitter: "https://x.com/coronagroupbd",
   linkedin: "https://linkedin.com",
-  youtube: "https://youtube.com",
+  pinterest: "https://www.pinterest.com/coronapropertiesltd/",
+  youtube: "https://www.youtube.com/@CoronaPropertiesLtd",
   whatsapp: "https://wa.me/8801805759297",
 } as const;
 

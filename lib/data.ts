@@ -452,7 +452,7 @@ export const TEAM: TeamMember[] = [
     id: "1",
     name: "Nayma Fardusi",
     role: "Chairman",
-    bio: '"We believe in creating not just homes, but communities." With over 20 years of experience in real estate, I have personally overseen every detail of Maple Leaf Garden City to ensure it meets international standards. Our vision is to bring the Canadian lifestyle to Bangladesh, offering families a safe, green, and modern living environment. This project is a dream come true – a place where nature and urban convenience coexist. We are committed to transparency, quality, and customer satisfaction.',
+    bio: '"We believe in creating not just homes, but communities." With 5 years of experience in the Real Estate Section in Canada and Bangladesh, I have personally overseen every detail of Maple Leaf Garden City to ensure it meets international standards. Our vision is to bring the Canadian lifestyle to Bangladesh, offering families a safe, green, and modern living environment. This project is a dream come true – a place where nature and urban convenience coexist. We are committed to transparency, quality, and customer satisfaction.',
     image: "/Nayma_Fardusi_Chairman.jpeg",
   },
   {

@@ -1,7 +1,8 @@
 "use client";
 
-import { Phone, Mail, Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
+import { Phone, Mail, Facebook, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
 import { CONTACT_INFO, SOCIAL_LINKS } from "@/lib/constants";
+import PinterestIcon from "@/components/ui/PinterestIcon";
 
 export default function TopBar() {
   return (
@@ -21,6 +22,8 @@ export default function TopBar() {
           {[{ Icon: Facebook, href: SOCIAL_LINKS.facebook, label: "Facebook" },
             { Icon: Instagram, href: SOCIAL_LINKS.instagram, label: "Instagram" },
             { Icon: Linkedin, href: SOCIAL_LINKS.linkedin, label: "LinkedIn" },
+            { Icon: Twitter, href: SOCIAL_LINKS.twitter, label: "Twitter" },
+            { Icon: PinterestIcon, href: SOCIAL_LINKS.pinterest, label: "Pinterest" },
             { Icon: Youtube, href: SOCIAL_LINKS.youtube, label: "YouTube" },
           ].map(({ Icon, href, label }) => (
             <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label}

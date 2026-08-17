@@ -19,7 +19,6 @@ const JOURNEY = [
   { year: "Inception", title: "The Beginning", text: "Corona Properties launched with a vision to bring transparency to Bangladesh's land market." },
   { year: "Growth", title: "First 100 Families", text: "Crossed our first 100 happy families with our Gulshan and Banani projects." },
   { year: "Expansion", title: "Expansion", text: "Expanded to Uttara, Bashundhara, and Baridhara with premium community projects." },
-  { year: "Recognition", title: "REHAB Recognition", text: "Awarded by REHAB for excellence in land development and customer satisfaction." },
   { year: "Scale", title: "500+ Acres", text: "Crossed 500 acres of developed land with 1,000+ satisfied property owners." },
   { year: "Future", title: "Leading the Future", text: "Today, Corona Properties is one of the most trusted names in residential land development." },
 ];

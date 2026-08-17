@@ -9,7 +9,7 @@ const REASONS = [
   { icon: TrendingUp, title: "High ROI Potential", description: "Strategically located plots in high-growth corridors, historically delivering 25–40% appreciation over 3 years." },
   { icon: Handshake, title: "Transparent Deals", description: "No hidden costs, no surprise clauses. What you see is exactly what you get — crystal-clear transactions." },
   { icon: Building2, title: "Premium Infrastructure", description: "Wide roads, underground utilities, proper drainage, and modern amenities on par with international standards." },
-  { icon: Award, title: "Award-Winning Developer", description: "Recognized by REHAB and leading industry bodies for excellence in land development and customer satisfaction." },
+  { icon: Award, title: "Award-Winning Developer", description: "Recognized by leading industry bodies for excellence in land development and customer satisfaction." },
   { icon: Headphones, title: "Lifetime Support", description: "Dedicated after-sales team supporting you through construction, resale, and lifelong property management." },
 ];
 

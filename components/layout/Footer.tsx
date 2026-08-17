@@ -9,6 +9,7 @@ import {
   Facebook,
   Instagram,
   Linkedin,
+  Twitter,
   Youtube,
   ArrowRight,
   Send,
@@ -20,6 +21,7 @@ import {
   FOOTER_LINKS,
   NAV_LINKS,
 } from "@/lib/constants";
+import PinterestIcon from "@/components/ui/PinterestIcon";
 import { useState } from "react";
 
 export default function Footer() {
@@ -187,6 +189,8 @@ export default function Footer() {
                   { Icon: Facebook, href: SOCIAL_LINKS.facebook, label: "Facebook" },
                   { Icon: Instagram, href: SOCIAL_LINKS.instagram, label: "Instagram" },
                   { Icon: Linkedin, href: SOCIAL_LINKS.linkedin, label: "LinkedIn" },
+                  { Icon: Twitter, href: SOCIAL_LINKS.twitter, label: "Twitter" },
+                  { Icon: PinterestIcon, href: SOCIAL_LINKS.pinterest, label: "Pinterest" },
                   { Icon: Youtube, href: SOCIAL_LINKS.youtube, label: "YouTube" },
                 ].map(({ Icon, href, label }) => (
                   <a

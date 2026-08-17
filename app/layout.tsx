@@ -123,7 +123,7 @@ export default function RootLayout({
               url: SITE_CONFIG.url,
               logo: SITE_CONFIG.logo,
               telephone: "+8801805759297",
-              email: "info@coronaproperties.com",
+              email: "cplcoronapropertiesltd@gmail.com",
               address: {
                 "@type": "PostalAddress",
                 streetAddress:
