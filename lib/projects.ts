@@ -101,7 +101,7 @@ export const PROJECTS: Project[] = [
       { id: "fitness", name: "Fitness & Lounge Facilities", icon: "Dumbbell", description: "Premium gymnasium and co-working spaces" },
     ],
     highlights: [
-      "Approved master layout with full legal documentation",
+      "Master layout with complete documentation",
       "80 ft and 40 ft wide roads ensuring smooth circulation",
       "Gated perimeter with 24/7 security and smart surveillance",
       "Continuous maple tree canopy along pedestrian walkways",

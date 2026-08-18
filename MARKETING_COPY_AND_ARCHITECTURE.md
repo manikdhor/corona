@@ -113,7 +113,7 @@ Land in planned Purbachal communities has historically outperformed general Dhak
 This is not a traditional Bangladeshi plot-farming society. Every detail — from landscape design and engineering specifications to lighting, drainage, and communal facilities — has been benchmarked against international residential standards.
 
 5. **Title Certainty**
-Every plot is delivered with full approval, clear title, and legally documented ownership. No disputes, no encumbrances, no ambiguity.
+Every plot is delivered with complete documentation, clear title, and guaranteed ownership. No disputes, no encumbrances, no ambiguity.
 
 ---
 

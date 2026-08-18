@@ -7,7 +7,7 @@ import SectionHeading from "@/components/ui/SectionHeading";
 const STEPS = [
   { icon: Search, step: "01", title: "Discovery", description: "We understand your goals, budget, and preferences, then curate the perfect plots from our portfolio." },
   { icon: FileCheck, step: "02", title: "Verification", description: "Our legal team conducts thorough title verification, due diligence, and documentation — at no extra cost." },
-  { icon: Handshake, step: "03", title: "Transaction", description: "Transparent pricing, flexible payment plans, and seamless registration with full legal transfer." },
+  { icon: Handshake, step: "03", title: "Transaction", description: "Transparent pricing, flexible payment plans, and seamless registration with complete transfer." },
   { icon: KeyRound, step: "04", title: "Handover & Beyond", description: "Plot handover with mutation complete, plus lifetime after-sales support for construction and resale." },
 ];
 
