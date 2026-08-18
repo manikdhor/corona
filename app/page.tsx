@@ -36,7 +36,7 @@ export default function HomePage() {
                 {[
                   "Free consultation with land experts",
                   "Curated property recommendations",
-                  "RAJUK-approved, legally verified plots",
+                  "Approved, legally verified plots",
                   "Zero obligation, transparent process",
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3">

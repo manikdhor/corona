@@ -43,7 +43,7 @@ We didn't simply replicate a concept. We envisioned a place where the serenity o
 **Overall Masterplan**
 - **Total Project Area:** 1,800+ Katha (Approx. ~90 Acres of premium residential land)
 - **Total Residential Plots:** 2,504 individually titled units
-- **Planning Authority:** RAJUK-Approved Master Layout with full compliance
+- **Planning Authority:** Approved Master Layout with full compliance
 - **Infrastructure:** All-weather wide roads, underground utility network, modern sewage treatment, and city-gas pipeline connectivity
 
 **Road Network**
@@ -101,7 +101,7 @@ Purbachal is emerging as Dhaka's most planned new town, with 10,000+ residential
 #### Why Maple Leaf Garden City is Purbachal's Premier Address
 
 1. **Future-ready Location**
-Purbachal is not a speculative zone. It is the official next-generation satellite town sanctioned by RAJUK, with master drainage, utility pipelines, and road networks already being executed. Investing here is not speculation; it is alignment with infrastructure that is already arriving.
+Purbachal is not a speculative zone. It is the official next-generation satellite town, with master drainage, utility pipelines, and road networks already being executed. Investing here is not speculation; it is alignment with infrastructure that is already arriving.
 
 2. **Limited Plot Availability**
 With 2,504 plots across five size categories and a targeted community of discerning homeowners, scarcity is built into the architecture of value. Once fully plotted, this community will not expand.
@@ -113,7 +113,7 @@ Land in planned Purbachal communities has historically outperformed general Dhak
 This is not a traditional Bangladeshi plot-farming society. Every detail — from landscape design and engineering specifications to lighting, drainage, and communal facilities — has been benchmarked against international residential standards.
 
 5. **Title Certainty**
-Every plot is delivered with full RAJUK approval, clear title, and legally documented ownership. No disputes, no encumbrances, no ambiguity.
+Every plot is delivered with full approval, clear title, and legally documented ownership. No disputes, no encumbrances, no ambiguity.
 
 ---
 
@@ -148,7 +148,7 @@ Every plot is delivered with full RAJUK approval, clear title, and legally docum
       <span class="spec-label">Developed Land</span>
     </div>
     <div class="spec-card">
-      <span class="spec-number">RAJUK</span>
+      <span class="spec-number">Approved</span>
       <span class="spec-label">Approved Masterplan</span>
     </div>
     <div class="spec-card">

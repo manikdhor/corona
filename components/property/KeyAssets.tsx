@@ -55,7 +55,7 @@ function buildAssetList(props: KeyAssetsProps): KeyAsset[] {
     {
       title: "Layout Plan",
       description:
-        "RAJUK-approved master layout plan showing plot divisions, road networks, and amenities.",
+        "Approved master layout plan showing plot divisions, road networks, and amenities.",
       icon: "layout",
       viewHref: assets.layoutPlan,
       downloadHref: assets.layoutPlan,

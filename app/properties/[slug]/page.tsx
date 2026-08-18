@@ -135,7 +135,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
                   {[
                     { icon: Maximize, label: "Plot Size", value: property.size },
                     { icon: MapPin, label: "Area", value: property.area },
-                    { icon: BadgeCheck, label: "Approval", value: "RAJUK" },
+                    { icon: BadgeCheck, label: "Approval", value: "Verified" },
                     { icon: ShieldCheck, label: "Title", value: "Verified" },
                   ].map((stat, i) => {
                     const Icon = stat.icon;

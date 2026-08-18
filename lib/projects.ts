@@ -101,7 +101,7 @@ export const PROJECTS: Project[] = [
       { id: "fitness", name: "Fitness & Lounge Facilities", icon: "Dumbbell", description: "Premium gymnasium and co-working spaces" },
     ],
     highlights: [
-      "RAJUK-approved master layout with full legal documentation",
+      "Approved master layout with full legal documentation",
       "80 ft and 40 ft wide roads ensuring smooth circulation",
       "Gated perimeter with 24/7 security and smart surveillance",
       "Continuous maple tree canopy along pedestrian walkways",
@@ -119,13 +119,13 @@ export const PROJECTS: Project[] = [
     specs: [
       { label: "Total Plots", value: "2,504" },
       { label: "Total Area", value: "~90 Acres" },
-      { label: "Planning Authority", value: "RAJUK Approved" },
+      { label: "Planning Authority", value: "Approved" },
       { label: "Arterial Roads", value: "80 ft / 40 ft" },
     ],
     seo: {
       title: "Maple Leaf Garden City — Premium Residential Plots in Purbachal, Dhaka",
       description:
-        "Discover Maple Leaf Garden City, a master-planned residential community of 2,504 premium plots in Purbachal, Dhaka. RAJUK-approved with world-class amenities.",
+        "Discover Maple Leaf Garden City, a master-planned residential community of 2,504 premium plots in Purbachal, Dhaka. Approved with world-class amenities.",
     },
     assets: {
       layoutPlan: "/Layout-Plan.pdf",

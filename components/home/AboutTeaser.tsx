@@ -7,7 +7,7 @@ import { Check, ArrowRight } from "lucide-react";
 import Button from "@/components/ui/Button";
 
 const HIGHLIGHTS = [
-  "RAJUK-approved residential plots",
+  "Approved residential plots",
   "100% clear & verified titles",
   "Underground utilities & wide roads",
   "Transparent, end-to-end support",

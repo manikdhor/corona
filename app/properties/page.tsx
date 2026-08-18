@@ -15,7 +15,7 @@ export default function PropertiesPage() {
     <>
       <PageHero
         title="Premium Land Collection"
-        subtitle="Discover Bangladesh's finest residential plots — each one RAJUK-approved, legally verified, and ready for your dream project."
+        subtitle="Discover Bangladesh's finest residential plots — each one approved, legally verified, and ready for your dream project."
         breadcrumb="Properties"
         bgImage="/image-03.webp"
       />

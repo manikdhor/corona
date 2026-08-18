@@ -138,7 +138,7 @@ export const PROPERTIES: Property[] = [
       "Prime diplomatic zone location",
       "Lake views from every plot",
       "Ready for immediate construction",
-      "RAJUK-approved layout",
+      "Approved layout",
     ],
     coordinates: { lat: 23.7925, lng: 90.4119 },
     featured: true,
@@ -421,9 +421,9 @@ export const SERVICES: Service[] = [
     icon: FileText,
     title: "Documentation",
     description:
-      "Hassle-free documentation services covering all RAJUK, land registry, and municipal paperwork. We handle the bureaucracy so you don't have to.",
+      "Hassle-free documentation services covering all land registry, and municipal paperwork. We handle the bureaucracy so you don't have to.",
     features: [
-      "RAJUK approval & clearance",
+      "Planning approval & clearance",
       "Land registry documentation",
       "Tax & utility connections",
       "Ownership documentation",
@@ -459,7 +459,7 @@ export const TEAM: TeamMember[] = [
     id: "2",
     name: "Kazi Saiful Islam",
     role: "Managing Director",
-    bio: "Dear Customers, Investors, and Valued Well-Wishers,\n\nWelcome to Corona Properties Ltd.\n\nAt Corona Properties Ltd., we believe that real estate is more than an investment — it is the foundation of a secure future, a better lifestyle, and a lasting legacy for generations. With this vision, we proudly present Maple Leaf Garden City Purbachal, a modern and thoughtfully planned residential community conveniently located near Kanchan Bridge.\n\nInspired by our commitment to bring \"The Dream of Canada to the Soil of Bangladesh,\" we are creating a unique living environment that blends international standards, modern infrastructure, natural beauty, and sustainable development. Designed with wide roads, green open spaces, essential civic facilities, and future-ready planning, Maple Leaf Garden City is set to become a landmark residential destination.\n\nWe understand that purchasing land is one of the most important decisions in a person's life. Therefore, transparency, integrity, and customer confidence remain at the heart of everything we do. We proudly ensure 100% land handover guarantee, supported by full legal compliance and adherence to RAJUK regulations and applicable land laws of Bangladesh.\n\nOur mission extends beyond selling plots; we are committed to building a vibrant, secure, and prosperous community where families can thrive and future generations can flourish.\n\nOn behalf of the entire Corona Properties family, I sincerely thank you for your trust and confidence. We look forward to accompanying you on your journey toward a brighter and more prosperous future.",
+    bio: "Dear Customers, Investors, and Valued Well-Wishers,\n\nWelcome to Corona Properties Ltd.\n\nAt Corona Properties Ltd., we believe that real estate is more than an investment — it is the foundation of a secure future, a better lifestyle, and a lasting legacy for generations. With this vision, we proudly present Maple Leaf Garden City Purbachal, a modern and thoughtfully planned residential community conveniently located near Kanchan Bridge.\n\nInspired by our commitment to bring \"The Dream of Canada to the Soil of Bangladesh,\" we are creating a unique living environment that blends international standards, modern infrastructure, natural beauty, and sustainable development. Designed with wide roads, green open spaces, essential civic facilities, and future-ready planning, Maple Leaf Garden City is set to become a landmark residential destination.\n\nWe understand that purchasing land is one of the most important decisions in a person's life. Therefore, transparency, integrity, and customer confidence remain at the heart of everything we do. We proudly ensure 100% land handover guarantee, supported by full legal compliance and adherence to all applicable regulations and land laws of Bangladesh.\n\nOur mission extends beyond selling plots; we are committed to building a vibrant, secure, and prosperous community where families can thrive and future generations can flourish.\n\nOn behalf of the entire Corona Properties family, I sincerely thank you for your trust and confidence. We look forward to accompanying you on your journey toward a brighter and more prosperous future.",
     image: "/Kazi_Saiful_Islam_Managing_Director.jpeg",
   },
   {
@@ -531,7 +531,7 @@ export const BLOG_POSTS: BlogPost[] = [
       "Dhaka's real estate market continues to be one of the most resilient and rewarding investment destinations in South Asia. As the city expands outward and new satellite towns emerge, strategic land investment has never been more accessible — or more lucrative.",
       "In this comprehensive guide, we explore the top growth corridors for 2026, including Purbachal New Town, Bashundhara R/A extensions, and the emerging Hemayetpur belt. We analyze price trends, infrastructure developments, and the regulatory landscape that shapes every transaction.",
       "**Key Growth Zones.** Purbachal New Town remains the flagship project, with the approach road complete and the Rafiqul Islam Avenue now fully operational. Plots here have seen 25-35% appreciation in the last 18 months alone. Bashundhara R/A continues its steady growth, particularly in the newer blocks (J-N), which offer excellent entry points for investors seeking 3-5 year appreciation.",
-      "When evaluating a plot, prioritize RAJUK-approved layouts, clear title history, underground utilities, and proximity to planned infrastructure (metro stations, expressways). A reputable developer will provide all of this transparently.",
+      "When evaluating a plot, prioritize approved layouts, clear title history, underground utilities, and proximity to planned infrastructure (metro stations, expressways). A reputable developer will provide all of this transparently.",
       "Land in greater Dhaka remains a finite, appreciating asset. With the right guidance and due diligence, it represents one of the safest and most profitable long-term investments available to Bangladeshis at home and abroad.",
     ],
     category: "Investment Guide",
@@ -571,7 +571,7 @@ export const BLOG_POSTS: BlogPost[] = [
       "Beyond the established neighborhoods, these five emerging areas are poised for explosive growth in the next decade.",
     content: [
       "While Gulshan, Banani, and Dhanmondi remain the gold standard, a new wave of emerging areas is offering exceptional value and growth potential for forward-thinking investors.",
-      "**1. Purbachal New Town.** The largest RAJUK project, with world-class infrastructure and the iconic 300-foot avenue. Prices still 40-60% below established areas, with appreciation potential of 50-100% over 5 years.",
+      "**1. Purbachal New Town.** The largest planned project, with world-class infrastructure and the iconic 300-foot avenue. Prices still 40-60% below established areas, with appreciation potential of 50-100% over 5 years.",
       "**2. Hemayetpur.** Located on the western outskirts, Hemayetpur is benefiting from the Dhaka-Aricha highway expansion and the metro rail extension. Land here is among the most affordable entry points to greater Dhaka.",
       "**3. Keraniganj.** With the Padma Bridge and Buriganga riverfront development, Keraniganj is transforming from industrial outskirts to a mixed-use residential destination with excellent connectivity.",
       "**4. Narayanganj Belt.** The Dhaka-Narayanganj industrial corridor is seeing rapid residential conversion, particularly in Adamjee Nagar and Fatullah. Strong demand from young families and professionals.",

@@ -67,10 +67,6 @@ export default function ProjectCard({ project, index = 0 }: { project: Project; 
             <Maximize2 className="h-4 w-4 text-gold" />
             <span className="font-semibold">{project.totalPlots.toLocaleString()} Plots</span>
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-semibold">
-            <BadgeCheck className="h-4 w-4" />
-            RAJUK Approved
-          </div>
         </div>
       </div>
       <div className="absolute bottom-0 left-0 h-[3px] w-0 bg-gradient-to-r from-gold-400 to-gold-600 transition-all duration-500 group-hover:w-full" />
