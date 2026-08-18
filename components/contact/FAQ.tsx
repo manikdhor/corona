@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 
 const FAQS = [
   {
-    q: "Are all Corona Properties plots fully approved?",
-    a: "Yes, every single plot we sell comes with full approval and clear legal documentation. We never list plots without verified titles and proper approvals — that's our core promise.",
+    q: "Are all Corona Properties plots fully documented?",
+    a: "Yes, every single plot we sell comes with complete documentation and verified titles. We never list plots without proper paperwork — that's our core promise.",
   },
   {
     q: "What payment plans do you offer?",
