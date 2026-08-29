@@ -59,7 +59,7 @@ export default function Footer() {
         <div className="container-luxury py-12 md:py-20">
           <div className="grid gap-10 md:gap-12 lg:grid-cols-12">
             {/* Brand column */}
-            <div className="lg:col-span-4">
+            <div className="lg:col-span-3">
               <div className="flex items-center gap-3">
                 <div className="relative h-12 w-12 md:h-16 md:w-16">
                   <Image
@@ -110,7 +110,7 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Quick links + Services - stacked on mobile */}
+            {/* Quick links + Services + Legal - stacked on mobile */}
             <div className="grid grid-cols-2 gap-8 md:contents md:gap-12">
               <div className="lg:col-span-2">
                 <h4 className="font-serif text-base font-semibold text-cream mb-4 md:text-lg md:mb-5">
@@ -149,10 +149,29 @@ export default function Footer() {
                   ))}
                 </ul>
               </div>
+
+              <div className="lg:col-span-2">
+                <h4 className="font-serif text-base font-semibold text-cream mb-4 md:text-lg md:mb-5">
+                  Legal
+                </h4>
+                <ul className="space-y-2.5 md:space-y-3">
+                  {FOOTER_LINKS.legal.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="group flex items-center gap-2 text-sm text-cream/70 transition-colors hover:text-gold"
+                      >
+                        <ArrowRight className="h-3 w-3 -translate-x-2 text-gold opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
 
             {/* Contact */}
-            <div className="lg:col-span-4">
+            <div className="lg:col-span-3">
               <h4 className="font-serif text-base font-semibold text-cream mb-4 md:text-lg md:mb-5">
                 Get in Touch
               </h4>
@@ -216,14 +235,17 @@ export default function Footer() {
               © {new Date().getFullYear()} {SITE_CONFIG.name}. All rights reserved.
             </p>
             <div className="flex items-center gap-6 text-xs text-cream/50">
-              <Link href="/contact" className="hover:text-gold transition-colors">
+              <Link href="/privacy-policy" className="hover:text-gold transition-colors">
                 Privacy Policy
               </Link>
-              <Link href="/contact" className="hover:text-gold transition-colors">
-                Terms of Service
+              <Link href="/terms-and-conditions" className="hover:text-gold transition-colors">
+                Terms & Conditions
               </Link>
-              <Link href="/contact" className="hover:text-gold transition-colors">
-                Sitemap
+              <Link href="/disclaimer" className="hover:text-gold transition-colors">
+                Disclaimer
+              </Link>
+              <Link href="/refund-policy" className="hover:text-gold transition-colors">
+                Refund Policy
               </Link>
             </div>
           </div>

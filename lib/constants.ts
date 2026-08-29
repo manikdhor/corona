@@ -69,9 +69,13 @@ export const FOOTER_LINKS = {
   support: [
     { label: "Contact Us", href: "/contact" },
     { label: "Book a Visit", href: "/contact" },
-    { label: "Privacy Policy", href: "/contact" },
-    { label: "Terms of Service", href: "/contact" },
     { label: "FAQ", href: "/contact" },
+  ],
+  legal: [
+    { label: "Privacy Policy", href: "/privacy-policy" },
+    { label: "Terms & Conditions", href: "/terms-and-conditions" },
+    { label: "Disclaimer", href: "/disclaimer" },
+    { label: "Refund Policy", href: "/refund-policy" },
   ],
 } as const;
 
