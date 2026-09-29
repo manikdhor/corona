@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Calendar, Clock, ArrowLeft, ArrowRight, User } from "lucide-react";
 import { BLOG_POSTS, getBlogPostBySlug } from "@/lib/data";
+import { getBlogPostAction, getBlogPostsAction } from "@/lib/admin/actions";
 import Button from "@/components/ui/Button";
 import CTABanner from "@/components/home/CTABanner";
 import LeadForm from "@/components/lead/LeadForm";
@@ -13,11 +14,15 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
+  const dynamicPosts = await getBlogPostsAction();
+  if (dynamicPosts && dynamicPosts.length > 0) {
+    return dynamicPosts.map((p) => ({ slug: p.slug }));
+  }
   return BLOG_POSTS.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const post = getBlogPostBySlug(params.slug);
+  const post = (await getBlogPostAction(params.slug)) || getBlogPostBySlug(params.slug);
   if (!post) return { title: "Article Not Found" };
 
   return {
@@ -46,14 +51,17 @@ function renderContent(paragraph: string) {
   });
 }
 
-export default function BlogDetailPage({ params }: PageProps) {
-  const post = getBlogPostBySlug(params.slug);
+export default async function BlogDetailPage({ params }: PageProps) {
+  const post = (await getBlogPostAction(params.slug)) || getBlogPostBySlug(params.slug);
 
   if (!post) {
     notFound();
   }
 
-  const otherPosts = BLOG_POSTS.filter((p) => p.slug !== post.slug).slice(0, 2);
+  const allPosts = await getBlogPostsAction();
+  const otherPosts = allPosts
+    .filter((p) => p.slug !== post.slug && p.status === "Published")
+    .slice(0, 2);
 
   return (
     <>
@@ -61,7 +69,7 @@ export default function BlogDetailPage({ params }: PageProps) {
       <section className="relative flex h-[60vh] min-h-[440px] items-end overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src={post.image}
+            src={post.image || "/image-01.webp"}
             alt={post.title}
             fill
             className="object-cover"
@@ -71,7 +79,6 @@ export default function BlogDetailPage({ params }: PageProps) {
           <div className="absolute inset-0 bg-gradient-navy opacity-90" />
           <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-navy-950/60 to-transparent" />
         </div>
-
         <div className="container-luxury relative z-10 pb-12">
           <Link
             href="/blog"
@@ -82,10 +89,12 @@ export default function BlogDetailPage({ params }: PageProps) {
           </Link>
 
           <div className="flex items-center gap-4 text-xs uppercase tracking-wider text-gold mb-4">
-            <span className="rounded-full bg-gold/20 px-3 py-1">{post.category}</span>
+            <span className="rounded-full bg-gold/20 px-3 py-1">
+              {post.category}
+            </span>
             <span className="flex items-center gap-1.5 text-cream/70">
               <Calendar className="h-3.5 w-3.5" />
-              {post.date}
+              {(post as any).publishedAt || (post as any).date || "Recent"}
             </span>
             <span className="flex items-center gap-1.5 text-cream/70">
               <Clock className="h-3.5 w-3.5" />
@@ -99,7 +108,7 @@ export default function BlogDetailPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Content */}
+      {/* Article Content */}
       <article className="section-padding bg-cream">
         <div className="container-narrow">
           {/* Author */}
@@ -108,8 +117,12 @@ export default function BlogDetailPage({ params }: PageProps) {
               <User className="h-6 w-6 text-navy" />
             </div>
             <div>
-              <p className="font-serif text-lg font-bold text-navy">{post.author}</p>
-              <p className="text-sm text-navy-400">{post.authorRole}</p>
+              <p className="font-serif text-lg font-bold text-navy">
+                {typeof post.author === "object" ? (post.author as any)?.name : (post.author || "Corona Team")}
+              </p>
+              <p className="text-sm text-navy-400">
+                {typeof post.author === "object" ? (post.author as any)?.role : (post.authorRole || "Managing Director")}
+              </p>
             </div>
           </div>
 
@@ -118,13 +131,24 @@ export default function BlogDetailPage({ params }: PageProps) {
             {post.excerpt}
           </p>
 
-          {/* Body */}
+          {/* Body Content (Handles HTML string or string array) */}
           <div className="space-y-6">
-            {post.content.map((paragraph, i) => (
-              <p key={i} className="text-lg leading-relaxed text-navy-400">
-                {renderContent(paragraph)}
+            {Array.isArray(post.content) ? (
+              post.content.map((paragraph: string, i: number) => (
+                <p key={i} className="text-lg leading-relaxed text-navy-400">
+                  {renderContent(paragraph)}
+                </p>
+              ))
+            ) : typeof post.content === "string" && post.content.includes("<") ? (
+              <div
+                className="prose prose-lg prose-navy max-w-none text-navy-600 leading-relaxed [&>p]:mb-4 [&>h2]:font-serif [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:text-navy [&>h2]:mt-8 [&>h2]:mb-3 [&>h3]:font-serif [&>h3]:text-xl [&>h3]:font-bold [&>h3]:text-navy [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&>blockquote]:border-l-4 [&>blockquote]:border-gold [&>blockquote]:pl-4 [&>blockquote]:italic"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
+            ) : (
+              <p className="text-lg leading-relaxed text-navy-400">
+                {String(post.content)}
               </p>
-            ))}
+            )}
           </div>
 
           {/* CTA */}
@@ -166,44 +190,46 @@ export default function BlogDetailPage({ params }: PageProps) {
       </section>
 
       {/* More articles */}
-      <section className="section-padding bg-navy-50/50">
-        <div className="container-luxury">
-          <h2 className="mb-10 text-center font-serif text-display-sm font-bold text-navy">
-            More Insights
-          </h2>
-          <div className="grid gap-8 md:grid-cols-2">
-            {otherPosts.map((p) => (
-              <Link
-                key={p.id}
-                href={`/blog/${p.slug}`}
-                className="group grid gap-6 sm:grid-cols-2 rounded-2xl overflow-hidden bg-white shadow-card"
-              >
-                <div className="relative aspect-square sm:aspect-auto overflow-hidden">
-                  <Image
-                    src={p.image}
-                    alt={p.title}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                    sizes="50vw"
-                  />
-                </div>
-                <div className="flex flex-col justify-center p-6">
-                  <span className="text-xs uppercase tracking-wider text-gold-700 font-semibold mb-2">
-                    {p.category}
-                  </span>
-                  <h3 className="font-serif text-lg font-bold text-navy leading-snug transition-colors group-hover:text-gold-600">
-                    {p.title}
-                  </h3>
-                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-gold-600">
-                    Read More
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </span>
-                </div>
-              </Link>
-            ))}
+      {otherPosts.length > 0 && (
+        <section className="section-padding bg-navy-50/50">
+          <div className="container-luxury">
+            <h2 className="mb-10 text-center font-serif text-display-sm font-bold text-navy">
+              More Insights
+            </h2>
+            <div className="grid gap-8 md:grid-cols-2">
+              {otherPosts.map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/blog/${p.slug}`}
+                  className="group grid gap-6 sm:grid-cols-2 rounded-2xl overflow-hidden bg-white shadow-card"
+                >
+                  <div className="relative aspect-square sm:aspect-auto overflow-hidden">
+                    <Image
+                      src={p.image || "/image-01.webp"}
+                      alt={p.title}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      sizes="50vw"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-center p-6">
+                    <span className="text-xs uppercase tracking-wider text-gold-700 font-semibold mb-2">
+                      {p.category}
+                    </span>
+                    <h3 className="font-serif text-lg font-bold text-navy leading-snug transition-colors group-hover:text-gold-600">
+                      {p.title}
+                    </h3>
+                    <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-gold-600">
+                      Read More
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <CTABanner />
     </>

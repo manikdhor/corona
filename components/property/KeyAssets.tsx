@@ -27,6 +27,9 @@ interface KeyAssetsProps {
   mapCoordinates?: { lat: number; lng: number };
   mapHref?: string;
   className?: string;
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
 }
 
 const ASSET_ICONS = {
@@ -82,18 +85,26 @@ function buildAssetList(props: KeyAssetsProps): KeyAsset[] {
   return items;
 }
 
-export default function KeyAssets({ assets, mapCoordinates, mapHref, className = "" }: KeyAssetsProps) {
+export default function KeyAssets({
+  assets,
+  mapCoordinates,
+  mapHref,
+  className = "",
+  eyebrow = "Project Assets",
+  title = "Key Documents & Maps",
+  subtitle = "Download or view essential project documents for your reference.",
+}: KeyAssetsProps) {
   const items = buildAssetList({ assets, mapCoordinates, mapHref });
 
   return (
     <div className={className}>
       <div className="mb-6">
-        <span className="eyebrow">Project Assets</span>
+        <span className="eyebrow">{eyebrow}</span>
         <h2 className="mt-4 font-serif text-display-sm font-bold text-navy">
-          Key Documents & Maps
+          {title}
         </h2>
         <p className="mt-2 text-navy-400">
-          Download or view essential project documents for your reference.
+          {subtitle}
         </p>
       </div>
 

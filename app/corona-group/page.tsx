@@ -9,6 +9,7 @@ import {
   VISION_MISSION,
   OFFICE_LOCATIONS,
 } from "@/lib/data";
+import { getSiteContentAction } from "@/lib/admin/actions";
 import {
   Target,
   Eye,
@@ -22,6 +23,9 @@ import {
   Building2,
   TrendingUp,
   MapPin,
+  Clock,
+  Briefcase,
+  Users,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -31,20 +35,62 @@ export const metadata: Metadata = {
     "Learn about Corona Group Bangladesh — a diversified conglomerate with nearly four decades of excellence across transportation, shipping, customs brokerage, international trade, and media.",
 };
 
-const PHILOSOPHY = [
-  {
-    icon: Target,
-    title: "Our Mission",
-    text: VISION_MISSION.mission,
-  },
-  {
-    icon: Eye,
-    title: "Our Vision",
-    text: VISION_MISSION.vision,
-  },
-];
+const ICON_MAP: Record<string, any> = {
+  Clock,
+  Briefcase,
+  Users,
+  Building2,
+  TrendingUp,
+  Truck,
+  Ship,
+  ShieldCheck,
+  Anchor,
+  Globe,
+  Video,
+  Landmark,
+  MapPin,
+};
 
-export default function CoronaGroupPage() {
+export default async function CoronaGroupPage() {
+  const siteContent = await getSiteContentAction();
+  const corporateGroup = siteContent?.corporateGroup;
+
+  const pioneer = corporateGroup?.foundingPioneer || {
+    name: "Kazi Rafiqul Islam",
+    title: "A Pioneer in Transportation & Logistics",
+    bio: [
+      "From a single truck to a nationwide fleet, Kazi Rafiqul Islam built the foundational pillar of Corona Group — pioneering land logistics across Bangladesh and setting the standard for reliability, scale, and customer-centric service.",
+    ],
+    image: "/Kazi_Rafiqul_Islam.jpeg",
+  };
+
+  const groupStats = corporateGroup?.groupStats && corporateGroup.groupStats.length > 0
+    ? corporateGroup.groupStats
+    : GROUP_STATS;
+
+  const missionText = corporateGroup?.visionMission?.mission || VISION_MISSION.mission;
+  const visionText = corporateGroup?.visionMission?.vision || VISION_MISSION.vision;
+
+  const sisterConcerns = corporateGroup?.sisterConcerns && corporateGroup.sisterConcerns.length > 0
+    ? corporateGroup.sisterConcerns
+    : SISTER_CONCERNS;
+
+  const officeLocations = corporateGroup?.officeLocations && corporateGroup.officeLocations.length > 0
+    ? corporateGroup.officeLocations
+    : OFFICE_LOCATIONS;
+
+  const philosophy = [
+    {
+      icon: Target,
+      title: "Our Mission",
+      text: missionText,
+    },
+    {
+      icon: Eye,
+      title: "Our Vision",
+      text: visionText,
+    },
+  ];
   return (
     <>
       {/* ===== HERO ===== */}
@@ -94,17 +140,18 @@ export default function CoronaGroupPage() {
             <Reveal x={-50}>
               <span className="eyebrow text-gold">Founding Legacy</span>
               <h2 className="mt-6 font-serif text-display-md font-bold text-cream text-balance">
-                Kazi Rafiqul Islam
+                {pioneer.name}
               </h2>
               <p className="mt-2 text-gold font-medium tracking-wide">
-                A Pioneer in Transportation & Logistics
+                {pioneer.title}
               </p>
-              <p className="mt-6 text-lg leading-relaxed text-cream/70">
-                From a single truck to a nationwide fleet, Kazi Rafiqul Islam 
-                built the foundational pillar of Corona Group — pioneering land 
-                logistics across Bangladesh and setting the standard for 
-                reliability, scale, and customer-centric service.
-              </p>
+              <div className="mt-6 space-y-3 text-lg leading-relaxed text-cream/70">
+                {Array.isArray(pioneer.bio) ? (
+                  pioneer.bio.map((para: string, idx: number) => <p key={idx}>{para}</p>)
+                ) : (
+                  <p>{pioneer.bio}</p>
+                )}
+              </div>
               <div className="mt-8 divider-gold" />
             </Reveal>
 
@@ -112,8 +159,8 @@ export default function CoronaGroupPage() {
               <div className="relative">
                 <div className="relative aspect-[3/4] overflow-hidden rounded-2xl shadow-navy">
                   <Image
-                    src="/Kazi_Rafiqul_Islam.jpeg"
-                    alt="Kazi Rafiqul Islam — Pioneer in Transportation & Logistics"
+                    src={pioneer.image || "/Kazi_Rafiqul_Islam.jpeg"}
+                    alt={`${pioneer.name} — ${pioneer.title}`}
                     fill
                     className="object-cover"
                     sizes="(max-width: 1024px) 100vw, 45vw"
@@ -154,8 +201,11 @@ export default function CoronaGroupPage() {
               </p>
 
               <div className="mt-10 grid grid-cols-2 gap-6">
-                {GROUP_STATS.map((stat, i) => {
-                  const Icon = stat.icon;
+                {groupStats.map((stat: any, i: number) => {
+                  const Icon =
+                    typeof stat.icon === "function"
+                      ? stat.icon
+                      : ICON_MAP[stat.icon] || TrendingUp;
                   return (
                     <div
                       key={i}
@@ -217,7 +267,7 @@ export default function CoronaGroupPage() {
             subtitle="The principles that guide every decision, every transaction, and every relationship within Corona Group."
           />
           <div className="mt-16 grid gap-8 md:grid-cols-2">
-            {PHILOSOPHY.map((item, i) => {
+            {philosophy.map((item, i) => {
               const Icon = item.icon;
               return (
                 <Reveal key={i} y={40} delay={i * 0.15}>
@@ -252,10 +302,13 @@ export default function CoronaGroupPage() {
           />
 
           <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {SISTER_CONCERNS.map((concern, i) => {
-              const Icon = concern.icon;
+            {sisterConcerns.map((concern: any, i: number) => {
+              const Icon =
+                typeof concern.icon === "function"
+                  ? concern.icon
+                  : ICON_MAP[concern.icon] || Building2;
               return (
-                <Reveal key={concern.id} y={40} delay={i * 0.08}>
+                <Reveal key={concern.id || i} y={40} delay={i * 0.08}>
                   <div className="group relative h-full rounded-2xl border border-navy-50 bg-white p-8 shadow-card transition-all duration-500 hover:shadow-card-hover hover:-translate-y-1">
                     <div className="flex items-start justify-between">
                       <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gold/10 transition-all duration-500 group-hover:bg-gradient-gold group-hover:scale-110">
@@ -276,26 +329,28 @@ export default function CoronaGroupPage() {
                       {concern.description}
                     </p>
 
-                    <div className="mt-6 space-y-2.5">
-                      {concern.strengths.map((strength, j) => (
-                        <div key={j} className="flex items-center gap-3">
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-gold">
-                            <svg
-                              className="h-2.5 w-2.5 text-navy"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={3}
-                            >
-                              <path d="M5 13l4 4L19 7" />
-                            </svg>
-                          </span>
-                          <span className="text-xs font-medium text-navy-400">
-                            {strength}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                    {concern.strengths && concern.strengths.length > 0 && (
+                      <div className="mt-6 space-y-2.5">
+                        {concern.strengths.map((strength: string, j: number) => (
+                          <div key={j} className="flex items-center gap-3">
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-gold">
+                              <svg
+                                className="h-2.5 w-2.5 text-navy"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={3}
+                              >
+                                <path d="M5 13l4 4L19 7" />
+                              </svg>
+                            </span>
+                            <span className="text-xs font-medium text-navy-400">
+                              {strength}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </Reveal>
               );
@@ -316,7 +371,7 @@ export default function CoronaGroupPage() {
           />
 
           <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {OFFICE_LOCATIONS.map((office, i) => (
+            {officeLocations.map((office: any, i: number) => (
               <Reveal key={i} y={40} delay={i * 0.1}>
                 <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm transition-all duration-500 hover:bg-white/10 h-full">
                   <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full border-2 border-gold/40 bg-gold/10">
@@ -365,7 +420,7 @@ export default function CoronaGroupPage() {
         </div>
       </section>
 
-      <CTABanner />
+      <CTABanner data={siteContent?.ctaBanner} />
     </>
   );
 }

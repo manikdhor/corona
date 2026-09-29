@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, CheckCircle2, User, Phone, Mail, MessageSquare } from "lucide-react";
+import { Send, CheckCircle2, User, Phone, Mail, MessageSquare, AlertCircle, Loader2 } from "lucide-react";
+import { submitLeadInquiryAction } from "@/lib/admin/actions";
 
 interface LeadFormProps {
   title?: string;
   subtitle?: string;
   propertyName?: string;
   compact?: boolean;
+  source?: string;
 }
 
 export default function LeadForm({
@@ -16,8 +18,11 @@ export default function LeadForm({
   subtitle = "Fill out the form below and our team will get back to you within 24 hours.",
   propertyName,
   compact = false,
+  source = "Website Form",
 }: LeadFormProps) {
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -25,16 +30,38 @@ export default function LeadForm({
     message: propertyName ? `I'm interested in ${propertyName}...` : "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setForm({
-      name: "",
-      phone: "",
-      email: "",
-      message: propertyName ? `I'm interested in ${propertyName}...` : "",
-    });
-    setTimeout(() => setSubmitted(false), 5000);
+    setIsSubmitting(true);
+    setErrorMsg("");
+
+    try {
+      const res = await submitLeadInquiryAction({
+        name: form.name,
+        phone: form.phone,
+        email: form.email || undefined,
+        message: form.message,
+        propertyTitle: propertyName,
+        source: source || (propertyName ? `Property Page: ${propertyName}` : "Contact Form"),
+      });
+
+      if (res.success) {
+        setSubmitted(true);
+        setForm({
+          name: "",
+          phone: "",
+          email: "",
+          message: propertyName ? `I'm interested in ${propertyName}...` : "",
+        });
+        setTimeout(() => setSubmitted(false), 6000);
+      } else {
+        setErrorMsg(res.error || "Failed to submit inquiry. Please try again.");
+      }
+    } catch {
+      setErrorMsg("An unexpected error occurred. Please contact us directly.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -131,9 +158,25 @@ export default function LeadForm({
               </div>
             </div>
 
-            <button type="submit" className="btn-gold w-full">
-              <Send className="h-4 w-4" />
-              Submit Inquiry
+            {errorMsg && (
+              <div className="flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs font-medium text-rose-800">
+                <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+                {errorMsg}
+              </div>
+            )}
+
+            <button type="submit" disabled={isSubmitting} className="btn-gold w-full flex items-center justify-center gap-2 disabled:opacity-60">
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Submitting Inquiry...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  Submit Inquiry
+                </>
+              )}
             </button>
           </motion.form>
         )}

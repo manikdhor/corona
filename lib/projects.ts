@@ -9,9 +9,10 @@ export interface Amenity {
 
 export interface PlotType {
   label: string;
-  badge?: string;
+  badge?: string | null;
   size: string;
   katha: number;
+  priceNote?: string | null;
 }
 
 export interface ProjectAssets {
@@ -19,6 +20,40 @@ export interface ProjectAssets {
   brochure: string;
   brochureLabel?: string;
   brochureFile?: string;
+  mapHref?: string;
+  mapCoordinates?: { lat: number; lng: number };
+}
+
+export interface ProjectSpec {
+  label: string;
+  value: string;
+  icon?: string | null;
+}
+
+export interface ProjectSectionHeadings {
+  overviewTitle?: string;
+  keyAssetsEyebrow?: string;
+  keyAssetsTitle?: string;
+  keyAssetsSubtitle?: string;
+  highlightsTitle?: string;
+  featuresTitle?: string;
+  amenitiesEyebrow?: string;
+  amenitiesTitle?: string;
+  amenitiesSubtitle?: string;
+  plotPortfolioTitle?: string;
+  plotPortfolioSubtitle?: string;
+  storyTitle?: string;
+  storySubtitle?: string;
+  contactTitle?: string;
+  contactSubtitle?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  contactCtaText?: string;
+  contactCtaHref?: string;
+  locationTitle?: string;
+  similarProjectsEyebrow?: string;
+  similarProjectsTitle?: string;
+  similarProjectsSubtitle?: string;
 }
 
 export interface Project {
@@ -44,12 +79,13 @@ export interface Project {
   status: "launching" | "available" | "almost-sold" | "completed";
   isFlagship: boolean;
   gallery: string[];
-  specs: { label: string; value: string }[];
+  specs: ProjectSpec[];
   seo: {
     title: string;
     description: string;
   };
   assets: ProjectAssets;
+  sectionHeadings?: ProjectSectionHeadings;
 }
 
 export const PROJECTS: Project[] = [
@@ -151,5 +187,160 @@ export function getFeaturedProjects(): Project[] {
 }
 
 export function getRelatedProjects(currentId: string, limit = 3): Project[] {
-  return PROJECTS.filter((p) => p.id !== currentId).slice(0, limit);
+  return PROJECTS.filter((p) => p.id !== currentId && p.slug !== currentId).slice(0, limit);
 }
+
+export function mapAdminPropertyToProject(
+  p: {
+    id: string;
+    slug: string;
+    title: string;
+    titleBn?: string | null;
+    tagline?: string | null;
+    taglineBn?: string | null;
+    location: string;
+    price?: string;
+    type?: string;
+    status?: string;
+    size?: string;
+    featuredImage?: string;
+    gallery?: string[];
+    overview?: string;
+    genesis?: string | null;
+    highlights?: string[];
+    features?: string[];
+    specs?: { label: string; value: string; icon?: string | null }[];
+    plotTypes?: { label: string; badge?: string | null; size: string; katha: number; priceNote?: string | null }[];
+    totalPlots?: number | null;
+    totalArea?: string | null;
+    roadPrimary?: string | null;
+    roadSecondary?: string | null;
+    coordinates?: { lat: number; lng: number };
+    isFlagship?: boolean;
+    isFeatured?: boolean;
+    customFieldValues?: Record<string, any>;
+  },
+  baseProj?: Project
+): Project {
+  const normStatus = (p.status?.toLowerCase().replace(/\s+/g, "-") || "") as Project["status"];
+  const validStatus: Project["status"] = ["launching", "available", "almost-sold", "completed"].includes(normStatus)
+    ? normStatus
+    : (baseProj?.status || "available");
+
+  const customFields = p.customFieldValues || {};
+
+  // Dynamic Amenities (priority: p.customFieldValues.amenities -> baseProj.amenities -> fallback empty)
+  const customAmenities =
+    Array.isArray(customFields.amenities) && customFields.amenities.length > 0
+      ? customFields.amenities
+      : baseProj?.amenities || [];
+
+  // Dynamic Assets (priority: p.customFieldValues.assets -> baseProj.assets -> default paths)
+  const customAssets: ProjectAssets = {
+    layoutPlan: customFields.assets?.layoutPlan || baseProj?.assets?.layoutPlan || "/Layout-Plan.pdf",
+    brochure: customFields.assets?.brochure || baseProj?.assets?.brochure || "/brochure-maple-leaf.pdf",
+    brochureLabel: customFields.assets?.brochureLabel || baseProj?.assets?.brochureLabel || "Project Brochure",
+    brochureFile: customFields.assets?.brochureFile || baseProj?.assets?.brochureFile || "/brochure-maple-leaf.pdf",
+    mapHref: customFields.assets?.mapHref || baseProj?.assets?.mapHref,
+    mapCoordinates: customFields.assets?.mapCoordinates || p.coordinates || baseProj?.coordinates,
+  };
+
+  // Dynamic Headings & Copy
+  const customHeadings: ProjectSectionHeadings = {
+    overviewTitle: customFields.sectionHeadings?.overviewTitle || baseProj?.sectionHeadings?.overviewTitle || "Overview",
+    keyAssetsEyebrow: customFields.sectionHeadings?.keyAssetsEyebrow || baseProj?.sectionHeadings?.keyAssetsEyebrow || "Project Assets",
+    keyAssetsTitle: customFields.sectionHeadings?.keyAssetsTitle || baseProj?.sectionHeadings?.keyAssetsTitle || "Key Documents & Maps",
+    keyAssetsSubtitle: customFields.sectionHeadings?.keyAssetsSubtitle || baseProj?.sectionHeadings?.keyAssetsSubtitle || "Download or view essential project documents for your reference.",
+    highlightsTitle: customFields.sectionHeadings?.highlightsTitle || baseProj?.sectionHeadings?.highlightsTitle || "Highlights",
+    featuresTitle: customFields.sectionHeadings?.featuresTitle || baseProj?.sectionHeadings?.featuresTitle || "Key Features",
+    amenitiesEyebrow: customFields.sectionHeadings?.amenitiesEyebrow || baseProj?.sectionHeadings?.amenitiesEyebrow || "World-Class Amenities",
+    amenitiesTitle: customFields.sectionHeadings?.amenitiesTitle || baseProj?.sectionHeadings?.amenitiesTitle || "Everything You Need",
+    amenitiesSubtitle: customFields.sectionHeadings?.amenitiesSubtitle || baseProj?.sectionHeadings?.amenitiesSubtitle || "A community is defined by what it offers its residents.",
+    plotPortfolioTitle: customFields.sectionHeadings?.plotPortfolioTitle || baseProj?.sectionHeadings?.plotPortfolioTitle || "Plot Portfolio",
+    plotPortfolioSubtitle: customFields.sectionHeadings?.plotPortfolioSubtitle || baseProj?.sectionHeadings?.plotPortfolioSubtitle || "Explore our range of premium residential and commercial plot sizes",
+    storyTitle: customFields.sectionHeadings?.storyTitle || baseProj?.sectionHeadings?.storyTitle || `The Story Behind ${p.title || baseProj?.name || "Project"}`,
+    storySubtitle: customFields.sectionHeadings?.storySubtitle || baseProj?.sectionHeadings?.storySubtitle,
+    contactTitle: customFields.sectionHeadings?.contactTitle || baseProj?.sectionHeadings?.contactTitle || "Interested in this project?",
+    contactSubtitle: customFields.sectionHeadings?.contactSubtitle || baseProj?.sectionHeadings?.contactSubtitle || "Book a site visit or request a callback. Our team responds within 24 hours.",
+    contactPhone: customFields.sectionHeadings?.contactPhone || baseProj?.sectionHeadings?.contactPhone,
+    contactEmail: customFields.sectionHeadings?.contactEmail || baseProj?.sectionHeadings?.contactEmail,
+    contactCtaText: customFields.sectionHeadings?.contactCtaText || baseProj?.sectionHeadings?.contactCtaText || "Book Site Visit",
+    contactCtaHref: customFields.sectionHeadings?.contactCtaHref || baseProj?.sectionHeadings?.contactCtaHref || "/contact",
+    locationTitle: customFields.sectionHeadings?.locationTitle || baseProj?.sectionHeadings?.locationTitle || "Location",
+    similarProjectsEyebrow: customFields.sectionHeadings?.similarProjectsEyebrow || baseProj?.sectionHeadings?.similarProjectsEyebrow || "You May Also Explore",
+    similarProjectsTitle: customFields.sectionHeadings?.similarProjectsTitle || baseProj?.sectionHeadings?.similarProjectsTitle || "Similar Projects",
+    similarProjectsSubtitle: customFields.sectionHeadings?.similarProjectsSubtitle || baseProj?.sectionHeadings?.similarProjectsSubtitle,
+  };
+
+  // Dynamic Plot Types
+  const dynamicPlotTypes =
+    Array.isArray(p.plotTypes) && p.plotTypes.length > 0
+      ? p.plotTypes
+      : baseProj?.plotTypes || [
+          { label: "3 Katha Plot", badge: "Entry Luxury", size: "1,800 sq ft", katha: 3 },
+          { label: "5 Katha Plot", badge: "Most Popular", size: "3,600 sq ft", katha: 5 },
+          { label: "10 Katha Plot", badge: "Premium Choice", size: "7,200 sq ft", katha: 10 },
+        ];
+
+  // Dynamic Specs & Stats
+  const dynamicSpecs =
+    Array.isArray(p.specs) && p.specs.length > 0
+      ? p.specs
+      : baseProj?.specs || [
+          { label: "Total Plots", value: String(p.totalPlots || 2504) },
+          { label: "Location", value: p.location || "Dhaka" },
+          { label: "Plot Size", value: p.size || "3 - 10 Katha" },
+          { label: "Price", value: p.price || "Contact for Price" },
+        ];
+
+  // Dynamic Highlights
+  const dynamicHighlights =
+    Array.isArray(p.highlights) && p.highlights.length > 0
+      ? p.highlights
+      : baseProj?.highlights || [];
+
+  // Dynamic Features
+  const dynamicFeatures =
+    Array.isArray(p.features) && p.features.length > 0
+      ? p.features
+      : baseProj?.features || [];
+
+  // Dynamic Gallery
+  const dynamicGallery =
+    Array.isArray(p.gallery) && p.gallery.length > 0
+      ? p.gallery
+      : baseProj?.gallery || [p.featuredImage || "/image-01.webp"];
+
+  return {
+    id: p.id || baseProj?.id || p.slug,
+    slug: p.slug,
+    name: p.title || baseProj?.name || "Project",
+    tagline: p.tagline || baseProj?.tagline || "",
+    taglineBn: p.taglineBn || baseProj?.taglineBn || p.tagline || "",
+    subtitle: p.tagline || baseProj?.subtitle || p.location || "",
+    heroImage: p.featuredImage || baseProj?.heroImage || "/image-01.webp",
+    overview: p.overview !== undefined && p.overview !== null && p.overview !== "" ? p.overview : (baseProj?.overview || ""),
+    genesis: p.genesis !== undefined && p.genesis !== null && p.genesis !== "" ? p.genesis : (baseProj?.genesis || ""),
+    location: p.location || baseProj?.location || "Dhaka, Bangladesh",
+    coordinates: p.coordinates || baseProj?.coordinates || { lat: 23.86489, lng: 90.5647 },
+    totalPlots: p.totalPlots ?? baseProj?.totalPlots ?? 100,
+    totalArea: p.totalArea || baseProj?.totalArea || p.size || "10 Acres",
+    roadPrimary: p.roadPrimary || baseProj?.roadPrimary || "60 ft Wide",
+    roadSecondary: p.roadSecondary || baseProj?.roadSecondary || "30 ft Wide",
+    plotTypes: dynamicPlotTypes,
+    amenities: customAmenities,
+    highlights: dynamicHighlights,
+    features: dynamicFeatures,
+    status: validStatus,
+    isFlagship: p.isFlagship ?? baseProj?.isFlagship ?? false,
+    gallery: dynamicGallery,
+    specs: dynamicSpecs,
+    seo: {
+      title: `${p.title || baseProj?.name} | Corona Properties`,
+      description: p.overview || baseProj?.overview || p.title || "",
+    },
+    assets: customAssets,
+    sectionHeadings: customHeadings,
+  };
+}
+

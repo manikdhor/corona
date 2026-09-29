@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { normalizeImageUrl } from "@/lib/utils";
 import {
   MapPin,
   Phone,
@@ -13,27 +14,132 @@ import {
   Youtube,
   ArrowRight,
   Send,
+  Globe,
 } from "lucide-react";
 import {
   SITE_CONFIG,
   CONTACT_INFO,
   SOCIAL_LINKS,
   FOOTER_LINKS,
-  NAV_LINKS,
 } from "@/lib/constants";
 import PinterestIcon from "@/components/ui/PinterestIcon";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  getNavigationAction,
+  getSettingsAction,
+  getSocialLinksAction,
+  submitLeadInquiryAction,
+} from "@/lib/admin/actions";
+
+const PLATFORM_ICONS: Record<string, any> = {
+  Facebook,
+  Instagram,
+  LinkedIn: Linkedin,
+  Twitter,
+  Pinterest: PinterestIcon,
+  YouTube: Youtube,
+};
 
 export default function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  // Dynamic Navigation state with static defaults
+  const [footerLinks, setFooterLinks] = useState<{
+    company: { label: string; href: string }[];
+    services: { label: string; href: string }[];
+    support: { label: string; href: string }[];
+    legal: { label: string; href: string }[];
+  }>({
+    company: [...FOOTER_LINKS.company],
+    services: [...FOOTER_LINKS.services],
+    support: [...FOOTER_LINKS.support],
+    legal: [...FOOTER_LINKS.legal],
+  });
+  
+  // Dynamic Contact & Company info with static defaults
+  const [contactInfo, setContactInfo] = useState({
+    address: CONTACT_INFO.address,
+    phone: CONTACT_INFO.phone,
+    phoneRaw: CONTACT_INFO.phoneRaw,
+    email: CONTACT_INFO.email,
+    companyDescription: SITE_CONFIG.description,
+    companyName: SITE_CONFIG.name,
+    logo: SITE_CONFIG.logo,
+  });
+
+  // Dynamic Social Links
+  const [socials, setSocials] = useState<any[]>([
+    { platform: "Facebook", url: SOCIAL_LINKS.facebook },
+    { platform: "Instagram", url: SOCIAL_LINKS.instagram },
+    { platform: "LinkedIn", url: SOCIAL_LINKS.linkedin },
+    { platform: "Twitter", url: SOCIAL_LINKS.twitter },
+    { platform: "Pinterest", url: SOCIAL_LINKS.pinterest },
+    { platform: "YouTube", url: SOCIAL_LINKS.youtube },
+  ]);
+
+  useEffect(() => {
+    // 1. Fetch Dynamic Navigation
+    getNavigationAction().then((nav) => {
+      if (nav?.footer) {
+        setFooterLinks({
+          company: nav.footer.company || FOOTER_LINKS.company,
+          services: nav.footer.services || FOOTER_LINKS.services,
+          support: nav.footer.support || FOOTER_LINKS.support,
+          legal: nav.footer.legal || FOOTER_LINKS.legal,
+        });
+      }
+    });
+
+    // 2. Fetch Dynamic Settings
+    getSettingsAction().then((s) => {
+      if (s?.company) {
+        setContactInfo((prev) => ({
+          ...prev,
+          address: s.company.address || prev.address,
+          phone: s.company.phone || prev.phone,
+          phoneRaw: (s.company.phone || prev.phone).replace(/[^0-9+]/g, ""),
+          email: s.company.email || prev.email,
+          companyDescription: s.company.about || prev.companyDescription,
+          companyName: s.company.name || prev.companyName,
+          logo: s.company.logo || prev.logo,
+        }));
+      }
+    });
+
+    // 3. Fetch Dynamic Social Links
+    getSocialLinksAction().then((links) => {
+      const active = links.filter((l) => l.isActive);
+      if (active.length > 0) {
+        setSocials(active);
+      }
+    });
+  }, []);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.trim()) {
+    if (!email.trim() || submitting) return;
+
+    setSubmitting(true);
+    try {
+      await submitLeadInquiryAction({
+        name: "Newsletter Subscriber",
+        phone: "N/A",
+        email: email.trim(),
+        source: "Website Footer Newsletter",
+        message: "User subscribed to newsletter updates via website footer.",
+      });
       setSubscribed(true);
       setEmail("");
-      setTimeout(() => setSubscribed(false), 3000);
+      setTimeout(() => setSubscribed(false), 4000);
+    } catch {
+      // Fallback display
+      setSubscribed(true);
+      setEmail("");
+      setTimeout(() => setSubscribed(false), 4000);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -61,10 +167,10 @@ export default function Footer() {
             {/* Brand column */}
             <div className="lg:col-span-3">
               <div className="flex items-center gap-3">
-                <div className="relative h-12 w-12 md:h-16 md:w-16">
+                <div className="relative h-12 w-12 md:h-16 md:w-16" style={{ position: "relative" }}>
                   <Image
-                    src={SITE_CONFIG.logo}
-                    alt={SITE_CONFIG.name}
+                    src={normalizeImageUrl(contactInfo.logo)}
+                    alt={contactInfo.companyName}
                     fill
                     className="object-contain"
                   />
@@ -77,10 +183,10 @@ export default function Footer() {
                 </div>
               </div>
               <p className="mt-4 text-sm leading-relaxed text-cream/70 md:mt-6">
-                {SITE_CONFIG.description}
+                {contactInfo.companyDescription}
               </p>
 
-              {/* Newsletter - moved up on mobile */}
+              {/* Newsletter */}
               <div className="mt-6 md:mt-8">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold mb-2 md:mb-3">
                   Subscribe to our newsletter
@@ -92,32 +198,34 @@ export default function Footer() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Your email address"
                     required
-                    className="w-full rounded-full border border-white/20 bg-white/5 px-4 py-3 pr-12 text-sm text-cream placeholder:text-cream/40 focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold/50 transition-colors md:px-5 md:py-3.5"
+                    disabled={submitting}
+                    className="w-full rounded-full border border-white/20 bg-white/5 px-4 py-3 pr-12 text-sm text-cream placeholder:text-cream/40 focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold/50 transition-colors md:px-5 md:py-3.5 disabled:opacity-50"
                   />
                   <button
                     type="submit"
                     aria-label="Subscribe"
-                    className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-gold text-navy transition-transform hover:scale-105 md:right-1.5 md:top-1.5 md:h-9 md:w-9"
+                    disabled={submitting}
+                    className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-gold text-navy transition-transform hover:scale-105 md:right-1.5 md:top-1.5 md:h-9 md:w-9 disabled:opacity-50"
                   >
                     <Send className="h-3.5 w-3.5 md:h-4 md:w-4" />
                   </button>
                 </form>
                 {subscribed && (
-                  <p className="mt-2 text-xs text-gold">
+                  <p className="mt-2 text-xs text-gold animate-fade-in">
                     ✓ Thank you for subscribing!
                   </p>
                 )}
               </div>
             </div>
 
-            {/* Quick links + Services + Legal - stacked on mobile */}
+            {/* Quick links + Services + Legal */}
             <div className="grid grid-cols-2 gap-8 md:contents md:gap-12">
               <div className="lg:col-span-2">
                 <h4 className="font-serif text-base font-semibold text-cream mb-4 md:text-lg md:mb-5">
                   Company
                 </h4>
                 <ul className="space-y-2.5 md:space-y-3">
-                  {FOOTER_LINKS.company.map((link) => (
+                  {footerLinks.company.map((link) => (
                     <li key={link.label}>
                       <Link
                         href={link.href}
@@ -136,7 +244,7 @@ export default function Footer() {
                   Services
                 </h4>
                 <ul className="space-y-2.5 md:space-y-3">
-                  {FOOTER_LINKS.services.map((link) => (
+                  {footerLinks.services.map((link) => (
                     <li key={link.label}>
                       <Link
                         href={link.href}
@@ -155,7 +263,7 @@ export default function Footer() {
                   Legal
                 </h4>
                 <ul className="space-y-2.5 md:space-y-3">
-                  {FOOTER_LINKS.legal.map((link) => (
+                  {footerLinks.legal.map((link) => (
                     <li key={link.label}>
                       <Link
                         href={link.href}
@@ -179,50 +287,46 @@ export default function Footer() {
                 <li className="flex gap-3">
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold md:h-5 md:w-5" />
                   <span className="text-sm leading-relaxed text-cream/70">
-                    {CONTACT_INFO.address}
+                    {contactInfo.address}
                   </span>
                 </li>
                 <li>
                   <a
-                    href={`tel:${CONTACT_INFO.phoneRaw}`}
+                    href={`tel:${contactInfo.phoneRaw}`}
                     className="flex items-center gap-3 text-sm text-cream/70 transition-colors hover:text-gold"
                   >
                     <Phone className="h-4 w-4 shrink-0 text-gold md:h-5 md:w-5" />
-                    {CONTACT_INFO.phone}
+                    {contactInfo.phone}
                   </a>
                 </li>
                 <li>
                   <a
-                    href={`mailto:${CONTACT_INFO.email}`}
+                    href={`mailto:${contactInfo.email}`}
                     className="flex items-center gap-3 text-sm text-cream/70 transition-colors hover:text-gold"
                   >
                     <Mail className="h-4 w-4 shrink-0 text-gold md:h-5 md:w-5" />
-                    {CONTACT_INFO.email}
+                    {contactInfo.email}
                   </a>
                 </li>
               </ul>
 
               {/* Socials */}
               <div className="mt-5 flex items-center gap-2.5 md:mt-6 md:gap-3">
-                {[
-                  { Icon: Facebook, href: SOCIAL_LINKS.facebook, label: "Facebook" },
-                  { Icon: Instagram, href: SOCIAL_LINKS.instagram, label: "Instagram" },
-                  { Icon: Linkedin, href: SOCIAL_LINKS.linkedin, label: "LinkedIn" },
-                  { Icon: Twitter, href: SOCIAL_LINKS.twitter, label: "Twitter" },
-                  { Icon: PinterestIcon, href: SOCIAL_LINKS.pinterest, label: "Pinterest" },
-                  { Icon: Youtube, href: SOCIAL_LINKS.youtube, label: "YouTube" },
-                ].map(({ Icon, href, label }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={label}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 text-cream/70 transition-all duration-300 hover:border-gold hover:bg-gold hover:text-navy md:h-10 md:w-10"
-                  >
-                    <Icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  </a>
-                ))}
+                {socials.map((item) => {
+                  const Icon = PLATFORM_ICONS[item.platform] || Globe;
+                  return (
+                    <a
+                      key={item.platform}
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={item.platform}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 text-cream/70 transition-all duration-300 hover:border-gold hover:bg-gold hover:text-navy md:h-10 md:w-10"
+                    >
+                      <Icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                    </a>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -232,21 +336,18 @@ export default function Footer() {
         <div className="border-t border-white/10">
           <div className="container-luxury flex flex-col items-center justify-between gap-4 py-6 sm:flex-row">
             <p className="text-xs text-cream/50">
-              © {new Date().getFullYear()} {SITE_CONFIG.name}. All rights reserved.
+              © {new Date().getFullYear()} {contactInfo.companyName}. All rights reserved.
             </p>
             <div className="flex items-center gap-6 text-xs text-cream/50">
-              <Link href="/privacy-policy" className="hover:text-gold transition-colors">
-                Privacy Policy
-              </Link>
-              <Link href="/terms-and-conditions" className="hover:text-gold transition-colors">
-                Terms & Conditions
-              </Link>
-              <Link href="/disclaimer" className="hover:text-gold transition-colors">
-                Disclaimer
-              </Link>
-              <Link href="/refund-policy" className="hover:text-gold transition-colors">
-                Refund Policy
-              </Link>
+              {footerLinks.legal.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="hover:text-gold transition-colors"
+                >
+                  {item.label}
+                </Link>
+              ))}
             </div>
           </div>
         </div>

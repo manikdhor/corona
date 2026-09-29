@@ -16,15 +16,31 @@ const SORT_OPTIONS = [
   { value: "newest", label: "Newest First" },
 ];
 
-export default function PropertyFilter() {
+interface PropertyFilterProps {
+  initialProperties?: any[];
+}
+
+export default function PropertyFilter({ initialProperties }: PropertyFilterProps) {
   const [area, setArea] = useState("All Areas");
   const [type, setType] = useState("All Types");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("featured");
   const [showFilters, setShowFilters] = useState(false);
 
+  const sourceList = useMemo(() => {
+    if (!initialProperties || initialProperties.length === 0) return PROPERTIES;
+    return initialProperties
+      .filter((p) => !p.approvalStatus || p.approvalStatus === "Published")
+      .map((p) => ({
+        ...p,
+        image: p.image || p.featuredImage || "/image-01.webp",
+        featured: typeof p.featured === "boolean" ? p.featured : Boolean(p.isFeatured),
+        description: p.description || p.overview || "",
+      }));
+  }, [initialProperties]);
+
   const filtered = useMemo(() => {
-    let result = [...PROPERTIES];
+    let result = [...sourceList];
 
     if (area !== "All Areas") {
       result = result.filter((p) => p.area === area);
@@ -56,7 +72,7 @@ export default function PropertyFilter() {
     }
 
     return result;
-  }, [area, type, search, sort]);
+  }, [sourceList, area, type, search, sort]);
 
   const resetFilters = () => {
     setArea("All Areas");

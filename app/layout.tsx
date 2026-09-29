@@ -1,34 +1,27 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import TopBar from "@/components/layout/TopBar";
-import Preloader from "@/components/layout/Preloader";
-import ScrollProgress from "@/components/ui/ScrollProgress";
-import ScrollToTop from "@/components/ui/ScrollToTop";
-import BottomNav from "@/components/layout/BottomNav";
 import { SITE_CONFIG } from "@/lib/constants";
+import SiteChrome from "@/components/layout/SiteChrome";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
   display: "swap",
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["400", "600", "700", "900"],
 });
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
   variable: "--font-cormorant",
   display: "swap",
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "600", "700"],
 });
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
-  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 export const viewport = {
@@ -101,40 +94,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${cormorant.variable} ${inter.variable}`}>
       <body className="font-sans antialiased">
-        <Preloader />
-        <ScrollProgress />
-        <TopBar />
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
-        <ScrollToTop />
-        <BottomNav />
-
-        {/* JSON-LD Structured Data */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "RealEstateAgent",
-              name: SITE_CONFIG.name,
-              description: SITE_CONFIG.description,
-              url: SITE_CONFIG.url,
-              logo: SITE_CONFIG.logo,
-              telephone: "+8801805759297",
-              email: "cplcoronapropertiesltd@gmail.com",
-              address: {
-                "@type": "PostalAddress",
-                streetAddress:
-                  "House # 145, Flat # 704, Road # 3, Block A, Niketon, Gulshan 01",
-                addressLocality: "Dhaka",
-                postalCode: "1212",
-                addressCountry: "BD",
-              },
-              areaServed: "Bangladesh",
-            }),
-          }}
-        />
+        <SiteChrome>
+          {children}
+        </SiteChrome>
       </body>
     </html>
   );

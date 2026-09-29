@@ -9,14 +9,29 @@ import { cn } from "@/lib/utils";
 
 const CATEGORIES = ["All", "Residential", "Aerial Views", "Layouts"];
 
-export default function GalleryGrid() {
+interface GalleryGridProps {
+  items?: any[];
+}
+
+export default function GalleryGrid({ items }: GalleryGridProps) {
   const [filter, setFilter] = useState("All");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
+  const sourceImages = items && items.length > 0
+    ? items.map((m, idx) => ({
+        id: m.id || `img-${idx}`,
+        src: m.url || m.src || "/image-01.webp",
+        alt: m.altText || m.alt || m.title || "Corona Properties Gallery",
+        category: m.category || "Residential",
+        aspect: m.aspect || "aspect-[4/3]",
+        title: m.title || m.filename || "Property View",
+      }))
+    : GALLERY_IMAGES;
+
   const filtered =
     filter === "All"
-      ? GALLERY_IMAGES
-      : GALLERY_IMAGES.filter((img) => img.category === filter);
+      ? sourceImages
+      : sourceImages.filter((img) => img.category === filter);
 
   const openLightbox = (index: number) => setLightboxIndex(index);
   const closeLightbox = () => setLightboxIndex(null);
@@ -61,7 +76,7 @@ export default function GalleryGrid() {
           >
             <div className="relative aspect-[4/3]">
               <Image
-                src={img.url}
+                src={(img as any).src || (img as any).url}
                 alt={img.title}
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -112,7 +127,7 @@ export default function GalleryGrid() {
               onClick={(e) => e.stopPropagation()}
             >
               <Image
-                src={filtered[lightboxIndex].url}
+                src={(filtered[lightboxIndex] as any).src || (filtered[lightboxIndex] as any).url}
                 alt={filtered[lightboxIndex].title}
                 fill
                 className="object-contain"

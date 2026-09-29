@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { MapPin, Maximize2, ArrowUpRight, BadgeCheck } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, normalizeImageUrl } from "@/lib/utils";
 import type { Project } from "@/lib/projects";
 
 const statusStyles: Record<Project["status"], string> = {
@@ -24,9 +24,9 @@ export default function ProjectCard({ project, index = 0 }: { project: Project; 
       className="group relative overflow-hidden rounded-2xl bg-white shadow-card transition-all duration-500 hover:shadow-card-hover hover:-translate-y-1.5"
     >
       <Link href={`/projects/${project.slug}`} className="block">
-        <div className="relative aspect-[4/3] overflow-hidden">
+        <div className="relative aspect-[4/3] overflow-hidden" style={{ position: "relative" }}>
           <Image
-            src={project.heroImage}
+            src={normalizeImageUrl(project.heroImage)}
             alt={project.name}
             fill
             className="object-cover transition-transform duration-[1200ms] group-hover:scale-110"

@@ -18,6 +18,7 @@ import {
   Construction,
 } from "lucide-react";
 import { PROPERTIES, getPropertyBySlug, getRelatedProperties } from "@/lib/data";
+import { getPropertyAction, getPropertiesAction } from "@/lib/admin/actions";
 import PropertyGallery from "./PropertyGallery";
 import LeadForm from "@/components/lead/LeadForm";
 import PropertyCard from "@/components/property/PropertyCard";
@@ -29,20 +30,27 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
+  const dynamic = await getPropertiesAction();
+  if (dynamic && dynamic.length > 0) {
+    return dynamic.map((p) => ({ slug: p.slug }));
+  }
   return PROPERTIES.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const property = getPropertyBySlug(params.slug);
-  if (!property) return { title: "Property Not Found" };
+  const raw = (await getPropertyAction(params.slug)) || getPropertyBySlug(params.slug);
+  if (!raw) return { title: "Property Not Found" };
+
+  const desc = (raw as any).description || (raw as any).overview || "";
+  const img = (raw as any).image || (raw as any).featuredImage || "/image-01.webp";
 
   return {
-    title: property.title,
-    description: property.description.slice(0, 160),
+    title: raw.title,
+    description: desc.slice(0, 160),
     openGraph: {
-      title: `${property.title} | Corona Properties`,
-      description: property.description.slice(0, 160),
-      images: [property.image],
+      title: `${raw.title} | Corona Properties`,
+      description: desc.slice(0, 160),
+      images: [img],
     },
   };
 }
@@ -67,14 +75,61 @@ const AMENITY_ICONS: Record<string, typeof Zap> = {
   "Lakeside Walkway": Construction,
 };
 
-export default function PropertyDetailPage({ params }: PageProps) {
-  const property = getPropertyBySlug(params.slug);
+export default async function PropertyDetailPage({ params }: PageProps) {
+  const raw = (await getPropertyAction(params.slug)) || getPropertyBySlug(params.slug);
 
-  if (!property) {
+  if (!raw) {
     notFound();
   }
 
-  const related = getRelatedProperties(property.id, 3);
+  const property = {
+    ...raw,
+    image: (raw as any).image || (raw as any).featuredImage || "/image-01.webp",
+    gallery: (raw as any).gallery && (raw as any).gallery.length > 0
+      ? (raw as any).gallery
+      : [(raw as any).image || (raw as any).featuredImage || "/image-01.webp"],
+    description: (raw as any).description || (raw as any).overview || "",
+    highlights: ((raw as any).highlights || (raw as any).features || []) as string[],
+    features: ((raw as any).features || (raw as any).highlights || []) as string[],
+    amenities: ((raw as any).amenities || [
+      "24/7 Security & CCTV",
+      "Wide Access Roads",
+      "Underground Drainage",
+      "Electricity & Water",
+    ]) as string[],
+    specs: (raw as any).specs || [
+      { label: "Location", value: raw.location },
+      { label: "Plot Size", value: raw.size },
+      { label: "Status", value: raw.status },
+      { label: "Category", value: raw.type },
+    ],
+  };
+
+  const allProperties = await getPropertiesAction();
+  const otherProps = allProperties
+    .filter((p) => p.id !== raw.id && p.slug !== params.slug)
+    .map((p) => ({
+      id: p.id,
+      slug: p.slug,
+      title: p.title,
+      location: p.location,
+      area: p.area,
+      price: p.price,
+      priceValue: p.priceValue,
+      type: p.type,
+      status: p.status,
+      size: p.size,
+      featured: p.isFeatured,
+      image: p.featuredImage || "/image-01.webp",
+      gallery: p.gallery || [],
+      description: p.overview || "",
+      highlights: p.highlights || [],
+      features: p.features || [],
+      amenities: p.customFieldValues?.amenities?.map((a: any) => a.name) || [],
+      specs: p.specs || [],
+    }));
+
+  const related = otherProps.length > 0 ? otherProps.slice(0, 3) : getRelatedProperties(property.id, 3);
 
   return (
     <>
@@ -175,7 +230,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
               <div className="py-8 border-b border-navy-50">
                 <h2 className="font-serif text-2xl font-bold text-navy mb-6">Key Features</h2>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {property.features.map((f, i) => (
+                  {property.features.map((f: string, i: number) => (
                     <div key={i} className="flex items-center gap-3">
                       <Check className="h-5 w-5 shrink-0 text-gold-600" />
                       <span className="text-sm text-navy">{f}</span>
@@ -188,7 +243,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
               <div className="py-8">
                 <h2 className="font-serif text-2xl font-bold text-navy mb-6">Amenities & Infrastructure</h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {property.amenities.map((a, i) => {
+                  {property.amenities.map((a: string, i: number) => {
                     const Icon = AMENITY_ICONS[a] || Check;
                     return (
                       <div key={i} className="flex items-center gap-3 rounded-xl border border-navy-50 bg-white p-4 shadow-sm">
@@ -254,7 +309,11 @@ export default function PropertyDetailPage({ params }: PageProps) {
                   <div className="relative aspect-video overflow-hidden rounded-xl bg-navy-50">
                     <iframe
                       title={`${property.title} location`}
-                      src={`https://www.google.com/maps?q=${property.coordinates.lat},${property.coordinates.lng}&z=14&output=embed`}
+                      src={
+                        (property as any).coordinates?.lat && (property as any).coordinates?.lng
+                          ? `https://www.google.com/maps?q=${(property as any).coordinates.lat},${(property as any).coordinates.lng}&z=14&output=embed`
+                          : `https://www.google.com/maps?q=${encodeURIComponent(property.location)}&z=14&output=embed`
+                      }
                       className="absolute inset-0 h-full w-full"
                       loading="lazy"
                     />
@@ -272,12 +331,21 @@ export default function PropertyDetailPage({ params }: PageProps) {
         <section className="section-padding bg-navy-50/50">
           <div className="container-luxury">
             <div className="mb-12 text-center">
-              <span className="eyebrow !justify-center">You May Also Like</span>
-              <h2 className="mt-4 font-serif text-display-sm font-bold text-navy">Similar Properties</h2>
+              <span className="eyebrow !justify-center">
+                {(raw as any).customFieldValues?.sectionHeadings?.similarProjectsEyebrow || "You May Also Like"}
+              </span>
+              <h2 className="mt-4 font-serif text-display-sm font-bold text-navy">
+                {(raw as any).customFieldValues?.sectionHeadings?.similarProjectsTitle || "Similar Properties"}
+              </h2>
+              {(raw as any).customFieldValues?.sectionHeadings?.similarProjectsSubtitle && (
+                <p className="mt-2 text-sm text-navy-400 max-w-xl mx-auto">
+                  {(raw as any).customFieldValues.sectionHeadings.similarProjectsSubtitle}
+                </p>
+              )}
             </div>
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               {related.map((p, i) => (
-                <PropertyCard key={p.id} property={p} index={i} />
+                <PropertyCard key={p.id} property={p as any} index={i} />
               ))}
             </div>
           </div>

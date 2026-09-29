@@ -16,8 +16,8 @@ export default function NotFound() {
           Page Not Found
         </h1>
         <p className="mx-auto mt-4 max-w-md text-lg text-cream/70">
-          The page you're looking for seems to have moved or no longer exists.
-          Let's get you back on track.
+          The page you&apos;re looking for seems to have moved or no longer exists.
+          Let&apos;s get you back on track.
         </p>
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button href="/" variant="gold" showArrow>

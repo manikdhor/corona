@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/ui/PageHero";
-import SectionHeading from "@/components/ui/SectionHeading";
 import PropertyFilter from "@/components/property/PropertyFilter";
 import LeadForm from "@/components/lead/LeadForm";
+import { getPropertiesAction, getSiteContentAction } from "@/lib/admin/actions";
 
 export const metadata: Metadata = {
   title: "Properties",
@@ -10,19 +10,29 @@ export const metadata: Metadata = {
     "Browse Corona Properties' premium residential plots for sale in Gulshan, Banani, Baridhara, Uttara, Dhanmondi, and Bashundhara, Dhaka.",
 };
 
-export default function PropertiesPage() {
+export default async function PropertiesPage() {
+  const [properties, siteContent] = await Promise.all([
+    getPropertiesAction(),
+    getSiteContentAction(),
+  ]);
+
+  const pContent = (siteContent as any)?.propertiesPage;
+
   return (
     <>
       <PageHero
-        title="Premium Land Collection"
-        subtitle="Discover Bangladesh's finest residential plots — each one with full documentation and ready for your dream project."
-        breadcrumb="Properties"
-        bgImage="/image-03.webp"
+        title={pContent?.title || "Premium Land Collection"}
+        subtitle={
+          pContent?.subtitle ||
+          "Discover Bangladesh's finest residential plots — each one with full documentation and ready for your dream project."
+        }
+        breadcrumb={pContent?.breadcrumb || "Properties"}
+        bgImage={pContent?.bgImage || "/image-03.webp"}
       />
 
       <section className="section-padding bg-cream">
         <div className="container-luxury">
-          <PropertyFilter />
+          <PropertyFilter initialProperties={properties} />
         </div>
       </section>
 
@@ -31,18 +41,23 @@ export default function PropertiesPage() {
         <div className="container-luxury">
           <div className="grid gap-12 lg:grid-cols-2 items-center">
             <div>
-              <span className="eyebrow">Start Your Journey</span>
+              <span className="eyebrow">{pContent?.leadEyebrow || "Start Your Journey"}</span>
               <h2 className="mt-5 font-serif text-display-md font-bold text-navy text-balance">
-                Ready to Own Premium Residential Land?
+                {pContent?.leadHeading || "Ready to Own Premium Residential Land?"}
               </h2>
               <p className="mt-6 text-lg leading-relaxed text-navy-400">
-                Browse our curated collection or let us match you with the perfect plot. Share your requirements and we'll shortlist the best options for you.
+                {pContent?.leadDescription ||
+                  "Browse our curated collection or let us match you with the perfect plot. Share your requirements and we'll shortlist the best options for you."}
               </p>
             </div>
             <div>
               <LeadForm
-                title="Request Property Recommendations"
-                subtitle="Tell us your budget, preferred area, and requirements. We'll get back to you within 24 hours."
+                title={pContent?.formTitle || "Request Property Recommendations"}
+                subtitle={
+                  pContent?.formSubtitle ||
+                  "Tell us your budget, preferred area, and requirements. We'll get back to you within 24 hours."
+                }
+                source="Properties Page Recommendations Form"
               />
             </div>
           </div>

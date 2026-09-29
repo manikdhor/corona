@@ -44,6 +44,8 @@ export default function NavDropdown({ label, items }: NavDropdownProps) {
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
+  const isAnyChildActive = items.some((item) => isActive(item.href));
+
   return (
     <div
       ref={ref}
@@ -56,7 +58,11 @@ export default function NavDropdown({ label, items }: NavDropdownProps) {
         className={cn(
           "relative flex items-center gap-1 px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.1em] transition-all duration-300",
           scrolled
-            ? "text-navy-700 hover:text-gold-600"
+            ? open || isAnyChildActive
+              ? "text-gold-600"
+              : "text-navy-700 hover:text-gold-600"
+            : open || isAnyChildActive
+            ? "text-gold-champagne"
             : "text-cream/90 hover:text-gold-champagne"
         )}
         aria-label={label}
@@ -71,7 +77,7 @@ export default function NavDropdown({ label, items }: NavDropdownProps) {
         <span
           className={cn(
             "absolute bottom-0 left-1/2 h-[2px] -translate-x-1/2 rounded-full bg-gradient-to-r from-gold-400 to-gold-600 transition-all duration-400",
-            open ? "w-5" : "w-0 group-hover:w-5"
+            open || isAnyChildActive ? "w-5" : "w-0 group-hover:w-5"
           )}
         />
       </button>

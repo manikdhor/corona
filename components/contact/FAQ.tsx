@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const FAQS = [
+const DEFAULT_FAQS = [
   {
     q: "Are all Corona Properties plots fully documented?",
     a: "Yes, every single plot we sell comes with complete documentation and verified titles. We never list plots without proper paperwork — that's our core promise.",
@@ -32,13 +32,31 @@ const FAQS = [
   },
 ];
 
-export default function FAQ() {
+export interface FAQProps {
+  items?: {
+    id?: string;
+    question?: string;
+    answer?: string;
+    q?: string;
+    a?: string;
+  }[];
+}
+
+export default function FAQ({ items }: FAQProps) {
+  const list =
+    items && items.length > 0
+      ? items.map((item) => ({
+          q: item.question || item.q || "",
+          a: item.answer || item.a || "",
+        }))
+      : DEFAULT_FAQS;
+
   const [open, setOpen] = useState<number | null>(0);
 
   return (
     <div className="mx-auto max-w-3xl">
       <div className="space-y-4">
-        {FAQS.map((faq, i) => {
+        {list.map((faq, i) => {
           const isOpen = open === i;
           return (
             <div
@@ -53,16 +71,20 @@ export default function FAQ() {
                 className="flex w-full items-center justify-between gap-4 p-6 text-left"
                 aria-expanded={isOpen}
               >
-                <span className={cn(
-                  "font-serif text-lg font-bold transition-colors",
-                  isOpen ? "text-gold-600" : "text-navy"
-                )}>
+                <span
+                  className={cn(
+                    "font-serif text-lg font-bold transition-colors",
+                    isOpen ? "text-gold-600" : "text-navy"
+                  )}
+                >
                   {faq.q}
                 </span>
-                <span className={cn(
-                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all duration-300",
-                  isOpen ? "bg-gradient-gold text-navy rotate-180" : "bg-navy-50 text-navy"
-                )}>
+                <span
+                  className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all duration-300",
+                    isOpen ? "bg-gradient-gold text-navy rotate-180" : "bg-navy-50 text-navy"
+                  )}
+                >
                   {isOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                 </span>
               </button>

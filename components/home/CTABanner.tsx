@@ -5,13 +5,36 @@ import { Phone, Calendar } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { CONTACT_INFO } from "@/lib/constants";
 
-export default function CTABanner() {
+export interface CTABannerProps {
+  data?: {
+    title?: string;
+    subtitle?: string;
+    buttonText?: string;
+    buttonLink?: string;
+    phone?: string;
+    bgImage?: string;
+  };
+}
+
+export default function CTABanner({ data }: CTABannerProps) {
+  const title = data?.title || "Your Dream Plot is One Conversation Away";
+  const subtitle =
+    data?.subtitle ||
+    "Schedule a complimentary consultation with our land experts. We'll guide you through every option, answer all your questions, and help you make a confident, informed decision.";
+  const buttonText = data?.buttonText || "Book a Site Visit";
+  const buttonLink = data?.buttonLink || "/contact";
+  const phone = data?.phone || CONTACT_INFO.phone;
+  const phoneRaw = phone.replace(/[^0-9+]/g, "");
+  const bgImage = data?.bgImage || "/image-02.webp";
+
   return (
     <section className="relative py-28 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-cover bg-center bg-fixed"
-          style={{ backgroundImage: "url(/image-02.webp)" }} />
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-fixed"
+          style={{ backgroundImage: `url(${bgImage})` }}
+        />
         <div className="absolute inset-0 bg-gradient-to-br from-navy-950/95 via-navy-900/90 to-navy-950/95" />
         <div className="absolute inset-0 bg-gradient-to-r from-navy-950 via-transparent to-navy-950" />
       </div>
@@ -24,31 +47,44 @@ export default function CTABanner() {
       </div>
 
       <div className="container-luxury relative z-10">
-        <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          transition={{ duration: 0.8 }} className="mx-auto max-w-3xl text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="mx-auto max-w-3xl text-center"
+        >
           <span className="eyebrow !justify-center">
             <span className="text-gold-champagne">Ready to Begin?</span>
           </span>
 
           <h2 className="mt-6 font-serif text-display-md font-bold text-cream text-balance leading-[1.1]">
-            Your Dream Plot is
-            <br />
-            <span className="text-gradient-gold italic">One Conversation Away</span>
+            {data?.title && data.title !== "Your Dream Plot is One Conversation Away" ? (
+              data.title
+            ) : (
+              <>
+                Your Dream Plot is
+                <br />
+                <span className="text-gradient-gold italic">One Conversation Away</span>
+              </>
+            )}
           </h2>
 
           <p className="mt-6 text-lg leading-relaxed text-cream/75 max-w-2xl mx-auto">
-            Schedule a complimentary consultation with our land experts. We'll guide you through every option, answer all your questions, and help you make a confident, informed decision.
+            {subtitle}
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button href="/contact" variant="gold" showArrow>
+            <Button href={buttonLink} variant="gold" showArrow>
               <Calendar className="h-4 w-4" />
-              Book a Site Visit
+              {buttonText}
             </Button>
-            <a href={`tel:${CONTACT_INFO.phoneRaw}`}
-              className="group inline-flex items-center gap-3 rounded-full border border-cream/30 px-8 py-4 text-sm font-semibold uppercase tracking-wider text-cream backdrop-blur-sm transition-all duration-400 hover:border-gold hover:bg-gold hover:text-navy">
+            <a
+              href={`tel:${phoneRaw}`}
+              className="group inline-flex items-center gap-3 rounded-full border border-cream/30 px-8 py-4 text-sm font-semibold uppercase tracking-wider text-cream backdrop-blur-sm transition-all duration-400 hover:border-gold hover:bg-gold hover:text-navy"
+            >
               <Phone className="h-4 w-4 transition-transform group-hover:rotate-12" />
-              {CONTACT_INFO.phone}
+              {phone}
             </a>
           </div>
         </motion.div>

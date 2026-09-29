@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { Home, Building2, Image, Mail, Menu, Phone } from "lucide-react";
 import { NAV_LINKS, CONTACT_INFO } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getNavigationAction, getSettingsAction } from "@/lib/admin/actions";
 
 const TABS = [
   { label: "Home", href: "/", icon: Home },
@@ -16,16 +17,45 @@ const TABS = [
   { label: "More", href: "#", icon: Menu },
 ] as const;
 
-export default function BottomNav() {
+interface BottomNavProps {
+  adminNavLinks?: { label: string; href: string }[];
+  adminPhone?: string;
+}
+
+export default function BottomNav({ adminNavLinks, adminPhone }: BottomNavProps) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [fetchedNavLinks, setFetchedNavLinks] = useState<{ label: string; href: string }[] | null>(null);
+  const [fetchedPhone, setFetchedPhone] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!adminNavLinks) {
+      getNavigationAction().then((nav) => {
+        if (nav?.header && nav.header.length > 0) {
+          setFetchedNavLinks(nav.header);
+        }
+      });
+    }
+    if (!adminPhone) {
+      getSettingsAction().then((settings) => {
+        if (settings?.company?.phone) {
+          const raw = settings.company.phone.replace(/[^0-9+]/g, "");
+          setFetchedPhone(raw);
+        }
+      });
+    }
+  }, [adminNavLinks, adminPhone]);
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
-  const secondaryLinks = NAV_LINKS.filter(
+  // Admin-first: use prop > fetched > hardcoded fallback
+  const effectiveNav = adminNavLinks || fetchedNavLinks;
+  const navSource = effectiveNav && effectiveNav.length > 0 ? effectiveNav : NAV_LINKS;
+  const secondaryLinks = navSource.filter(
     (l) => !TABS.some((t) => t.href === l.href)
   );
+  const phoneRaw = adminPhone || fetchedPhone || CONTACT_INFO.phoneRaw;
 
   return (
     <>
@@ -119,7 +149,7 @@ export default function BottomNav() {
                   );
                 })}
                 <a
-                  href={`tel:${CONTACT_INFO.phoneRaw}`}
+                  href={`tel:${phoneRaw}`}
                   className="flex items-center gap-3 rounded-2xl bg-gradient-gold px-4 py-3.5 text-sm font-bold text-navy shadow-gold"
                 >
                   <Phone className="h-4 w-4" />

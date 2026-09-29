@@ -1,10 +1,26 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ShieldCheck, TrendingUp, Handshake, Building2, Headphones } from "lucide-react";
+import {
+  ShieldCheck,
+  TrendingUp,
+  Handshake,
+  Building2,
+  Headphones,
+  CheckCircle2,
+} from "lucide-react";
 import SectionHeading from "@/components/ui/SectionHeading";
 
-const REASONS = [
+export interface WhyChooseUsProps {
+  data?: {
+    eyebrow?: string;
+    heading?: string;
+    subtitle?: string;
+    reasons?: { title: string; description: string; icon?: string }[];
+  };
+}
+
+const DEFAULT_REASONS = [
   { icon: ShieldCheck, title: "100% Legal Assurance", description: "Every plot comes with verified title, complete legal documentation, and zero disputes guaranteed." },
   { icon: TrendingUp, title: "High ROI Potential", description: "Strategically located plots in high-growth corridors, historically delivering 25–40% appreciation over 3 years." },
   { icon: Handshake, title: "Transparent Deals", description: "No hidden costs, no surprise clauses. What you see is exactly what you get — crystal-clear transactions." },
@@ -12,7 +28,23 @@ const REASONS = [
   { icon: Headphones, title: "Lifetime Support", description: "Dedicated after-sales team supporting you through construction, resale, and lifelong property management." },
 ];
 
-export default function WhyChooseUs() {
+const ICON_MAP: Record<string, any> = {
+  ShieldCheck,
+  TrendingUp,
+  Handshake,
+  Building2,
+  Headphones,
+};
+
+export default function WhyChooseUs({ data }: WhyChooseUsProps) {
+  const eyebrow = data?.eyebrow || "Why Corona Properties";
+  const title = data?.heading || "The Corona Difference";
+  const subtitle =
+    data?.subtitle ||
+    "Six pillars that make us Bangladesh's most trusted name in premium residential land.";
+
+  const reasons = data?.reasons && data.reasons.length > 0 ? data.reasons : DEFAULT_REASONS;
+
   return (
     <section className="section-padding relative overflow-hidden">
       {/* Decorative */}
@@ -20,16 +52,23 @@ export default function WhyChooseUs() {
       <div className="absolute bottom-0 left-0 h-[400px] w-[400px] rounded-full bg-navy/[0.02] blur-3xl" />
 
       <div className="container-luxury relative">
-        <SectionHeading eyebrow="Why Corona Properties" title="The Corona Difference"
-          subtitle="Six pillars that make us Bangladesh's most trusted name in premium residential land." />
+        <SectionHeading eyebrow={eyebrow} title={title} subtitle={subtitle} />
 
         <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {REASONS.map((reason, i) => {
-            const Icon = reason.icon;
+          {reasons.map((reason, i) => {
+            const Icon = (reason as any).icon && typeof (reason as any).icon !== "string"
+              ? (reason as any).icon
+              : ICON_MAP[(reason as any).icon] || CheckCircle2;
+
             return (
-              <motion.div key={i} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }}
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.6, delay: i * 0.1 }}
-                className="group relative overflow-hidden rounded-2xl border border-navy-50 bg-white p-8 shadow-card transition-all duration-500 hover:shadow-card-hover hover:-translate-y-1.5">
+                className="group relative overflow-hidden rounded-2xl border border-navy-50 bg-white p-8 shadow-card transition-all duration-500 hover:shadow-card-hover hover:-translate-y-1.5"
+              >
                 {/* Number watermark */}
                 <span className="absolute top-5 right-7 font-serif text-7xl font-bold text-navy/[0.035] transition-colors duration-500 group-hover:text-gold/10">
                   0{i + 1}

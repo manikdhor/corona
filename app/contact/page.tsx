@@ -1,11 +1,32 @@
 import type { Metadata } from "next";
-import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Linkedin, Twitter, Youtube, MessageCircle } from "lucide-react";
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Clock,
+  Facebook,
+  Instagram,
+  Linkedin,
+  Twitter,
+  Youtube,
+  MessageCircle,
+} from "lucide-react";
 import PageHero from "@/components/ui/PageHero";
 import SectionHeading from "@/components/ui/SectionHeading";
 import LeadForm from "@/components/lead/LeadForm";
 import FAQ from "@/components/contact/FAQ";
 import { CONTACT_INFO, SOCIAL_LINKS } from "@/lib/constants";
 import PinterestIcon from "@/components/ui/PinterestIcon";
+import { getFaqsAction, getSettingsAction, getSocialLinksAction } from "@/lib/admin/actions";
+
+const PLATFORM_ICONS: Record<string, any> = {
+  Facebook,
+  Instagram,
+  LinkedIn: Linkedin,
+  Twitter,
+  Pinterest: PinterestIcon,
+  YouTube: Youtube,
+};
 
 export const metadata: Metadata = {
   title: "Contact Us",
@@ -13,28 +34,56 @@ export const metadata: Metadata = {
     "Get in touch with Corona Properties Limited. Visit our Gulshan office, call us, or send a message. We respond within 24 hours.",
 };
 
-const CONTACT_CARDS = [
-  {
-    icon: MapPin,
-    title: "Visit Our Office",
-    lines: [CONTACT_INFO.address],
-    action: { label: "Get Directions", href: "https://maps.google.com/?q=Mar+garden,+House+%23145,+Flat+%23704,+Road+%233,+Block+A,+Niketon,+Gulshan+01,+Dhaka+1212" },
-  },
-  {
-    icon: Phone,
-    title: "Call Us",
-    lines: [CONTACT_INFO.phone, "Sat – Thu: 9 AM – 6 PM"],
-    action: { label: "Call Now", href: `tel:${CONTACT_INFO.phoneRaw}` },
-  },
-  {
-    icon: Mail,
-    title: "Email Us",
-    lines: [CONTACT_INFO.email, "We reply within 24 hours"],
-    action: { label: "Send Email", href: `mailto:${CONTACT_INFO.email}` },
-  },
-];
+export default async function ContactPage() {
+  const [faqs, settings, socialLinks] = await Promise.all([
+    getFaqsAction(),
+    getSettingsAction(),
+    getSocialLinksAction(),
+  ]);
 
-export default function ContactPage() {
+  const activeSocials = socialLinks.filter((s) => s.isActive);
+  const socials =
+    activeSocials.length > 0
+      ? activeSocials
+      : [
+          { platform: "Facebook", url: SOCIAL_LINKS.facebook },
+          { platform: "Instagram", url: SOCIAL_LINKS.instagram },
+          { platform: "LinkedIn", url: SOCIAL_LINKS.linkedin },
+          { platform: "Twitter", url: SOCIAL_LINKS.twitter },
+          { platform: "Pinterest", url: SOCIAL_LINKS.pinterest },
+          { platform: "YouTube", url: SOCIAL_LINKS.youtube },
+        ];
+
+  const company = settings?.company;
+  const address = company?.address || CONTACT_INFO.address;
+  const phone = company?.phone || CONTACT_INFO.phone;
+  const phoneRaw = phone.replace(/[^0-9+]/g, "");
+  const email = company?.email || CONTACT_INFO.email;
+
+  const contactCards = [
+    {
+      icon: MapPin,
+      title: "Visit Our Office",
+      lines: [address],
+      action: {
+        label: "Get Directions",
+        href: "https://maps.google.com/?q=Mar+garden,+House+%23145,+Flat+%23704,+Road+%233,+Block+A,+Niketon,+Gulshan+01,+Dhaka+1212",
+      },
+    },
+    {
+      icon: Phone,
+      title: "Call Us",
+      lines: [phone, "Sat – Thu: 9 AM – 6 PM"],
+      action: { label: "Call Now", href: `tel:${phoneRaw}` },
+    },
+    {
+      icon: Mail,
+      title: "Email Us",
+      lines: [email, "We reply within 24 hours"],
+      action: { label: "Send Email", href: `mailto:${email}` },
+    },
+  ];
+
   return (
     <>
       <PageHero
@@ -48,7 +97,7 @@ export default function ContactPage() {
       <section className="section-padding bg-cream">
         <div className="container-luxury">
           <div className="grid gap-6 md:grid-cols-3 -mt-32 relative z-10">
-            {CONTACT_CARDS.map((card, i) => {
+            {contactCards.map((card, i) => {
               const Icon = card.icon;
               return (
                 <div
@@ -58,9 +107,13 @@ export default function ContactPage() {
                   <div className="mx-auto mb-5 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-gold shadow-gold transition-transform duration-500 group-hover:scale-110">
                     <Icon className="h-8 w-8 text-navy" />
                   </div>
-                  <h3 className="font-serif text-xl font-bold text-navy">{card.title}</h3>
+                  <h3 className="font-serif text-xl font-bold text-navy">
+                    {card.title}
+                  </h3>
                   {card.lines.map((line, j) => (
-                    <p key={j} className="mt-2 text-sm text-navy-400 leading-relaxed">{line}</p>
+                    <p key={j} className="mt-2 text-sm text-navy-400 leading-relaxed">
+                      {line}
+                    </p>
                   ))}
                   <a
                     href={card.action.href}
@@ -77,15 +130,14 @@ export default function ContactPage() {
 
           {/* Form + Info */}
           <div className="mt-20 grid gap-12 lg:grid-cols-5">
-            {/* Form */}
             <div className="lg:col-span-3">
               <LeadForm
                 title="Send Us a Message"
                 subtitle="Fill out the form below and our team will get back to you within 24 hours."
+                source="Contact Page Form"
               />
             </div>
 
-            {/* Info sidebar */}
             <div className="lg:col-span-2 space-y-6">
               {/* Office hours */}
               <div className="rounded-2xl bg-gradient-navy p-8 text-cream shadow-navy">
@@ -108,9 +160,9 @@ export default function ContactPage() {
                 </p>
               </div>
 
-              {/* WhatsApp */}
+              {/* WhatsApp chat */}
               <a
-                href={SOCIAL_LINKS.whatsapp}
+                href={`https://wa.me/${phoneRaw}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 p-6 transition-all hover:bg-emerald-100"
@@ -126,29 +178,25 @@ export default function ContactPage() {
                 </div>
               </a>
 
-              {/* Social */}
+              {/* Social links */}
               <div className="rounded-2xl border border-navy-50 bg-white p-8 shadow-card">
                 <h3 className="font-serif text-lg font-bold text-navy mb-4">Follow Us</h3>
-                <div className="flex gap-3">
-                  {[
-                    { Icon: Facebook, href: SOCIAL_LINKS.facebook, label: "Facebook" },
-                    { Icon: Instagram, href: SOCIAL_LINKS.instagram, label: "Instagram" },
-                    { Icon: Linkedin, href: SOCIAL_LINKS.linkedin, label: "LinkedIn" },
-                    { Icon: Twitter, href: SOCIAL_LINKS.twitter, label: "Twitter" },
-                    { Icon: PinterestIcon, href: SOCIAL_LINKS.pinterest, label: "Pinterest" },
-                    { Icon: Youtube, href: SOCIAL_LINKS.youtube, label: "YouTube" },
-                  ].map(({ Icon, href, label }) => (
-                    <a
-                      key={label}
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={label}
-                      className="flex h-11 w-11 items-center justify-center rounded-full border border-navy-100 text-navy transition-all duration-300 hover:border-gold hover:bg-gradient-gold hover:text-navy"
-                    >
-                      <Icon className="h-5 w-5" />
-                    </a>
-                  ))}
+                <div className="flex flex-wrap gap-3">
+                  {socials.map((item: any) => {
+                    const Icon = PLATFORM_ICONS[item.platform] || Facebook;
+                    return (
+                      <a
+                        key={item.id || item.platform}
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={item.label || item.platform}
+                        className="flex h-11 w-11 items-center justify-center rounded-full border border-navy-100 text-navy transition-all duration-300 hover:border-gold hover:bg-gradient-gold hover:text-navy"
+                      >
+                        <Icon className="h-5 w-5" />
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -186,7 +234,7 @@ export default function ContactPage() {
             subtitle="Quick answers to the questions we hear most often from our clients."
           />
           <div className="mt-14">
-            <FAQ />
+            <FAQ items={faqs} />
           </div>
         </div>
       </section>

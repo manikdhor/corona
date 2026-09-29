@@ -8,37 +8,46 @@ import Genesis from "@/components/home/Genesis";
 import { Check } from "lucide-react";
 import LeadForm from "@/components/lead/LeadForm";
 import CTABanner from "@/components/home/CTABanner";
+import { getSiteContentAction, getTestimonialsAction, getPropertiesAction } from "@/lib/admin/actions";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [siteContent, testimonials, adminProperties] = await Promise.all([
+    getSiteContentAction(),
+    getTestimonialsAction(),
+    getPropertiesAction(),
+  ]);
+
+  const lc = siteContent?.leadCapture;
+
   return (
     <>
-      <Hero />
-      <AboutTeaser />
-      <Genesis />
-      <ProjectShowcase />
-      <WhyChooseUs />
-      <Process />
-      <Testimonials />
+      <Hero data={siteContent?.hero} />
+      <AboutTeaser data={siteContent?.aboutTeaser} />
+      <Genesis data={siteContent?.genesis} />
+      <ProjectShowcase adminProperties={adminProperties} />
+      <WhyChooseUs data={siteContent?.whyChooseUs} />
+      <Process data={siteContent?.process} />
+      <Testimonials items={testimonials} />
 
       {/* Lead Capture Section */}
       <section className="section-padding bg-cream">
         <div className="container-luxury">
           <div className="grid gap-12 lg:grid-cols-2 items-center">
             <div>
-              <span className="eyebrow">Get Started</span>
+              <span className="eyebrow">{lc?.eyebrow || "Get Started"}</span>
               <h2 className="mt-5 font-serif text-display-md font-bold text-navy text-balance">
-                Begin Your Land Ownership Journey
+                {lc?.heading || "Begin Your Land Ownership Journey"}
               </h2>
               <p className="mt-6 text-lg leading-relaxed text-navy-400">
-                Ready to invest in premium residential land? Our team will provide personalized recommendations and guide you through every step — from plot selection to registration.
+                {lc?.description || "Ready to invest in premium residential land? Our team will provide personalized recommendations and guide you through every step — from plot selection to registration."}
               </p>
               <div className="mt-8 space-y-4">
-                {[
+                {(lc?.bullets || [
                   "Free consultation with land experts",
                   "Curated property recommendations",
                   "Fully documented plots",
                   "Zero obligation, transparent process",
-                ].map((item, i) => (
+                ]).map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-gold">
                       <Check className="h-4 w-4 text-navy" />
@@ -50,15 +59,16 @@ export default function HomePage() {
             </div>
             <div>
               <LeadForm
-                title="Request a Consultation"
-                subtitle="Share your details and our specialists will reach out within 24 hours with curated options tailored to your needs."
+                title={lc?.formTitle || "Request a Consultation"}
+                subtitle={lc?.formSubtitle || "Share your details and our specialists will reach out within 24 hours with curated options tailored to your needs."}
+                source="Homepage Consultation Section"
               />
             </div>
           </div>
         </div>
       </section>
 
-      <CTABanner />
+      <CTABanner data={siteContent?.ctaBanner} />
     </>
   );
 }

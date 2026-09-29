@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/ui/PageHero";
-import SectionHeading from "@/components/ui/SectionHeading";
 import GalleryGrid from "@/components/gallery/GalleryGrid";
 import LeadForm from "@/components/lead/LeadForm";
+import { getMediaAction } from "@/lib/admin/actions";
 
 export const metadata: Metadata = {
   title: "Gallery",
@@ -10,7 +10,9 @@ export const metadata: Metadata = {
     "Explore Corona Properties' portfolio of premium residential land developments, aerial views, and community layouts across Bangladesh.",
 };
 
-export default function GalleryPage() {
+export default async function GalleryPage() {
+  const media = await getMediaAction();
+
   return (
     <>
       <PageHero
@@ -22,7 +24,7 @@ export default function GalleryPage() {
 
       <section className="section-padding bg-cream">
         <div className="container-luxury">
-          <GalleryGrid />
+          <GalleryGrid items={media} />
         </div>
       </section>
 
@@ -33,7 +35,7 @@ export default function GalleryPage() {
             <div>
               <span className="eyebrow">Love What You See?</span>
               <h2 className="mt-5 font-serif text-display-md font-bold text-navy text-balance">
-                Let's Build Your Dream Together
+                Let&apos;s Build Your Dream Together
               </h2>
               <p className="mt-6 text-lg leading-relaxed text-navy-400">
                 Explore our gallery and find the community that fits your lifestyle. Contact us to schedule a site visit or discuss your requirements.
@@ -43,6 +45,7 @@ export default function GalleryPage() {
               <LeadForm
                 title="Schedule a Site Visit"
                 subtitle="Share your preferred project and timeline, and we'll arrange a personalized tour for you."
+                source="Gallery Page Site Visit Form"
               />
             </div>
           </div>

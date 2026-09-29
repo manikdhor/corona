@@ -3,6 +3,7 @@ import PageHero from "@/components/ui/PageHero";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Reveal from "@/components/ui/Reveal";
 import { TEAM } from "@/lib/data";
+import { getTeamMembersAction } from "@/lib/admin/actions";
 import Image from "next/image";
 
 export const metadata: Metadata = {
@@ -27,7 +28,10 @@ function MemberBio({ text }: { text: string }) {
   );
 }
 
-export default function TeamPage() {
+export default async function TeamPage() {
+  const dynamicMembers = await getTeamMembersAction();
+  const team = dynamicMembers.length > 0 ? dynamicMembers : TEAM;
+
   return (
     <>
       <PageHero
@@ -46,7 +50,7 @@ export default function TeamPage() {
           />
 
           <div className="mt-24 md:mt-32 space-y-24 md:space-y-36">
-            {TEAM.map((member, i) => (
+            {team.map((member, i) => (
               <Reveal key={member.id} y={50}>
                 <div
                   className={`flex flex-col lg:flex-row gap-10 lg:gap-16 xl:gap-24 items-start ${
@@ -58,10 +62,10 @@ export default function TeamPage() {
                     <div className="relative">
                       <div className="relative aspect-[3/4] overflow-hidden rounded-sm">
                         <Image
-                          src={member.image}
+                          src={member.image || "/image-01.webp"}
                           alt={member.name}
                           fill
-                          className="object-top"
+                          className="object-cover object-top"
                           sizes="(max-width: 1024px) 100vw, 38vw"
                         />
                       </div>
@@ -90,7 +94,7 @@ export default function TeamPage() {
                 </div>
 
                 {/* Divider between members */}
-                {i < TEAM.length - 1 && (
+                {i < team.length - 1 && (
                   <div className="mt-24 md:mt-36 flex justify-center">
                     <div className="h-px w-20 bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
                   </div>

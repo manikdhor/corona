@@ -4,13 +4,24 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { SITE_CONFIG } from "@/lib/constants";
+import { normalizeImageUrl } from "@/lib/utils";
 
 export default function Preloader() {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1600);
-    return () => clearTimeout(timer);
+    try {
+      const hasVisited = sessionStorage.getItem("corona_preloader_seen");
+      if (hasVisited) {
+        return;
+      }
+      setLoading(true);
+      sessionStorage.setItem("corona_preloader_seen", "1");
+      const timer = setTimeout(() => setLoading(false), 600);
+      return () => clearTimeout(timer);
+    } catch {
+      setLoading(false);
+    }
   }, []);
 
   return (
@@ -19,29 +30,30 @@ export default function Preloader() {
         <motion.div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, ease: "easeInOut" }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
           className="preloader-overlay"
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             className="flex flex-col items-center"
           >
-            <div className="relative h-24 w-24">
+            <div className="relative h-20 w-20" style={{ position: "relative" }}>
               <Image
-                src={SITE_CONFIG.logo}
+                src={normalizeImageUrl(SITE_CONFIG.logo)}
                 alt={SITE_CONFIG.name}
                 fill
+                sizes="80px"
                 className="object-contain preloader-logo"
                 priority
               />
             </div>
-            <div className="mt-6 text-center">
-              <p className="font-serif text-2xl font-bold text-cream tracking-wider">
+            <div className="mt-4 text-center">
+              <p className="font-serif text-xl font-bold text-cream tracking-wider">
                 CORONA
               </p>
-              <p className="text-xs uppercase tracking-[0.4em] text-gold mt-1">
+              <p className="text-[10px] uppercase tracking-[0.35em] text-gold mt-1">
                 Properties Limited
               </p>
             </div>

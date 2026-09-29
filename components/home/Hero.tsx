@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
+import { SITE_CONFIG } from "@/lib/constants";
 
 const HERO_SLIDES = [
   "/image-01.webp",
@@ -8,31 +10,46 @@ const HERO_SLIDES = [
   "/image-03.webp",
 ];
 
-export default function Hero() {
+export interface HeroProps {
+  data?: {
+    slides?: string[];
+  };
+}
+
+export default function Hero({ data }: HeroProps = {}) {
+  const slides = data?.slides && data.slides.length > 0 ? data.slides : HERO_SLIDES;
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % HERO_SLIDES.length);
+      setCurrent((prev) => (prev + 1) % slides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [slides.length]);
 
   const goTo = (index: number) => setCurrent(index);
-  const prev = () => setCurrent((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
-  const next = () => setCurrent((prev) => (prev + 1) % HERO_SLIDES.length);
+  const prev = () => setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
+  const next = () => setCurrent((prev) => (prev + 1) % slides.length);
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-navy-900 md:min-h-[90vh]">
       <div className="absolute inset-0">
-        {HERO_SLIDES.map((src, i) => (
-          <img
-            key={src}
-            src={src}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-1000"
+        {slides.map((src, i) => (
+          <div
+            key={src + i}
+            className="absolute inset-0 transition-opacity duration-1000"
             style={{ opacity: i === current ? 1 : 0 }}
-          />
+          >
+            <Image
+              src={src}
+              alt={`${SITE_CONFIG.name} Slide ${i + 1}`}
+              fill
+              priority={i === 0}
+              loading={i === 0 ? "eager" : "lazy"}
+              sizes="100vw"
+              className="object-cover object-top"
+            />
+          </div>
         ))}
       </div>
 
@@ -59,7 +76,7 @@ export default function Hero() {
       </button>
 
       <div className="absolute bottom-8 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
-        {HERO_SLIDES.map((_, i) => (
+        {slides.map((_, i) => (
           <button
             key={i}
             onClick={() => goTo(i)}
