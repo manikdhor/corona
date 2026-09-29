@@ -19,11 +19,30 @@ import {
   Sparkles,
 } from "lucide-react";
 import { adminStore } from "@/lib/admin/seed";
+import { getLeadsAction, getPropertiesAction, getStagesAction } from "@/lib/admin/actions";
 
 export default function AdminDashboardPage() {
   const [properties, setProperties] = useState(adminStore.getProperties());
   const [leads, setLeads] = useState(adminStore.getLeads());
   const [stages, setStages] = useState(adminStore.getStages());
+
+  React.useEffect(() => {
+    let mounted = true;
+    Promise.all([getPropertiesAction(), getLeadsAction(), getStagesAction()])
+      .then(([loadedProperties, loadedLeads, loadedStages]) => {
+        if (!mounted) return;
+        setProperties(loadedProperties);
+        setLeads(loadedLeads);
+        setStages(loadedStages);
+      })
+      .catch((error) => {
+        console.error("Unable to load admin dashboard data:", error);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Metrics
   const activeListingsCount = properties.filter((p) => p.status === "Available" || p.status === "New Launch").length;

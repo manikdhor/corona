@@ -259,7 +259,15 @@ export async function getPropertyAction(idOrSlug: string): Promise<AdminProperty
 }
 
 export async function savePropertyAction(formData: any) {
-  const parsed = propertySchema.safeParse(formData);
+  let dataToValidate = formData;
+  if (formData?.id) {
+    const existing = await getPropertyAction(formData.id);
+    if (existing) {
+      dataToValidate = { ...existing, ...formData };
+    }
+  }
+
+  const parsed = propertySchema.safeParse(dataToValidate);
   if (!parsed.success) {
     const errorMsg = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
     return { success: false, error: errorMsg };
