@@ -749,13 +749,6 @@ export async function getMediaAction(): Promise<MediaItem[]> {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error || !data || data.length === 0) {
-      if (Array.isArray(savedMeta) && savedMeta.length > 0) {
-        return savedMeta;
-      }
-      return adminStore.getMedia();
-    }
-
     const metaMap = new Map<string, Partial<MediaItem>>();
     if (Array.isArray(savedMeta)) {
       savedMeta.forEach((sm) => {
@@ -767,7 +760,14 @@ export async function getMediaAction(): Promise<MediaItem[]> {
       if (!metaMap.has(sm.url)) metaMap.set(sm.url, sm);
     });
 
-    return data.map((m: any) => {
+    if (error || !data || data.length === 0) {
+      if (Array.isArray(savedMeta) && savedMeta.length > 0) {
+        return savedMeta;
+      }
+      return adminStore.getMedia();
+    }
+
+    const dbItems: MediaItem[] = data.map((m: any) => {
       const extra = metaMap.get(m.id) || metaMap.get(m.url) || {};
       return {
         id: m.id,
@@ -787,6 +787,15 @@ export async function getMediaAction(): Promise<MediaItem[]> {
         createdAt: m.created_at,
       };
     });
+
+    // Check if there are default seed items not yet in dbItems (by url/filename)
+    const existingUrls = new Set(dbItems.map((item) => item.url));
+    const existingFilenames = new Set(dbItems.map((item) => item.filename));
+    const missingSeed = adminStore.getMedia().filter(
+      (s) => !existingUrls.has(s.url) && !existingFilenames.has(s.filename)
+    );
+
+    return [...dbItems, ...missingSeed];
   } catch {
     return adminStore.getMedia();
   }

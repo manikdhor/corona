@@ -33,11 +33,12 @@ import {
 } from "@/lib/admin/actions";
 
 export default function MediaLibraryPage() {
-  const [mediaItems, setMediaItems] = useState<MediaItem[]>(adminStore.getMedia());
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [galleryCats, setGalleryCats] = useState<AdminCategory[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedItem, setSelectedItem] = useState<MediaItem | null>(mediaItems[0] || null);
+  const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [editingMeta, setEditingMeta] = useState(false);
   const [titleInput, setTitleInput] = useState("");
   const [categoryInput, setCategoryInput] = useState("Residential");
@@ -61,16 +62,23 @@ export default function MediaLibraryPage() {
   const [editingCatName, setEditingCatName] = useState("");
 
   const loadData = async () => {
-    const [items, cats] = await Promise.all([
-      getMediaAction(),
-      getCategoriesAction("gallery"),
-    ]);
-    if (items && items.length > 0) {
-      setMediaItems(items);
-      setSelectedItem((prev) => items.find((m) => m.id === prev?.id) || items[0]);
-    }
-    if (cats) {
-      setGalleryCats(cats.filter((c) => c.isActive));
+    try {
+      setIsLoading(true);
+      const [items, cats] = await Promise.all([
+        getMediaAction(),
+        getCategoriesAction("gallery"),
+      ]);
+      setMediaItems(items || []);
+      if (items && items.length > 0) {
+        setSelectedItem((prev) => items.find((m) => m.id === prev?.id) || items[0]);
+      } else {
+        setSelectedItem(null);
+      }
+      if (cats) {
+        setGalleryCats(cats.filter((c) => c.isActive));
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -285,7 +293,7 @@ export default function MediaLibraryPage() {
           ))}
         </div>
         <span className="text-xs text-navy-400 font-medium">
-          {filtered.length} assets shown
+          {isLoading ? "Loading assets..." : `${filtered.length} assets shown`}
         </span>
       </div>
 
@@ -293,7 +301,18 @@ export default function MediaLibraryPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Media Grid */}
         <div className="lg:col-span-2 rounded-2xl bg-white p-6 shadow-xs border border-navy-100">
-          {filtered.length === 0 ? (
+          {isLoading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((n) => (
+                <div
+                  key={n}
+                  className="aspect-video rounded-xl bg-slate-100 animate-pulse border border-navy-50 flex items-center justify-center"
+                >
+                  <div className="h-6 w-6 rounded-full bg-slate-200" />
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="py-16 text-center text-navy-400">
               <FolderOpen className="h-10 w-10 text-navy-200 mx-auto mb-2" />
               <p className="text-sm font-medium">No assets matching your search.</p>
