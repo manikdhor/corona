@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   FolderOpen,
   Tags,
+  Plus,
 } from "lucide-react";
 import { adminStore, MediaItem, AdminCategory } from "@/lib/admin/seed";
 import ImageInput from "@/components/admin/media/ImageInput";
@@ -25,6 +26,8 @@ import {
   deleteMediaAction,
   updateMediaItemAction,
   getCategoriesAction,
+  saveCategoryAction,
+  deleteCategoryAction,
 } from "@/lib/admin/actions";
 
 export default function MediaLibraryPage() {
@@ -46,6 +49,12 @@ export default function MediaLibraryPage() {
   const [newUploadedCategory, setNewUploadedCategory] = useState("Residential");
   const [newUploadedAlt, setNewUploadedAlt] = useState("");
 
+  // Inline Gallery Category Manager Modal
+  const [showCatModal, setShowCatModal] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [editingCatId, setEditingCatId] = useState<string | null>(null);
+  const [editingCatName, setEditingCatName] = useState("");
+
   const loadData = async () => {
     const [items, cats] = await Promise.all([
       getMediaAction(),
@@ -66,13 +75,8 @@ export default function MediaLibraryPage() {
 
   const categoryOptions =
     galleryCats.length > 0
-      ? Array.from(
-          new Set([
-            ...galleryCats.map((c) => c.name),
-            ...mediaItems.map((m) => m.category).filter(Boolean) as string[],
-          ])
-        )
-      : ["Residential", "Aerial Views", "Layouts", "Community & Lifestyle", "Construction Updates"];
+      ? galleryCats.map((c) => c.name)
+      : ["Residential", "Aerial Views", "Layouts", "Infrastructure"];
 
   const filtered = mediaItems.filter((m) => {
     const matchesSearch =
@@ -146,6 +150,42 @@ export default function MediaLibraryPage() {
     setNewUploadedAlt("");
   };
 
+  const handleAddGalleryCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatName.trim()) return;
+    const res = await saveCategoryAction({
+      name: newCatName.trim(),
+      slug: newCatName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      scope: "gallery",
+      sortOrder: galleryCats.length + 1,
+      isActive: true,
+    });
+    if (res.success && res.category) {
+      await loadData();
+      setNewUploadedCategory(res.category.name);
+      setCategoryInput(res.category.name);
+      setNewCatName("");
+    }
+  };
+
+  const handleRenameGalleryCategory = async (cat: AdminCategory) => {
+    if (!editingCatName.trim()) return;
+    await saveCategoryAction({
+      ...cat,
+      name: editingCatName.trim(),
+      slug: editingCatName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    });
+    setEditingCatId(null);
+    setEditingCatName("");
+    await loadData();
+  };
+
+  const handleDeleteGalleryCategory = async (id: string, name: string) => {
+    if (!confirm(`Delete gallery category "${name}"?`)) return;
+    await deleteCategoryAction(id);
+    await loadData();
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Top Header */}
@@ -163,12 +203,13 @@ export default function MediaLibraryPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Link
-            href="/admin/categories"
+          <button
+            type="button"
+            onClick={() => setShowCatModal(true)}
             className="flex items-center gap-1.5 rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-navy-700 hover:bg-navy-50 transition"
           >
-            <Tags className="h-3.5 w-3.5" /> Manage Gallery Categories
-          </Link>
+            <Tags className="h-3.5 w-3.5 text-gold-700" /> Manage Gallery Categories
+          </button>
           <button
             type="button"
             onClick={() => setShowUploadModal(true)}
@@ -363,9 +404,18 @@ export default function MediaLibraryPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-semibold text-navy-600 block mb-1">
-                      Gallery Category
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[10px] font-semibold text-navy-600">
+                        Gallery Category
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowCatModal(true)}
+                        className="text-[10px] font-bold text-gold-700 hover:underline flex items-center gap-0.5"
+                      >
+                        <Plus className="h-3 w-3" /> Add / Edit Categories
+                      </button>
+                    </div>
                     <select
                       value={categoryInput}
                       onChange={(e) => setCategoryInput(e.target.value)}
@@ -484,9 +534,18 @@ export default function MediaLibraryPage() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-navy-700 block mb-1">
-                  Gallery Category
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-semibold text-navy-700">
+                    Gallery Category
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowCatModal(true)}
+                    className="text-[11px] font-bold text-gold-700 hover:underline flex items-center gap-1"
+                  >
+                    <Plus className="h-3 w-3" /> Add / Modify Categories
+                  </button>
+                </div>
                 <select
                   value={newUploadedCategory}
                   onChange={(e) => setNewUploadedCategory(e.target.value)}
@@ -524,6 +583,122 @@ export default function MediaLibraryPage() {
                 className="px-4 py-2 text-xs font-semibold rounded-lg bg-navy text-gold hover:bg-navy-800 disabled:opacity-40"
               >
                 Save to Library
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* INLINE GALLERY CATEGORY MANAGER MODAL */}
+      {showCatModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-navy-950/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-navy-100 space-y-4">
+            <div className="flex items-center justify-between border-b border-navy-100 pb-3">
+              <div>
+                <h3 className="text-base font-serif font-bold text-navy">
+                  Manage Gallery Categories
+                </h3>
+                <p className="text-xs text-navy-400">
+                  Create, rename, or remove categories shown in the Gallery & Media Library.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCatModal(false)}
+                className="rounded-lg p-1.5 text-navy-400 hover:bg-navy-50"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Add New Category Form */}
+            <form onSubmit={handleAddGalleryCategory} className="flex gap-2">
+              <input
+                type="text"
+                required
+                placeholder="New category name (e.g. Master Plan)..."
+                value={newCatName}
+                onChange={(e) => setNewCatName(e.target.value)}
+                className="flex-1 rounded-xl border border-navy-200 px-3 py-2 text-xs focus:border-gold outline-none"
+              />
+              <button
+                type="submit"
+                className="flex items-center gap-1 rounded-xl bg-navy px-4 py-2 text-xs font-semibold text-gold hover:bg-navy-800 transition shrink-0"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add
+              </button>
+            </form>
+
+            {/* Existing Categories List */}
+            <div className="max-h-60 overflow-y-auto divide-y divide-navy-50 rounded-xl border border-navy-100">
+              {galleryCats.map((cat) => (
+                <div key={cat.id} className="flex items-center justify-between p-2.5 px-3 text-xs">
+                  {editingCatId === cat.id ? (
+                    <div className="flex items-center gap-2 flex-1">
+                      <input
+                        type="text"
+                        value={editingCatName}
+                        onChange={(e) => setEditingCatName(e.target.value)}
+                        className="flex-1 rounded-lg border border-gold px-2.5 py-1 text-xs outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRenameGalleryCategory(cat)}
+                        className="rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingCatId(null)}
+                        className="text-navy-400 hover:text-navy px-1"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="font-semibold text-navy">{cat.name}</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingCatId(cat.id);
+                            setEditingCatName(cat.name);
+                          }}
+                          className="rounded p-1.5 text-navy-500 hover:bg-slate-100 hover:text-navy"
+                          title="Rename Category"
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteGalleryCategory(cat.id, cat.name)}
+                          className="rounded p-1.5 text-rose-500 hover:bg-rose-50"
+                          title="Delete Category"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-navy-100">
+              <Link
+                href="/admin/categories"
+                className="text-xs font-semibold text-gold-700 hover:underline flex items-center gap-1"
+              >
+                Open Full Category Manager <ExternalLink className="h-3 w-3" />
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowCatModal(false)}
+                className="rounded-xl bg-slate-100 px-4 py-2 text-xs font-semibold text-navy hover:bg-slate-200"
+              >
+                Done
               </button>
             </div>
           </div>

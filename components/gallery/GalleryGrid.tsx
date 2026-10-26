@@ -37,11 +37,8 @@ export default function GalleryGrid({ items, categories }: GalleryGridProps) {
   const CATEGORIES = useMemo(() => {
     const activeCats = (categories || []).filter((c) => c.isActive).map((c) => c.name);
     const base = activeCats.length > 0 ? activeCats : DEFAULT_CATEGORIES;
-    const distinctFromItems = Array.from(
-      new Set(sourceImages.map((img) => img.category).filter(Boolean))
-    );
-    return ["All", ...Array.from(new Set([...base, ...distinctFromItems]))];
-  }, [categories, sourceImages]);
+    return ["All", ...base];
+  }, [categories]);
 
   const filtered =
     filter === "All"
