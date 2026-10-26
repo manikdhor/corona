@@ -805,8 +805,51 @@ export async function addMediaItemAction(item: {
   category?: string;
   altText: string;
 }) {
+  let finalUrl = item.url;
+  let finalSize = item.sizeBytes;
+  let finalMime = item.mimeType;
+
+  // If a data URL was passed, upload it to Supabase Storage bucket "media"
+  if (item.url && item.url.startsWith("data:")) {
+    try {
+      const matches = item.url.match(/^data:([^;]+);base64,(.+)$/);
+      if (matches) {
+        finalMime = matches[1];
+        const buffer = Buffer.from(matches[2], "base64");
+        finalSize = buffer.length;
+        const ext = finalMime.split("/")[1] || "webp";
+        const storageFilename = `gallery-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+
+        const supabaseAdmin = createAdminClient();
+        try {
+          await supabaseAdmin.storage.createBucket("media", { public: true, fileSizeLimit: 10485760 });
+        } catch {}
+
+        const { data: uploadRes, error: uploadErr } = await supabaseAdmin.storage
+          .from("media")
+          .upload(storageFilename, buffer, {
+            contentType: finalMime,
+            upsert: true,
+          });
+
+        if (!uploadErr && uploadRes) {
+          const { data: pubData } = supabaseAdmin.storage.from("media").getPublicUrl(uploadRes.path || storageFilename);
+          if (pubData?.publicUrl) {
+            finalUrl = pubData.publicUrl;
+          }
+        }
+      }
+    } catch (uploadException) {
+      console.error("Storage upload exception in addMediaItemAction:", uploadException);
+    }
+  }
+
   const normalizedItem = {
     ...item,
+    url: finalUrl,
+    thumbnailUrl: item.thumbnailUrl && !item.thumbnailUrl.startsWith("data:") ? item.thumbnailUrl : finalUrl,
+    sizeBytes: finalSize,
+    mimeType: finalMime,
     title: item.title || item.altText || item.filename,
     category: item.category || "Residential",
   };

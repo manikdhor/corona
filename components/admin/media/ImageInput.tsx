@@ -44,14 +44,28 @@ export default function ImageInput({
   const [showMediaModal, setShowMediaModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Convert image to WebP on client side & strip EXIF via HTML5 Canvas
+  // Convert image to WebP on client side, constrain dimensions & strip EXIF via HTML5 Canvas
   const processImageFile = async (file: File): Promise<{ webpDataUrl: string; width: number; height: number; sizeBytes: number }> => {
     return new Promise((resolve, reject) => {
       const img = document.createElement("img");
       img.onload = () => {
+        // Constrain large camera/phone images to max 2000px to ensure fast uploads & low memory footprint
+        const MAX_DIM = 2000;
+        let width = img.naturalWidth;
+        let height = img.naturalHeight;
+        if (width > MAX_DIM || height > MAX_DIM) {
+          if (width > height) {
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
+          } else {
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
+          }
+        }
+
         const canvas = document.createElement("canvas");
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
+        canvas.width = width;
+        canvas.height = height;
         const ctx = canvas.getContext("2d");
         if (!ctx) {
           reject(new Error("Canvas context creation failed"));
@@ -59,7 +73,7 @@ export default function ImageInput({
         }
 
         // Draw image onto canvas - automatically strips EXIF metadata
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(img, 0, 0, width, height);
 
         // Convert to WebP format with 0.88 high-quality compression
         const webpDataUrl = canvas.toDataURL("image/webp", 0.88);
@@ -67,8 +81,8 @@ export default function ImageInput({
 
         resolve({
           webpDataUrl,
-          width: img.naturalWidth,
-          height: img.naturalHeight,
+          width,
+          height,
           sizeBytes: approxBytes,
         });
       };
@@ -88,27 +102,40 @@ export default function ImageInput({
 
     try {
       setIsProcessing(true);
-      setProgress(25);
+      setProgress(20);
 
-      // Client-side WebP conversion & EXIF stripping
+      // Client-side WebP conversion & EXIF stripping & resize
       const processed = await processImageFile(file);
-      setProgress(60);
+      setProgress(50);
 
-      // Simulating Supabase Storage CDN upload or using data URL for preview/storage
-      setTimeout(() => {
-        setProgress(100);
-        onChange(processed.webpDataUrl, {
-          alt: altValue || file.name.replace(/\.[^/.]+$/, ""),
-          sizeBytes: processed.sizeBytes,
-          width: processed.width,
-          height: processed.height,
+      // Upload directly to Supabase storage via /api/admin/upload
+      let finalPublicUrl = processed.webpDataUrl;
+      try {
+        const uploadRes = await fetch("/api/admin/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dataUrl: processed.webpDataUrl }),
         });
-        if (onAltChange && !altValue) {
-          onAltChange(file.name.replace(/\.[^/.]+$/, ""));
+        const uploadJson = await uploadRes.json();
+        if (uploadJson.success && uploadJson.url) {
+          finalPublicUrl = uploadJson.url;
         }
-        setIsProcessing(false);
-        setProgress(0);
-      }, 400);
+      } catch (uploadErr) {
+        console.warn("Direct upload API warning, falling back to data URL:", uploadErr);
+      }
+
+      setProgress(100);
+      onChange(finalPublicUrl, {
+        alt: altValue || file.name.replace(/\.[^/.]+$/, ""),
+        sizeBytes: processed.sizeBytes,
+        width: processed.width,
+        height: processed.height,
+      });
+      if (onAltChange && !altValue) {
+        onAltChange(file.name.replace(/\.[^/.]+$/, ""));
+      }
+      setIsProcessing(false);
+      setProgress(0);
     } catch (err: any) {
       alert(err.message || "Failed to process image");
       setIsProcessing(false);
@@ -246,7 +273,13 @@ export default function ImageInput({
               type="url"
               placeholder="https://images.unsplash.com/... or /image-06.webp"
               value={inputUrl}
-              onChange={(e) => setInputUrl(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setInputUrl(val);
+                if (val.trim().startsWith("http://") || val.trim().startsWith("https://") || val.trim().startsWith("/")) {
+                  onChange(val.trim(), { alt: altValue });
+                }
+              }}
               className="flex-1 rounded-lg border border-navy-200 px-3 py-2 text-xs focus:border-gold focus:ring-1 focus:ring-gold outline-none"
             />
             <button

@@ -17,6 +17,8 @@ import {
   FolderOpen,
   Tags,
   Plus,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import { adminStore, MediaItem, AdminCategory } from "@/lib/admin/seed";
 import ImageInput from "@/components/admin/media/ImageInput";
@@ -48,6 +50,9 @@ export default function MediaLibraryPage() {
   const [newUploadedTitle, setNewUploadedTitle] = useState("");
   const [newUploadedCategory, setNewUploadedCategory] = useState("Residential");
   const [newUploadedAlt, setNewUploadedAlt] = useState("");
+  const [isSavingMedia, setIsSavingMedia] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
 
   // Inline Gallery Category Manager Modal
   const [showCatModal, setShowCatModal] = useState(false);
@@ -130,24 +135,45 @@ export default function MediaLibraryPage() {
   };
 
   const handleNewUpload = async (url: string) => {
-    if (!url) return;
-    const res = await addMediaItemAction({
-      filename: `asset-${Date.now()}.webp`,
-      filePath: `uploads/asset-${Date.now()}.webp`,
-      url,
-      thumbnailUrl: url,
-      mimeType: "image/webp",
-      sizeBytes: 320000,
-      title: newUploadedTitle || "Property Showcase",
-      category: newUploadedCategory || "Residential",
-      altText: newUploadedAlt || newUploadedTitle || "Corona Properties Luxury Asset",
-    });
-    await loadData();
-    if (res.media) setSelectedItem(res.media);
-    setShowUploadModal(false);
-    setNewUploadedUrl("");
-    setNewUploadedTitle("");
-    setNewUploadedAlt("");
+    if (!url) {
+      setSaveError("Please choose or paste an image first.");
+      return;
+    }
+
+    try {
+      setIsSavingMedia(true);
+      setSaveError(null);
+
+      const res = await addMediaItemAction({
+        filename: `asset-${Date.now()}.webp`,
+        filePath: `uploads/asset-${Date.now()}.webp`,
+        url,
+        thumbnailUrl: url,
+        mimeType: "image/webp",
+        sizeBytes: 320000,
+        title: newUploadedTitle.trim() || "Property Showcase",
+        category: newUploadedCategory || "Residential",
+        altText: newUploadedAlt.trim() || newUploadedTitle.trim() || "Corona Properties Luxury Asset",
+      });
+
+      if (res.success && res.media) {
+        await loadData();
+        setSelectedItem(res.media);
+        setShowUploadModal(false);
+        setNewUploadedUrl("");
+        setNewUploadedTitle("");
+        setNewUploadedAlt("");
+        setSaveSuccessMsg("Image successfully added to the gallery and media library!");
+        setTimeout(() => setSaveSuccessMsg(null), 3500);
+      } else {
+        setSaveError((res as any)?.error || "Failed to save image. Please verify your connection.");
+      }
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      setSaveError(err.message || "Failed to upload image. Please try again.");
+    } finally {
+      setIsSavingMedia(false);
+    }
   };
 
   const handleAddGalleryCategory = async (e: React.FormEvent) => {
@@ -212,13 +238,23 @@ export default function MediaLibraryPage() {
           </button>
           <button
             type="button"
-            onClick={() => setShowUploadModal(true)}
+            onClick={() => {
+              setSaveError(null);
+              setShowUploadModal(true);
+            }}
             className="flex items-center gap-2 rounded-xl bg-navy px-4 py-2.5 text-xs font-semibold text-gold hover:bg-navy-800 transition shadow-sm"
           >
             <Upload className="h-4 w-4" /> Upload New Asset
           </button>
         </div>
       </div>
+
+      {saveSuccessMsg && (
+        <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800 animate-fade-down">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+          {saveSuccessMsg}
+        </div>
+      )}
 
       {/* SEARCH & CATEGORY FILTER BAR */}
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white p-3 shadow-xs border border-navy-100">
@@ -561,28 +597,58 @@ export default function MediaLibraryPage() {
 
               <ImageInput
                 value={newUploadedUrl}
-                onChange={(url) => setNewUploadedUrl(url)}
+                onChange={(url) => {
+                  setNewUploadedUrl(url);
+                  setSaveError(null);
+                }}
                 altValue={newUploadedAlt}
                 onAltChange={(alt) => setNewUploadedAlt(alt)}
                 label="Choose Image"
               />
             </div>
 
-            <div className="mt-6 flex justify-end gap-2">
+            {saveError && (
+              <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 flex items-start gap-2 animate-fade-down">
+                <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
+                <span className="leading-snug">{saveError}</span>
+              </div>
+            )}
+
+            {!newUploadedUrl && (
+              <p className="text-[11px] text-navy-400 italic text-center">
+                * Click or drag an image above, or switch to Paste URL to select an image before saving.
+              </p>
+            )}
+
+            <div className="mt-5 flex items-center justify-end gap-2 border-t border-navy-50 pt-3">
               <button
                 type="button"
-                onClick={() => setShowUploadModal(false)}
-                className="px-3.5 py-2 text-xs font-semibold text-navy-600 hover:bg-navy-50 rounded-lg"
+                onClick={() => {
+                  setShowUploadModal(false);
+                  setSaveError(null);
+                }}
+                disabled={isSavingMedia}
+                className="px-3.5 py-2 text-xs font-semibold text-navy-600 hover:bg-navy-50 rounded-xl transition"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => handleNewUpload(newUploadedUrl)}
-                disabled={!newUploadedUrl}
-                className="px-4 py-2 text-xs font-semibold rounded-lg bg-navy text-gold hover:bg-navy-800 disabled:opacity-40"
+                disabled={!newUploadedUrl || isSavingMedia}
+                className="flex items-center gap-2 px-5 py-2 text-xs font-semibold rounded-xl bg-navy text-gold hover:bg-navy-800 disabled:opacity-40 shadow-sm transition"
               >
-                Save to Library
+                {isSavingMedia ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-gold" />
+                    <span>Saving to Library...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4" />
+                    <span>Save to Library</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
