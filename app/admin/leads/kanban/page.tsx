@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import LeadDrawer from "@/components/admin/leads/LeadDrawer";
 import { AdminLead, LeadStage } from "@/lib/admin/seed";
-import { getLeadsAction, getStagesAction, updateLeadStageAction } from "@/lib/admin/actions";
+import { getLeadsAction, getStagesAction, updateLeadStageAction, saveStageAction } from "@/lib/admin/actions";
 
 export default function LeadsKanbanPage() {
   const [leads, setLeads] = useState<AdminLead[]>([]);
@@ -76,19 +76,18 @@ export default function LeadsKanbanPage() {
   };
 
   // Add custom stage
-  const handleAddStage = () => {
+  const handleAddStage = async () => {
     if (!newStageName.trim()) return;
-    const newStage: LeadStage = {
-      id: `stage-${Date.now()}`,
+    await saveStageAction({
       name: newStageName.trim(),
       slug: newStageName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
       color: newStageColor,
       sortOrder: stages.length + 1,
       isSystem: false,
-    };
-    setStages((prev) => [...prev, newStage]);
+    });
     setNewStageName("");
     setShowAddStageModal(false);
+    await loadData();
   };
 
   return (

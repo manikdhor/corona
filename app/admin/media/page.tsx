@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Search,
   Upload,
@@ -14,29 +15,74 @@ import {
   Copy,
   AlertTriangle,
   FolderOpen,
+  Tags,
 } from "lucide-react";
-import { adminStore, MediaItem } from "@/lib/admin/seed";
+import { adminStore, MediaItem, AdminCategory } from "@/lib/admin/seed";
 import ImageInput from "@/components/admin/media/ImageInput";
-import { deleteMediaAction, updateMediaAltAction } from "@/lib/admin/actions";
+import {
+  getMediaAction,
+  addMediaItemAction,
+  deleteMediaAction,
+  updateMediaItemAction,
+  getCategoriesAction,
+} from "@/lib/admin/actions";
 
 export default function MediaLibraryPage() {
   const [mediaItems, setMediaItems] = useState<MediaItem[]>(adminStore.getMedia());
+  const [galleryCats, setGalleryCats] = useState<AdminCategory[]>([]);
   const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(mediaItems[0] || null);
-  const [editingAlt, setEditingAlt] = useState(false);
+  const [editingMeta, setEditingMeta] = useState(false);
+  const [titleInput, setTitleInput] = useState("");
+  const [categoryInput, setCategoryInput] = useState("Residential");
   const [altInput, setAltInput] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Upload modal state
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [newUploadedUrl, setNewUploadedUrl] = useState("");
+  const [newUploadedTitle, setNewUploadedTitle] = useState("");
+  const [newUploadedCategory, setNewUploadedCategory] = useState("Residential");
   const [newUploadedAlt, setNewUploadedAlt] = useState("");
 
-  const filtered = mediaItems.filter(
-    (m) =>
+  const loadData = async () => {
+    const [items, cats] = await Promise.all([
+      getMediaAction(),
+      getCategoriesAction("gallery"),
+    ]);
+    if (items && items.length > 0) {
+      setMediaItems(items);
+      setSelectedItem((prev) => items.find((m) => m.id === prev?.id) || items[0]);
+    }
+    if (cats) {
+      setGalleryCats(cats.filter((c) => c.isActive));
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const categoryOptions =
+    galleryCats.length > 0
+      ? Array.from(
+          new Set([
+            ...galleryCats.map((c) => c.name),
+            ...mediaItems.map((m) => m.category).filter(Boolean) as string[],
+          ])
+        )
+      : ["Residential", "Aerial Views", "Layouts", "Community & Lifestyle", "Construction Updates"];
+
+  const filtered = mediaItems.filter((m) => {
+    const matchesSearch =
       m.filename.toLowerCase().includes(search.toLowerCase()) ||
-      m.altText.toLowerCase().includes(search.toLowerCase())
-  );
+      (m.title || "").toLowerCase().includes(search.toLowerCase()) ||
+      m.altText.toLowerCase().includes(search.toLowerCase());
+    const matchesCat =
+      selectedCategory === "All" || (m.category || "Residential") === selectedCategory;
+    return matchesSearch && matchesCat;
+  });
 
   const handleCopyUrl = (url: string, id: string) => {
     navigator.clipboard.writeText(url);
@@ -44,12 +90,22 @@ export default function MediaLibraryPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleSaveAlt = async () => {
+  const handleSaveMeta = async () => {
     if (!selectedItem) return;
-    await updateMediaAltAction(selectedItem.id, altInput);
-    selectedItem.altText = altInput;
-    setEditingAlt(false);
-    setMediaItems([...adminStore.getMedia()]);
+    await updateMediaItemAction(selectedItem.id, {
+      title: titleInput,
+      category: categoryInput,
+      altText: altInput,
+    });
+    const updatedItem = {
+      ...selectedItem,
+      title: titleInput,
+      category: categoryInput,
+      altText: altInput,
+    };
+    setSelectedItem(updatedItem);
+    setEditingMeta(false);
+    await loadData();
   };
 
   const handleDelete = async (item: MediaItem) => {
@@ -66,28 +122,27 @@ export default function MediaLibraryPage() {
     }
 
     await deleteMediaAction(item.id);
-    const updated = adminStore.getMedia();
-    setMediaItems(updated);
-    setSelectedItem(updated[0] || null);
+    await loadData();
   };
 
-  const handleNewUpload = (url: string) => {
+  const handleNewUpload = async (url: string) => {
     if (!url) return;
-    const added = adminStore.addMediaItem({
+    const res = await addMediaItemAction({
       filename: `asset-${Date.now()}.webp`,
       filePath: `uploads/asset-${Date.now()}.webp`,
       url,
       thumbnailUrl: url,
       mimeType: "image/webp",
       sizeBytes: 320000,
-      altText: newUploadedAlt || "Corona Properties Luxury Asset",
-      usageCount: 0,
-      usageReferences: [],
+      title: newUploadedTitle || "Property Showcase",
+      category: newUploadedCategory || "Residential",
+      altText: newUploadedAlt || newUploadedTitle || "Corona Properties Luxury Asset",
     });
-    setMediaItems([...adminStore.getMedia()]);
-    setSelectedItem(added);
+    await loadData();
+    if (res.media) setSelectedItem(res.media);
     setShowUploadModal(false);
     setNewUploadedUrl("");
+    setNewUploadedTitle("");
     setNewUploadedAlt("");
   };
 
@@ -107,29 +162,53 @@ export default function MediaLibraryPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setShowUploadModal(true)}
-          className="flex items-center gap-2 rounded-xl bg-navy px-4 py-2.5 text-xs font-semibold text-gold hover:bg-navy-800 transition shadow-sm"
-        >
-          <Upload className="h-4 w-4" /> Upload New Asset
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/categories"
+            className="flex items-center gap-1.5 rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-navy-700 hover:bg-navy-50 transition"
+          >
+            <Tags className="h-3.5 w-3.5" /> Manage Gallery Categories
+          </Link>
+          <button
+            type="button"
+            onClick={() => setShowUploadModal(true)}
+            className="flex items-center gap-2 rounded-xl bg-navy px-4 py-2.5 text-xs font-semibold text-gold hover:bg-navy-800 transition shadow-sm"
+          >
+            <Upload className="h-4 w-4" /> Upload New Asset
+          </button>
+        </div>
       </div>
 
-      {/* SEARCH BAR */}
-      <div className="flex items-center justify-between gap-4 rounded-2xl bg-white p-3 shadow-xs border border-navy-100">
-        <div className="relative flex-1 max-w-md">
+      {/* SEARCH & CATEGORY FILTER BAR */}
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white p-3 shadow-xs border border-navy-100">
+        <div className="relative flex-1 min-w-[220px] max-w-md">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-navy-400" />
           <input
             type="text"
-            placeholder="Search assets by filename or SEO alt text..."
+            placeholder="Search assets by title, filename, or SEO alt text..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full rounded-xl border border-navy-200 pl-9 pr-4 py-2 text-xs focus:border-gold outline-none"
           />
         </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {["All", ...categoryOptions].map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setSelectedCategory(cat)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                selectedCategory === cat
+                  ? "bg-navy text-gold shadow-xs"
+                  : "bg-slate-50 text-navy-600 hover:bg-navy-50"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
         <span className="text-xs text-navy-400 font-medium">
-          {filtered.length} assets registered
+          {filtered.length} assets shown
         </span>
       </div>
 
@@ -151,8 +230,10 @@ export default function MediaLibraryPage() {
                     key={item.id}
                     onClick={() => {
                       setSelectedItem(item);
+                      setTitleInput(item.title || item.filename);
+                      setCategoryInput(item.category || "Residential");
                       setAltInput(item.altText);
-                      setEditingAlt(false);
+                      setEditingMeta(false);
                     }}
                     className={`group relative aspect-video cursor-pointer overflow-hidden rounded-xl border-2 transition ${
                       isSelected
@@ -168,6 +249,11 @@ export default function MediaLibraryPage() {
                       sizes="(max-width: 768px) 50vw, 33vw"
                     />
 
+                    {/* Category Badge */}
+                    <span className="absolute top-2 right-2 rounded-md bg-gold/90 px-2 py-0.5 text-[10px] font-bold text-navy backdrop-blur-xs">
+                      {item.category || "Residential"}
+                    </span>
+
                     {/* Usage Tag */}
                     {item.usageCount > 0 ? (
                       <span className="absolute top-2 left-2 rounded-md bg-navy-900/80 px-2 py-0.5 text-[10px] font-bold text-gold-300 backdrop-blur-xs">
@@ -175,12 +261,15 @@ export default function MediaLibraryPage() {
                       </span>
                     ) : (
                       <span className="absolute top-2 left-2 rounded-md bg-slate-900/60 px-2 py-0.5 text-[10px] font-medium text-slate-300 backdrop-blur-xs">
-                        Unused
+                        Gallery
                       </span>
                     )}
 
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-navy/90 via-navy/50 to-transparent p-2">
-                      <p className="truncate text-[11px] font-medium text-white">{item.filename}</p>
+                      <p className="truncate text-[11px] font-bold text-white">
+                        {item.title || item.filename}
+                      </p>
+                      <p className="truncate text-[10px] text-slate-300">{item.filename}</p>
                     </div>
                   </div>
                 );
@@ -206,10 +295,10 @@ export default function MediaLibraryPage() {
 
             <div>
               <h4 className="font-bold text-xs text-navy truncate" title={selectedItem.filename}>
-                {selectedItem.filename}
+                {selectedItem.title || selectedItem.filename}
               </h4>
               <p className="text-[11px] text-navy-400 mt-0.5 font-mono">
-                {selectedItem.mimeType} &bull; {(selectedItem.sizeBytes / 1024).toFixed(0)} KB &bull; {selectedItem.width || 1920}x{selectedItem.height || 1080}
+                {selectedItem.filename} &bull; {(selectedItem.sizeBytes / 1024).toFixed(0)} KB
               </p>
             </div>
 
@@ -238,55 +327,103 @@ export default function MediaLibraryPage() {
               </div>
             </div>
 
-            {/* Alt-Text Editor */}
-            <div className="space-y-1.5">
+            {/* Title, Category & Alt-Text Editor */}
+            <div className="space-y-2 border-t border-navy-50 pt-3">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-semibold text-navy-700">
-                  SEO Alt Text (Required)
+                  Gallery Title, Category & SEO Alt Text
                 </span>
-                {!editingAlt && (
+                {!editingMeta && (
                   <button
                     type="button"
                     onClick={() => {
-                      setEditingAlt(true);
+                      setEditingMeta(true);
+                      setTitleInput(selectedItem.title || selectedItem.filename);
+                      setCategoryInput(selectedItem.category || "Residential");
                       setAltInput(selectedItem.altText);
                     }}
                     className="flex items-center gap-1 text-[11px] text-gold-700 font-semibold hover:underline"
                   >
-                    <Edit2 className="h-3 w-3" /> Edit
+                    <Edit2 className="h-3 w-3" /> Edit Metadata
                   </button>
                 )}
               </div>
 
-              {editingAlt ? (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={altInput}
-                    onChange={(e) => setAltInput(e.target.value)}
-                    className="w-full rounded-lg border border-navy-300 px-2.5 py-1.5 text-xs focus:border-gold outline-none"
-                  />
-                  <div className="flex justify-end gap-1.5">
+              {editingMeta ? (
+                <div className="space-y-2.5 rounded-xl border border-navy-100 bg-slate-50/50 p-3">
+                  <div>
+                    <label className="text-[10px] font-semibold text-navy-600 block mb-1">
+                      Display Title (Shown in Gallery Lightbox)
+                    </label>
+                    <input
+                      type="text"
+                      value={titleInput}
+                      onChange={(e) => setTitleInput(e.target.value)}
+                      className="w-full rounded-lg border border-navy-300 bg-white px-2.5 py-1.5 text-xs focus:border-gold outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-navy-600 block mb-1">
+                      Gallery Category
+                    </label>
+                    <select
+                      value={categoryInput}
+                      onChange={(e) => setCategoryInput(e.target.value)}
+                      className="w-full rounded-lg border border-navy-300 bg-white px-2.5 py-1.5 text-xs focus:border-gold outline-none"
+                    >
+                      {categoryOptions.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-navy-600 block mb-1">
+                      SEO Alt Text
+                    </label>
+                    <input
+                      type="text"
+                      value={altInput}
+                      onChange={(e) => setAltInput(e.target.value)}
+                      className="w-full rounded-lg border border-navy-300 bg-white px-2.5 py-1.5 text-xs focus:border-gold outline-none"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-1.5 pt-1">
                     <button
                       type="button"
-                      onClick={() => setEditingAlt(false)}
+                      onClick={() => setEditingMeta(false)}
                       className="px-2.5 py-1 text-xs text-navy-500 hover:bg-navy-50 rounded"
                     >
                       Cancel
                     </button>
                     <button
                       type="button"
-                      onClick={handleSaveAlt}
+                      onClick={handleSaveMeta}
                       className="px-3 py-1 text-xs bg-navy text-gold rounded font-semibold"
                     >
-                      Save
+                      Save Metadata
                     </button>
                   </div>
                 </div>
               ) : (
-                <p className="rounded-xl border border-navy-100 bg-slate-50/70 p-2.5 text-xs text-navy-800 italic">
-                  &ldquo;{selectedItem.altText}&rdquo;
-                </p>
+                <div className="rounded-xl border border-navy-100 bg-slate-50/70 p-3 text-xs space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-navy-400">Title:</span>
+                    <span className="font-semibold text-navy">
+                      {selectedItem.title || selectedItem.filename}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-navy-400">Category:</span>
+                    <span className="rounded bg-gold/20 px-2 py-0.5 text-[10px] font-bold text-navy">
+                      {selectedItem.category || "Residential"}
+                    </span>
+                  </div>
+                  <div className="pt-1 border-t border-navy-100/60 text-navy-700 italic">
+                    &ldquo;{selectedItem.altText}&rdquo;
+                  </div>
+                </div>
               )}
             </div>
 
@@ -332,7 +469,37 @@ export default function MediaLibraryPage() {
               Uploaded files are converted to WebP and stripped of all EXIF metadata before caching.
             </p>
 
-            <div className="mt-4">
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-navy-700 block mb-1">
+                  Display Title
+                </label>
+                <input
+                  type="text"
+                  value={newUploadedTitle}
+                  onChange={(e) => setNewUploadedTitle(e.target.value)}
+                  placeholder="e.g. Maple Leaf Garden City Aerial View"
+                  className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs focus:border-gold outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-navy-700 block mb-1">
+                  Gallery Category
+                </label>
+                <select
+                  value={newUploadedCategory}
+                  onChange={(e) => setNewUploadedCategory(e.target.value)}
+                  className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs focus:border-gold outline-none"
+                >
+                  {categoryOptions.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <ImageInput
                 value={newUploadedUrl}
                 onChange={(url) => setNewUploadedUrl(url)}

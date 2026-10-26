@@ -32,6 +32,7 @@ import {
   Briefcase,
   FileText,
   Compass,
+  Tags,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import CommandPalette from "@/components/admin/layout/CommandPalette";
@@ -79,6 +80,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       title: "Website CMS",
       links: [
         { label: "Site Content", href: "/admin/content", icon: LayoutTemplate },
+        { label: "Categories", href: "/admin/categories", icon: Tags },
         { label: "Blog Posts", href: "/admin/blog", icon: Newspaper },
         { label: "Executive Team", href: "/admin/team", icon: UserCheck },
         { label: "Testimonials", href: "/admin/testimonials", icon: MessageSquare },

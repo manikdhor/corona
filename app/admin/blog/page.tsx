@@ -17,11 +17,16 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
-import { getBlogPostsAction, deleteBlogPostAction } from "@/lib/admin/actions";
-import { AdminBlogPost } from "@/lib/admin/seed";
+import {
+  getBlogPostsAction,
+  deleteBlogPostAction,
+  getCategoriesAction,
+} from "@/lib/admin/actions";
+import { AdminBlogPost, AdminCategory } from "@/lib/admin/seed";
 
 export default function BlogAdminPage() {
   const [posts, setPosts] = useState<AdminBlogPost[]>([]);
+  const [blogCats, setBlogCats] = useState<AdminCategory[]>([]);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -31,8 +36,12 @@ export default function BlogAdminPage() {
 
   const loadPosts = async () => {
     setLoading(true);
-    const data = await getBlogPostsAction();
+    const [data, cats] = await Promise.all([
+      getBlogPostsAction(),
+      getCategoriesAction("blog"),
+    ]);
     setPosts(data);
+    if (cats) setBlogCats(cats.filter((c) => c.isActive));
     setLoading(false);
   };
 
@@ -52,7 +61,12 @@ export default function BlogAdminPage() {
     setDeletingId(null);
   };
 
-  const categories = Array.from(new Set(posts.map((p) => p.category).filter(Boolean)));
+  const categories = Array.from(
+    new Set([
+      ...blogCats.map((c) => c.name),
+      ...posts.map((p) => p.category).filter(Boolean),
+    ])
+  );
 
   const filteredPosts = posts.filter((post) => {
     const matchesSearch =

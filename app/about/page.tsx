@@ -102,18 +102,29 @@ export default async function AboutPage() {
   const siteContent = await getSiteContentAction();
 
   const about = siteContent?.aboutTeaser;
+  const aboutPage = siteContent?.aboutPage;
   const coreValuesData = siteContent?.coreValues;
   const journeyData = siteContent?.journey;
   const corporateGroup = siteContent?.corporateGroup;
+  const leadCapture = siteContent?.leadCapture;
+
+  const statsList =
+    siteContent?.hero?.stats && siteContent.hero.stats.length > 0
+      ? siteContent.hero.stats.map((st, idx) => ({
+          value: st.value,
+          label: st.label,
+          icon: DEFAULT_STATS[idx % DEFAULT_STATS.length].icon,
+        }))
+      : DEFAULT_STATS;
 
   const missionText =
     siteContent?.visionMission?.mission ||
-    corporateGroup?.visionMission?.mission ||
+    (corporateGroup as any)?.visionMission?.mission ||
     "To democratize access to premium, legally-secure residential land in Bangladesh — making world-class land investment available to every family, at home and abroad.";
 
   const visionText =
     siteContent?.visionMission?.vision ||
-    corporateGroup?.visionMission?.vision ||
+    (corporateGroup as any)?.visionMission?.vision ||
     "To be South Asia's most trusted land developer, recognized globally for legal integrity, infrastructure excellence, and unwavering commitment to client success.";
 
   const values =
@@ -129,10 +140,13 @@ export default async function AboutPage() {
   return (
     <>
       <PageHero
-        title="Our Story"
-        subtitle="Crafting premium communities, building trust, and shaping the future of land development in Bangladesh."
-        breadcrumb="About Us"
-        bgImage="/About-corone.webp"
+        title={aboutPage?.heroTitle || "Our Story"}
+        subtitle={
+          aboutPage?.heroSubtitle ||
+          "Crafting premium communities, building trust, and shaping the future of land development in Bangladesh."
+        }
+        breadcrumb={aboutPage?.breadcrumb || "About Us"}
+        bgImage={aboutPage?.heroBgImage || "/About-corone.webp"}
       />
 
       {/* Story section */}
@@ -154,7 +168,7 @@ export default async function AboutPage() {
               </p>
 
               <div className="mt-8 grid grid-cols-2 gap-6">
-                {DEFAULT_STATS.map((stat, i) => {
+                {statsList.map((stat, i) => {
                   const Icon = stat.icon;
                   return (
                     <div key={i} className="flex items-center gap-4">
@@ -340,20 +354,24 @@ export default async function AboutPage() {
         <div className="container-luxury relative text-center">
           <div className="max-w-3xl mx-auto text-center">
             <div className="mb-5 flex justify-center">
-              <span className="eyebrow">Our Leadership</span>
+              <span className="eyebrow">{aboutPage?.managementEyebrow || "Our Leadership"}</span>
             </div>
             <h2 className="font-serif font-bold leading-tight text-cream">
-              Management Messages
+              {aboutPage?.managementHeading || "Management Messages"}
             </h2>
             <p className="mt-5 text-lg leading-relaxed text-cream/70">
-              Hear directly from the leaders guiding Corona Properties and Maple Leaf Garden City.
+              {aboutPage?.managementSubtitle ||
+                "Hear directly from the leaders guiding Corona Properties and Maple Leaf Garden City."}
             </p>
           </div>
           <p className="mt-6 max-w-2xl mx-auto text-cream/75">
-            Transparency, integrity, and customer satisfaction remain at the heart of everything we do.
+            {aboutPage?.managementDescription ||
+              "Transparency, integrity, and customer satisfaction remain at the heart of everything we do."}
           </p>
           <div className="mt-10">
-            <Button href="/team">Meet Our Leadership</Button>
+            <Button href={aboutPage?.managementButtonLink || "/team"}>
+              {aboutPage?.managementButtonText || "Meet Our Leadership"}
+            </Button>
           </div>
         </div>
       </section>
@@ -363,18 +381,22 @@ export default async function AboutPage() {
         <div className="container-luxury">
           <div className="grid gap-12 lg:grid-cols-2 items-center">
             <div>
-              <span className="eyebrow">Partner With Us</span>
+              <span className="eyebrow">{leadCapture?.eyebrow || "Partner With Us"}</span>
               <h2 className="mt-5 font-serif text-display-md font-bold text-navy text-balance">
-                Ready to Own a Piece of the Future?
+                {leadCapture?.heading || "Ready to Own a Piece of the Future?"}
               </h2>
               <p className="mt-6 text-lg leading-relaxed text-navy-400">
-                With a proven track record of excellence and 1,200+ happy families, we&apos;re ready to help you make your first or next land investment with confidence.
+                {leadCapture?.description ||
+                  "With a proven track record of excellence and 1,200+ happy families, we're ready to help you make your first or next land investment with confidence."}
               </p>
             </div>
             <div>
               <LeadForm
-                title="Start Your Journey With Us"
-                subtitle="Tell us about your investment goals, preferred location, and budget. We'll get back to you with personalized options."
+                title={leadCapture?.formTitle || "Start Your Journey With Us"}
+                subtitle={
+                  leadCapture?.formSubtitle ||
+                  "Tell us about your investment goals, preferred location, and budget. We'll get back to you with personalized options."
+                }
                 source="About Page Form"
               />
             </div>

@@ -32,8 +32,8 @@ export interface AdminProperty {
   area: string;
   price: string;
   priceValue: number;
-  type: "Exclusive" | "Premium" | "Standard" | "Investment";
-  status: "Available" | "New Launch" | "Almost Sold Out" | "Featured" | "Sold Out";
+  type: string;
+  status: string;
   approvalStatus: "Draft" | "Pending Review" | "Published" | "Archived";
   size: string;
   featuredImage: string;
@@ -114,10 +114,46 @@ export interface MediaItem {
   sizeBytes: number;
   width?: number;
   height?: number;
+  title?: string;
+  category?: string;
   altText: string;
   usageCount: number;
   usageReferences: { type: string; title: string; id: string }[];
   createdAt: string;
+}
+
+export type CategoryScope =
+  | "property_type"
+  | "property_area"
+  | "property_status"
+  | "gallery"
+  | "blog"
+  | "faq"
+  | "amenity"
+  | "service";
+
+export interface AdminCategory {
+  id: string;
+  name: string;
+  nameBn?: string | null;
+  slug: string;
+  scope: CategoryScope;
+  description?: string;
+  iconName?: string;
+  color?: string;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+export interface CustomFieldDef {
+  id: string;
+  name: string;
+  key?: string;
+  label: string;
+  type: "text" | "number" | "select" | "boolean";
+  options?: string[];
+  isRequired: boolean;
+  required?: boolean;
 }
 
 export interface SocialLink {
@@ -239,6 +275,7 @@ export interface AdminTestimonial {
 export interface AdminService {
   id: string;
   title: string;
+  category?: string;
   iconName: string;
   description: string;
   features: string[];
@@ -291,6 +328,7 @@ export interface AdminNavigation {
 export interface AdminSiteContent {
   hero: {
     slides: string[];
+    showOverlay?: boolean;
     eyebrow: string;
     headline: string;
     subtitle: string;
@@ -342,10 +380,29 @@ export interface AdminSiteContent {
     bgImage: string;
   };
   corporateGroup: {
+    heroEyebrow?: string;
+    heroTitle?: string;
+    heroSubtitle?: string;
+    whoWeAre?: {
+      eyebrow: string;
+      heading: string;
+      p1: string;
+      p2: string;
+      image: string;
+      badgeValue: string;
+      badgeLabel: string;
+    };
+    ethos?: {
+      eyebrow: string;
+      heading: string;
+      description: string;
+    };
     foundingPioneer: {
       name: string;
       title: string;
-      bio: string[];
+      honorific?: string;
+      quote?: string;
+      bio: string[] | string;
       image?: string;
     };
     groupStats: { value: string; suffix: string; label: string; icon: string }[];
@@ -356,11 +413,13 @@ export interface AdminSiteContent {
       established: number;
       tagline: string;
       description: string;
-      strengths: string[];
-      icon: string;
-      color: string;
+      strengths?: string[];
+      highlights?: string[];
+      icon?: string;
+      color?: string;
     }[];
-    officeLocations: { city: string; name: string; description: string }[];
+    officeLocations: { city?: string; name?: string; description?: string; label?: string; company?: string; address?: string }[];
+    offices?: { city?: string; name?: string; description?: string; label?: string; company?: string; address?: string }[];
   };
   coreValues?: {
     eyebrow: string;
@@ -388,6 +447,7 @@ export interface AdminSiteContent {
   };
   executiveMessages?: {
     mdMessage: {
+      title?: string;
       name: string;
       role: string;
       image: string;
@@ -395,12 +455,111 @@ export interface AdminSiteContent {
       fullText: string;
     };
     chairmanMessage: {
+      title?: string;
       name: string;
       role: string;
       image: string;
       quote: string;
       fullText: string;
     };
+  };
+  aboutPage?: {
+    heroTitle: string;
+    heroSubtitle: string;
+    heroBgImage: string;
+    breadcrumb?: string;
+    managementEyebrow: string;
+    managementHeading: string;
+    managementDescription: string;
+    managementSubtitle?: string;
+    managementButtonText: string;
+    managementButtonLink: string;
+  };
+  projectsPage?: {
+    heroTitle: string;
+    heroSubtitle: string;
+    heroBgImage: string;
+    breadcrumb?: string;
+    leadEyebrow: string;
+    leadHeading: string;
+    leadDescription: string;
+    leadBullets: string[];
+    formTitle: string;
+    formSubtitle: string;
+  };
+  propertiesPage?: {
+    heroTitle: string;
+    heroSubtitle: string;
+    heroBgImage: string;
+    breadcrumb?: string;
+    leadEyebrow: string;
+    leadHeading: string;
+    leadDescription: string;
+    leadBullets: string[];
+    formTitle: string;
+    formSubtitle: string;
+  };
+  servicesPage?: {
+    heroTitle: string;
+    heroSubtitle: string;
+    heroBgImage: string;
+    breadcrumb?: string;
+    sectionEyebrow: string;
+    sectionTitle: string;
+    sectionSubtitle: string;
+    promiseEyebrow: string;
+    promiseHeading: string;
+    promiseDescription: string;
+    promiseImage: string;
+    promiseBullets: string[];
+  };
+  teamPage?: {
+    heroTitle: string;
+    heroSubtitle: string;
+    heroBgImage: string;
+    breadcrumb?: string;
+    sectionEyebrow: string;
+    sectionTitle: string;
+    sectionSubtitle: string;
+    ctaEyebrow: string;
+    ctaHeading: string;
+    ctaDescription: string;
+  };
+  galleryPage?: {
+    heroTitle: string;
+    heroSubtitle: string;
+    heroBgImage: string;
+    breadcrumb?: string;
+    leadEyebrow: string;
+    leadHeading: string;
+    leadDescription: string;
+    leadBullets: string[];
+    formTitle: string;
+    formSubtitle: string;
+  };
+  blogPage?: {
+    heroTitle: string;
+    heroSubtitle: string;
+    heroBgImage: string;
+    breadcrumb?: string;
+    leadEyebrow: string;
+    leadHeading: string;
+    leadDescription: string;
+    leadBullets: string[];
+    formTitle: string;
+    formSubtitle: string;
+  };
+  contactPage?: {
+    heroTitle: string;
+    heroSubtitle: string;
+    heroBgImage: string;
+    breadcrumb?: string;
+    mapEyebrow: string;
+    mapTitle: string;
+    mapSubtitle: string;
+    faqEyebrow: string;
+    faqTitle: string;
+    faqSubtitle: string;
   };
 }
 
@@ -418,7 +577,8 @@ class AdminDataStore {
   auditLogs: AuditLogItem[] = [];
   agents: Agent[] = [];
   roles: any[] = [];
-  customFields: any[] = [];
+  categories: AdminCategory[] = [];
+  customFields: CustomFieldDef[] = [];
   siteSettings: Record<string, any> = {};
   blogPosts: AdminBlogPost[] = [];
   teamMembers: AdminTeamMember[] = [];
@@ -583,6 +743,8 @@ class AdminDataStore {
         sizeBytes: 342000,
         width: 1920,
         height: 1080,
+        title: "Maple Leaf Garden City — Plot Layout",
+        category: "Layouts",
         altText: "Maple Leaf Garden City Master Layout Canopy",
         usageCount: 2,
         usageReferences: [{ type: "property", title: "Maple Leaf Garden City", id: "prop-flagship-1" }],
@@ -598,6 +760,8 @@ class AdminDataStore {
         sizeBytes: 285000,
         width: 1920,
         height: 1080,
+        title: "Corona Lakeview Enclave — Aerial View",
+        category: "Aerial Views",
         altText: "Corona Lakeview Enclave Waterfront Perspective",
         usageCount: 3,
         usageReferences: [{ type: "property", title: "Corona Lakeview Enclave", id: "prop-2" }],
@@ -613,6 +777,8 @@ class AdminDataStore {
         sizeBytes: 410000,
         width: 1920,
         height: 1080,
+        title: "Corona Green Valley — Plot Layout",
+        category: "Layouts",
         altText: "Maple Leaf Garden City Boulevards and Maple Trees",
         usageCount: 1,
         usageReferences: [{ type: "property", title: "Maple Leaf Garden City", id: "prop-flagship-1" }],
@@ -628,10 +794,46 @@ class AdminDataStore {
         sizeBytes: 380000,
         width: 1920,
         height: 1080,
+        title: "Corona Royal Crest — Main Entrance",
+        category: "Residential",
         altText: "Corona Royal Crest Estate Avenue",
         usageCount: 1,
         usageReferences: [{ type: "property", title: "Corona Royal Crest", id: "prop-3" }],
         createdAt: "2026-01-18T09:00:00Z",
+      },
+      {
+        id: "media-5",
+        filename: "image-04.webp",
+        filePath: "properties/image-04.webp",
+        url: "/image-04.webp",
+        thumbnailUrl: "/image-04.webp",
+        mimeType: "image/webp",
+        sizeBytes: 315000,
+        width: 1920,
+        height: 1080,
+        title: "Corona Heritage Park — Green Corridor",
+        category: "Residential",
+        altText: "Corona Heritage Park Green Corridor",
+        usageCount: 1,
+        usageReferences: [],
+        createdAt: "2026-01-20T11:00:00Z",
+      },
+      {
+        id: "media-6",
+        filename: "image-05.webp",
+        filePath: "properties/image-05.webp",
+        url: "/image-05.webp",
+        thumbnailUrl: "/image-05.webp",
+        mimeType: "image/webp",
+        sizeBytes: 360000,
+        width: 1920,
+        height: 1080,
+        title: "Corona Horizon — Panoramic View",
+        category: "Aerial Views",
+        altText: "Corona Horizon Panoramic View",
+        usageCount: 1,
+        usageReferences: [],
+        createdAt: "2026-01-22T14:00:00Z",
       },
     ];
 
@@ -934,13 +1136,22 @@ class AdminDataStore {
         shortName: "Corona Properties",
         tagline: "Crafting Timeless Land Legacies",
         taglineBn: "সময়ের ঊর্ধ্বে ভূমির ঐতিহ্য",
+        description:
+          "Bangladesh's premier residential land developer. Crafting legacies through premium plots, transparent transactions, and enduring value since 2015.",
         logoUrl: "/image-01.webp",
         faviconUrl: "/favicon.ico",
         primaryColor: "#0a1a3e",
         accentGold: "#c9a96e",
         phone: "+880 1805 759297",
+        whatsapp: "8801805759297",
         email: "cplcoronapropertiesltd@gmail.com",
         address: "House # 145, Flat # 704, Road # 3, Block A, Niketon, Gulshan 01, Dhaka - 1212",
+        hours: "Saturday – Thursday: 9:00 AM – 6:00 PM | Friday: Closed",
+        headerCtaText: "Book a Visit",
+        headerCtaLink: "/contact",
+        mapEmbedUrl:
+          "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3651.233099212104!2d90.40905247604982!3d23.77471198784286!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c777f2685349%3A0x601032d9c6106b95!2sNiketan%2C%20Dhaka%201212!5e0!3m2!1sen!2sbd!4v1711100000000!5m2!1sen!2sbd",
+        directionsUrl: "https://maps.google.com/?q=Niketon+Gulshan+1+Dhaka+1212",
       },
       webhooks: {
         n8nLeadWebhook: "https://n8n.coronaproperties.com/webhook/new-lead",
@@ -1275,14 +1486,37 @@ All maps, plot sizes, artistic 3D renderings, and master plans are conceptual re
         bgImage: "/image-02.webp",
       },
       corporateGroup: {
+        heroEyebrow: "Est. 1987 · Dhaka & Chittagong",
+        heroTitle: "Corona Group",
+        heroSubtitle:
+          "Over three decades of pioneering excellence across transportation, maritime logistics, customs brokerage, international trade, and media production in Bangladesh.",
+        whoWeAre: {
+          eyebrow: "Who We Are",
+          heading: "A Legacy of Excellence Across Industries",
+          p1: "Founded in 1987 in Dhaka, Corona Group has grown from a single overland transport company into a diversified Bangladeshi conglomerate operating six dynamic business divisions. With offices in both Dhaka and Chittagong, the Group forms an integrated backbone across the nation's supply chain, maritime trade, and creative sectors.",
+          p2: "Every Corona enterprise is bound by a shared commitment to operational precision, regulatory compliance, and long-term partnership — values that have earned the trust of leading national and multinational clients for nearly four decades.",
+          image: "/image-01.webp",
+          badgeValue: "37+",
+          badgeLabel: "Years of Corporate Heritage",
+        },
+        ethos: {
+          eyebrow: "Our Ethos",
+          heading: "Commitment to Sustainable Growth",
+          description:
+            "As Bangladesh continues its journey as one of South Asia's fastest-growing economies, Corona Group remains dedicated to strengthening the nation's trade infrastructure, creating meaningful employment, and upholding the highest standards of corporate governance across every venture we undertake.",
+        },
         foundingPioneer: {
           name: "Kazi Rafiqul Islam",
           title: "A Pioneer in Transportation & Logistics",
+          honorific: "Founding Pioneer",
+          quote:
+            "True enterprise is measured not merely by growth, but by the trust it earns and the nation it helps build.",
           bio: [
             "In 1987, Kazi Rafiqul Islam laid the cornerstone of what would become one of Bangladesh's most enduring corporate legacies. Starting with a vision to revolutionize overland transportation in a developing nation, he established Corona Trade & Transport Ltd. with an unwavering commitment to reliability and customer trust.",
             "Under his visionary leadership, Corona Group expanded systematically across vital sectors of the national economy — shipping agency services in 1990, customs brokerage in 1997, coastal vessel operations in 2008, international trade in 2010, and media production in 2014.",
             "His guiding philosophy — that business success must be built on honesty, discipline, and national contribution — continues to inspire every enterprise under the Corona banner today.",
           ],
+          image: "/Founder_Image.webp",
         },
         groupStats: [
           { value: "1987", suffix: "", label: "Founded", icon: "Landmark" },
@@ -1305,6 +1539,7 @@ All maps, plot sizes, artistic 3D renderings, and master plans are conceptual re
       },
       executiveMessages: {
         mdMessage: {
+          title: "Message from the Managing Director",
           name: "Syed Al Faruk",
           role: "Managing Director",
           image: "/image-01.webp",
@@ -1313,6 +1548,7 @@ All maps, plot sizes, artistic 3D renderings, and master plans are conceptual re
             "Corona Properties Limited was born out of a desire to redefine the real estate experience in Bangladesh. Having observed the anxieties families encounter when navigating land ownership, our commitment is simple: 100% legal veracity, unmatched infrastructure, and lifetime client partnership.",
         },
         chairmanMessage: {
+          title: "Message from the Chairman",
           name: "Kazi Rafiqul Islam",
           role: "Chairman & Founder",
           image: "/image-02.webp",
@@ -1361,7 +1597,195 @@ All maps, plot sizes, artistic 3D renderings, and master plans are conceptual re
         formTitle: "Request a Consultation",
         formSubtitle: "Share your details and our specialists will reach out within 24 hours with curated options tailored to your needs.",
       },
+      aboutPage: {
+        heroTitle: "Crafting Legacies, One Plot at a Time",
+        heroSubtitle: "Discover the story, values, and vision behind Bangladesh's most trusted residential land developer.",
+        heroBgImage: "/image-04.webp",
+        managementEyebrow: "Leadership",
+        managementHeading: "Guided by Visionary Leadership",
+        managementDescription: "Read the messages from our Managing Director and Chairman on how Corona Properties is building communities defined by integrity, planning excellence, and enduring value.",
+        managementButtonText: "Read Management Messages",
+        managementButtonLink: "/team",
+      },
+      projectsPage: {
+        heroTitle: "Our Projects",
+        heroSubtitle: "Master-planned residential townships engineered for generational value, serene living, and world-class infrastructure.",
+        heroBgImage: "/image-01.webp",
+        leadEyebrow: "Schedule a Private Tour",
+        leadHeading: "Experience Maple Leaf Garden City Firsthand",
+        leadDescription: "Visit our flagship project in Purbachal or schedule a private consultation at our Gulshan office. Our specialists will walk you through available plots, master plans, and flexible ownership options.",
+        leadBullets: [
+          "Guided on-site tour of Purbachal project",
+          "Complete legal & title deed review",
+          "Customized installment & payment plans",
+          "Dedicated assistance for NRB investors",
+        ],
+        formTitle: "Book a Project Consultation",
+        formSubtitle: "Share your contact details and preferred plot size — our project advisor will reach out within 24 hours.",
+      },
+      propertiesPage: {
+        heroTitle: "Our Properties",
+        heroSubtitle: "Explore our curated collection of residential plots across Dhaka's most prestigious locations. Every plot is legally verified.",
+        heroBgImage: "/image-02.webp",
+        leadEyebrow: "Need Guidance?",
+        leadHeading: "Let Our Experts Find Your Ideal Plot",
+        leadDescription: "Not sure which property aligns best with your goals? Tell us what you're looking for and our land specialists will curate a personalized shortlist — including exclusive off-market plots.",
+        leadBullets: [
+          "Access to off-market and upcoming launches",
+          "Price comparison & ROI projection reports",
+          "Free site visit with our property advisors",
+          "Complete legal & documentation assistance",
+        ],
+        formTitle: "Get Personalized Recommendations",
+        formSubtitle: "Share your preferences and budget — we'll get back to you within 24 hours.",
+      },
+      servicesPage: {
+        heroTitle: "Comprehensive Land Solutions",
+        heroSubtitle: "From plot selection and legal verification to construction advisory and lifetime property management — we handle everything.",
+        heroBgImage: "/image-05.webp",
+        sectionEyebrow: "What We Offer",
+        sectionTitle: "End-to-End Land Services",
+        sectionSubtitle: "Every service is designed to make your land ownership journey seamless, transparent, and rewarding.",
+        promiseEyebrow: "The Corona Promise",
+        promiseHeading: "White-Glove Service, End to End",
+        promiseDescription: "At Corona Properties, our relationship doesn't end at the sale. We provide a complete ecosystem of services to ensure your land investment appreciates in value and brings you peace of mind for generations.",
+        promiseImage: "/image-06.webp",
+        promiseBullets: [
+          "Dedicated relationship manager for every client",
+          "Zero hidden fees — complete cost breakdown upfront",
+          "In-house legal team with 100% clean record",
+          "NRB-friendly remote transaction capability",
+          "Lifetime after-sales support included",
+          "Partner bank financing facilitation",
+        ],
+      },
+      teamPage: {
+        heroTitle: "Management Messages",
+        heroSubtitle: "Insights, vision, and commitment from the leadership steering Corona Properties Limited.",
+        heroBgImage: "/image-03.webp",
+        sectionEyebrow: "Leadership Perspective",
+        sectionTitle: "Words From the Top",
+        sectionSubtitle: "Our leadership's unwavering pledge to legal transparency, modern urban planning, and generational trust.",
+        ctaEyebrow: "Connect With Us",
+        ctaHeading: "Have Questions for Our Advisory Team?",
+        ctaDescription: "Schedule a private consultation at our Gulshan office or arrange a guided site visit to Maple Leaf Garden City.",
+      },
+      galleryPage: {
+        heroTitle: "Project Gallery",
+        heroSubtitle: "Take a visual tour through our developed communities, aerial views, and master-planned plot layouts across Dhaka.",
+        heroBgImage: "/image-01.webp",
+        leadEyebrow: "See It In Person",
+        leadHeading: "Nothing Compares to Visiting in Person",
+        leadDescription: "Photos capture only a fraction of the experience. Book a complimentary guided site visit and walk the wide roads, green corridors, and premium plots yourself.",
+        leadBullets: [
+          "Complimentary guided tour with transport",
+          "Walk the actual plot boundaries",
+          "Review on-site infrastructure progress",
+          "Meet our project engineers in person",
+        ],
+        formTitle: "Book a Free Site Visit",
+        formSubtitle: "Choose a convenient day and our team will arrange everything for your visit.",
+      },
+      blogPage: {
+        heroTitle: "Insights & Guides",
+        heroSubtitle: "Expert perspectives on land investment, legal documentation, market trends, and smart property decisions in Bangladesh.",
+        heroBgImage: "/image-04.webp",
+        leadEyebrow: "Expert Advice",
+        leadHeading: "Have Questions About Land Investment?",
+        leadDescription: "Speak directly with our research and advisory team for personalized guidance on market trends, legal due diligence, and high-growth corridors in Dhaka.",
+        leadBullets: [
+          "One-on-one session with market analysts",
+          "Custom ROI & appreciation forecasts",
+          "NRB investment & repatriation guidance",
+          "Legal & mutation checklist walkthrough",
+        ],
+        formTitle: "Speak With an Advisor",
+        formSubtitle: "Drop your details below and we'll schedule a complimentary advisory call.",
+      },
+      contactPage: {
+        heroTitle: "Let's Start a Conversation",
+        heroSubtitle: "Whether you're ready to invest, want to book a site visit, or simply have questions — our team is here to help.",
+        heroBgImage: "/image-06.webp",
+        mapEyebrow: "Our Location",
+        mapTitle: "Visit Our Gulshan Office",
+        mapSubtitle: "Conveniently located in Niketon, Gulshan 01 — drop by for a coffee and a personal consultation with our land specialists.",
+        faqEyebrow: "Common Questions",
+        faqTitle: "Frequently Asked Questions",
+        faqSubtitle: "Quick answers to the questions we hear most from prospective buyers and investors.",
+      },
     };
+
+    // 21. Initialize Unified Categories across all scopes
+    this.categories = [
+      // Property Types / Categories
+      { id: "cat-pt-1", name: "Exclusive", nameBn: "এক্সক্লুসিভ", slug: "exclusive", scope: "property_type", description: "Flagship & ultra-prime master-planned enclaves", color: "#c9a96e", sortOrder: 1, isActive: true },
+      { id: "cat-pt-2", name: "Premium", nameBn: "প্রিমিয়াম", slug: "premium", scope: "property_type", description: "High-end residential plots in prime corridors", color: "#0a1a3e", sortOrder: 2, isActive: true },
+      { id: "cat-pt-3", name: "Standard", nameBn: "স্ট্যান্ডার্ড", slug: "standard", scope: "property_type", description: "Well-connected family residential plots", color: "#10b981", sortOrder: 3, isActive: true },
+      { id: "cat-pt-4", name: "Investment", nameBn: "ইনভেস্টমেন্ট", slug: "investment", scope: "property_type", description: "High-appreciation land banking opportunities", color: "#3b82f6", sortOrder: 4, isActive: true },
+      { id: "cat-pt-5", name: "Commercial", nameBn: "কমার্শিয়াল", slug: "commercial", scope: "property_type", description: "Commercial boulevard & mixed-use plots", color: "#8b5cf6", sortOrder: 5, isActive: true },
+
+      // Property Areas / Locations
+      { id: "cat-pa-1", name: "Purbachal", nameBn: "পূর্বাচল", slug: "purbachal", scope: "property_area", description: "Purbachal New Town & adjacent corridors", sortOrder: 1, isActive: true },
+      { id: "cat-pa-2", name: "Gulshan", nameBn: "গুলশান", slug: "gulshan", scope: "property_area", description: "Gulshan diplomatic & residential zone", sortOrder: 2, isActive: true },
+      { id: "cat-pa-3", name: "Banani", nameBn: "বনানী", slug: "banani", scope: "property_area", description: "Banani prime urban neighborhood", sortOrder: 3, isActive: true },
+      { id: "cat-pa-4", name: "Baridhara", nameBn: "বারিধারা", slug: "baridhara", scope: "property_area", description: "Baridhara diplomatic & J Block corridor", sortOrder: 4, isActive: true },
+      { id: "cat-pa-5", name: "Uttara", nameBn: "উত্তরা", slug: "uttara", scope: "property_area", description: "Uttara model town & metro corridor", sortOrder: 5, isActive: true },
+      { id: "cat-pa-6", name: "Dhanmondi", nameBn: "ধানমন্ডি", slug: "dhanmondi", scope: "property_area", description: "Dhanmondi heritage residential zone", sortOrder: 6, isActive: true },
+      { id: "cat-pa-7", name: "Bashundhara", nameBn: "বসুন্ধরা", slug: "bashundhara", scope: "property_area", description: "Bashundhara Residential Area", sortOrder: 7, isActive: true },
+
+      // Property / Project Statuses
+      { id: "cat-ps-1", name: "Available", slug: "available", scope: "property_status", description: "Plots open for immediate reservation", color: "#10b981", sortOrder: 1, isActive: true },
+      { id: "cat-ps-2", name: "Ongoing", slug: "ongoing", scope: "property_status", description: "Infrastructure development actively in progress", color: "#3b82f6", sortOrder: 2, isActive: true },
+      { id: "cat-ps-3", name: "New Launch", slug: "new-launch", scope: "property_status", description: "Newly unveiled phase or enclave", color: "#c9a96e", sortOrder: 3, isActive: true },
+      { id: "cat-ps-4", name: "Upcoming", slug: "upcoming", scope: "property_status", description: "Pre-launch registration open", color: "#8b5cf6", sortOrder: 4, isActive: true },
+      { id: "cat-ps-5", name: "Almost Sold Out", slug: "almost-sold-out", scope: "property_status", description: "Limited final plots remaining", color: "#f59e0b", sortOrder: 5, isActive: true },
+      { id: "cat-ps-6", name: "Completed", slug: "completed", scope: "property_status", description: "Development completed and ready for handover", color: "#059669", sortOrder: 6, isActive: true },
+      { id: "cat-ps-7", name: "Sold Out", slug: "sold-out", scope: "property_status", description: "All plots allocated", color: "#ef4444", sortOrder: 7, isActive: true },
+
+      // Gallery Categories
+      { id: "cat-gal-1", name: "Residential", slug: "residential", scope: "gallery", description: "Developed residential avenues, entrances, and green parks", sortOrder: 1, isActive: true },
+      { id: "cat-gal-2", name: "Aerial Views", slug: "aerial-views", scope: "gallery", description: "Drone & panoramic perspectives of project sites", sortOrder: 2, isActive: true },
+      { id: "cat-gal-3", name: "Layouts", slug: "layouts", scope: "gallery", description: "Master plans, plot grids, and architectural layouts", sortOrder: 3, isActive: true },
+      { id: "cat-gal-4", name: "Infrastructure", slug: "infrastructure", scope: "gallery", description: "On-site roadworks, utilities, and civic development", sortOrder: 4, isActive: true },
+
+      // Blog Categories
+      { id: "cat-blog-1", name: "Investment Guide", slug: "investment-guide", scope: "blog", description: "ROI analysis and land buying guides", sortOrder: 1, isActive: true },
+      { id: "cat-blog-2", name: "Legal", slug: "legal", scope: "blog", description: "Title deed, mutation, and regulatory insights", sortOrder: 2, isActive: true },
+      { id: "cat-blog-3", name: "Market Trends", slug: "market-trends", scope: "blog", description: "Dhaka real estate market reports & forecasts", sortOrder: 3, isActive: true },
+      { id: "cat-blog-4", name: "Market Insights", slug: "market-insights", scope: "blog", description: "In-depth research by Corona analysts", sortOrder: 4, isActive: true },
+      { id: "cat-blog-5", name: "Architecture", slug: "architecture", scope: "blog", description: "Urban design and master-planning spotlights", sortOrder: 5, isActive: true },
+      { id: "cat-blog-6", name: "Company News", slug: "company-news", scope: "blog", description: "Project milestones, handovers, and announcements", sortOrder: 6, isActive: true },
+
+      // FAQ Categories
+      { id: "cat-faq-1", name: "Legal & Title", slug: "legal-title", scope: "faq", description: "Questions about deeds, mutation, and verification", sortOrder: 1, isActive: true },
+      { id: "cat-faq-2", name: "Financing", slug: "financing", scope: "faq", description: "Installments, booking advances, and bank loans", sortOrder: 2, isActive: true },
+      { id: "cat-faq-3", name: "NRI / Expat", slug: "nri-expat", scope: "faq", description: "Remote buying & management for overseas Bangladeshis", sortOrder: 3, isActive: true },
+      { id: "cat-faq-4", name: "After Sales", slug: "after-sales", scope: "faq", description: "Handover, construction support, and property care", sortOrder: 4, isActive: true },
+      { id: "cat-faq-5", name: "Site Visit", slug: "site-visit", scope: "faq", description: "Scheduling guided tours to our project sites", sortOrder: 5, isActive: true },
+      { id: "cat-faq-6", name: "General", slug: "general", scope: "faq", description: "General inquiries about Corona Properties", sortOrder: 6, isActive: true },
+
+      // Amenity Categories
+      { id: "cat-am-1", name: "Healthcare", slug: "healthcare", scope: "amenity", description: "Hospitals, clinics, and medical facilities", sortOrder: 1, isActive: true },
+      { id: "cat-am-2", name: "Civic", slug: "civic", scope: "amenity", description: "Schools, mosques, community centers, and conventions", sortOrder: 2, isActive: true },
+      { id: "cat-am-3", name: "Recreation", slug: "recreation", scope: "amenity", description: "Clubs, sports complexes, playgrounds, and leisure", sortOrder: 3, isActive: true },
+      { id: "cat-am-4", name: "Nature", slug: "nature", scope: "amenity", description: "Lakes, parks, botanical gardens, and green belts", sortOrder: 4, isActive: true },
+      { id: "cat-am-5", name: "Commercial", slug: "commercial", scope: "amenity", description: "Shopping arcades, markets, and business zones", sortOrder: 5, isActive: true },
+      { id: "cat-am-6", name: "Infrastructure", slug: "infrastructure", scope: "amenity", description: "Wide avenues, underground utilities, water & power", sortOrder: 6, isActive: true },
+      { id: "cat-am-7", name: "Security", slug: "security", scope: "amenity", description: "24/7 gated security, CCTV surveillance, and patrols", sortOrder: 7, isActive: true },
+
+      // Service Categories
+      { id: "cat-srv-1", name: "Core Development", slug: "core-development", scope: "service", description: "Township planning & residential land development", sortOrder: 1, isActive: true },
+      { id: "cat-srv-2", name: "Legal & Registry", slug: "legal-registry", scope: "service", description: "Title verification, mutation, and deed documentation", sortOrder: 2, isActive: true },
+      { id: "cat-srv-3", name: "Advisory & Care", slug: "advisory-care", scope: "service", description: "Investment advisory, NRB concierge, and after-sales support", sortOrder: 3, isActive: true },
+    ];
+
+    // 22. Initialize Custom Fields
+    this.customFields = [
+      { id: "f-1", name: "road_facing", label: "Road Facing Direction", type: "select", options: ["North", "South", "East", "West", "Corner Double Road"], isRequired: true },
+      { id: "f-2", name: "soil_test_certified", label: "Soil Test Certified", type: "boolean", isRequired: true },
+      { id: "f-3", name: "distance_to_metro", label: "Distance to Metro Rail (km)", type: "number", isRequired: false },
+      { id: "f-4", name: "mutation_paper_ready", label: "Mutation Paper Ready", type: "boolean", isRequired: true },
+    ];
 
     this.isInitialized = true;
   }
@@ -2054,6 +2478,159 @@ All maps, plot sizes, artistic 3D renderings, and master plans are conceptual re
     };
     this.logAction("UPDATE_NAVIGATION", "navigation", "global", undefined, nav);
     return this.navigation;
+  }
+
+  // --- UNIFIED CATEGORIES CRUD ---
+  getCategories(scope?: CategoryScope | string): AdminCategory[] {
+    const list = scope ? this.categories.filter((c) => c.scope === scope) : this.categories;
+    return [...list].sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+
+  saveCategory(cat: Partial<AdminCategory> & { name: string; scope: CategoryScope }) {
+    const idx = this.categories.findIndex((c) => c.id === cat.id);
+    if (idx >= 0) {
+      const old = this.categories[idx];
+      const updated: AdminCategory = {
+        ...old,
+        ...cat,
+        slug: cat.slug || cat.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      };
+      this.categories[idx] = updated;
+      this.logAction("UPDATE", "category", updated.id, old, updated);
+      return updated;
+    } else {
+      const scopeCount = this.categories.filter((c) => c.scope === cat.scope).length;
+      const created: AdminCategory = {
+        id: cat.id || `cat-${cat.scope}-${Date.now()}`,
+        name: cat.name,
+        nameBn: cat.nameBn || null,
+        slug: cat.slug || cat.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        scope: cat.scope,
+        description: cat.description || "",
+        iconName: cat.iconName || "Tag",
+        color: cat.color || "#c9a96e",
+        sortOrder: cat.sortOrder ?? scopeCount + 1,
+        isActive: cat.isActive !== false,
+      };
+      this.categories.push(created);
+      this.logAction("CREATE", "category", created.id, undefined, created);
+      return created;
+    }
+  }
+
+  deleteCategory(id: string) {
+    const idx = this.categories.findIndex((c) => c.id === id);
+    if (idx >= 0) {
+      const old = this.categories[idx];
+      this.categories.splice(idx, 1);
+      this.logAction("DELETE", "category", id, old, undefined);
+      return true;
+    }
+    return false;
+  }
+
+  reorderCategories(ids: string[]) {
+    ids.forEach((id, index) => {
+      const item = this.categories.find((c) => c.id === id);
+      if (item) item.sortOrder = index + 1;
+    });
+    this.logAction("REORDER", "category", "multiple", undefined, ids);
+    return true;
+  }
+
+  // --- CUSTOM FIELDS CRUD ---
+  getCustomFields(): CustomFieldDef[] {
+    return this.customFields;
+  }
+
+  saveCustomField(field: Partial<CustomFieldDef> & { label: string; type: CustomFieldDef["type"] }) {
+    const idx = this.customFields.findIndex((f) => f.id === field.id);
+    if (idx >= 0) {
+      this.customFields[idx] = { ...this.customFields[idx], ...field };
+      return this.customFields[idx];
+    } else {
+      const created: CustomFieldDef = {
+        id: field.id || `f-${Date.now()}`,
+        name: field.name || field.label.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+        label: field.label,
+        type: field.type,
+        options: field.options,
+        isRequired: !!field.isRequired,
+      };
+      this.customFields.push(created);
+      this.logAction("CREATE", "custom_field", created.id, undefined, created);
+      return created;
+    }
+  }
+
+  deleteCustomField(id: string) {
+    const idx = this.customFields.findIndex((f) => f.id === id);
+    if (idx >= 0) {
+      this.customFields.splice(idx, 1);
+      return true;
+    }
+    return false;
+  }
+
+  // --- MEDIA UPDATE ---
+  updateMediaItem(id: string, updates: Partial<MediaItem>) {
+    const idx = this.media.findIndex((m) => m.id === id);
+    if (idx >= 0) {
+      this.media[idx] = { ...this.media[idx], ...updates };
+      return this.media[idx];
+    }
+    return null;
+  }
+
+  // --- STAGES & AGENTS CRUD ---
+  saveStage(stage: Partial<LeadStage> & { name: string }) {
+    const idx = this.leadStages.findIndex((s) => s.id === stage.id);
+    if (idx >= 0) {
+      this.leadStages[idx] = { ...this.leadStages[idx], ...stage };
+      return this.leadStages[idx];
+    } else {
+      const created: LeadStage = {
+        id: stage.id || `stage-${Date.now()}`,
+        name: stage.name,
+        slug: stage.slug || stage.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        color: stage.color || "#c9a96e",
+        sortOrder: stage.sortOrder ?? this.leadStages.length + 1,
+        isSystem: false,
+      };
+      this.leadStages.push(created);
+      return created;
+    }
+  }
+
+  saveAgent(agent: Partial<Agent> & { name: string; email: string; phone: string }) {
+    const idx = this.agents.findIndex((a) => a.id === agent.id);
+    if (idx >= 0) {
+      this.agents[idx] = { ...this.agents[idx], ...agent };
+      return this.agents[idx];
+    } else {
+      const created: Agent = {
+        id: agent.id || `agent-${Date.now()}`,
+        name: agent.name,
+        email: agent.email,
+        phone: agent.phone,
+        role: agent.role || "Property Consultant",
+        bio: agent.bio || "",
+        avatarUrl: agent.avatarUrl || "/image-01.webp",
+        activeLeadsCount: agent.activeLeadsCount ?? 0,
+        isActive: agent.isActive !== false,
+      };
+      this.agents.push(created);
+      return created;
+    }
+  }
+
+  deleteAgent(id: string) {
+    const idx = this.agents.findIndex((a) => a.id === id);
+    if (idx >= 0) {
+      this.agents.splice(idx, 1);
+      return true;
+    }
+    return false;
   }
 }
 

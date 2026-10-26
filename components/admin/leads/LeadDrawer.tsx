@@ -20,6 +20,9 @@ import {
 } from "lucide-react";
 import { AdminLead, LeadActivity, adminStore } from "@/lib/admin/seed";
 import {
+  getLeadDetailsAction,
+  getStagesAction,
+  getAgentsAction,
   updateLeadStageAction,
   addLeadActivityAction,
   saveLeadAction,
@@ -43,13 +46,23 @@ export default function LeadDrawer({ leadId, onClose, onUpdate }: LeadDrawerProp
   const [activityDesc, setActivityDesc] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const refreshLeadDetails = async (id: string) => {
+    const [details, stList, agList] = await Promise.all([
+      getLeadDetailsAction(id),
+      getStagesAction(),
+      getAgentsAction(),
+    ]);
+    if (details?.lead) {
+      setLead(details.lead);
+      setActivities(details.activities || []);
+    }
+    if (stList?.length) setStages(stList);
+    if (agList?.length) setAgents(agList);
+  };
+
   useEffect(() => {
     if (leadId) {
-      const found = adminStore.getLeadById(leadId);
-      if (found) {
-        setLead(found);
-        setActivities(adminStore.getLeadActivities(leadId));
-      }
+      refreshLeadDetails(leadId);
     }
   }, [leadId]);
 
@@ -61,8 +74,7 @@ export default function LeadDrawer({ leadId, onClose, onUpdate }: LeadDrawerProp
   const handleStageChange = async (newStageId: string) => {
     const updated = await updateLeadStageAction(lead.id, newStageId, "Advisor");
     if (updated.success && updated.lead) {
-      setLead(updated.lead);
-      setActivities(adminStore.getLeadActivities(lead.id));
+      await refreshLeadDetails(lead.id);
       if (onUpdate) onUpdate();
     }
   };
@@ -73,7 +85,7 @@ export default function LeadDrawer({ leadId, onClose, onUpdate }: LeadDrawerProp
       assignedAgentId: newAgentId,
     });
     if (updated.success && updated.lead) {
-      setLead(updated.lead);
+      await refreshLeadDetails(lead.id);
       if (onUpdate) onUpdate();
     }
   };
@@ -84,7 +96,7 @@ export default function LeadDrawer({ leadId, onClose, onUpdate }: LeadDrawerProp
       priority: newPriority,
     });
     if (updated.success && updated.lead) {
-      setLead(updated.lead);
+      await refreshLeadDetails(lead.id);
       if (onUpdate) onUpdate();
     }
   };
@@ -100,7 +112,7 @@ export default function LeadDrawer({ leadId, onClose, onUpdate }: LeadDrawerProp
       activityTitle,
       activityDesc || undefined
     );
-    setActivities(adminStore.getLeadActivities(lead.id));
+    await refreshLeadDetails(lead.id);
     setActivityTitle("");
     setActivityDesc("");
     setIsSubmitting(false);

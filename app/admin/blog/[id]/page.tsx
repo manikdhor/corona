@@ -17,7 +17,12 @@ import {
   User,
   Tag,
 } from "lucide-react";
-import { getBlogPostAction, saveBlogPostAction } from "@/lib/admin/actions";
+import {
+  getBlogPostAction,
+  saveBlogPostAction,
+  getCategoriesAction,
+} from "@/lib/admin/actions";
+import type { AdminCategory } from "@/lib/admin/seed";
 import RichTextEditor from "@/components/admin/editor/RichTextEditor";
 
 export default function BlogPostEditorPage() {
@@ -36,6 +41,7 @@ export default function BlogPostEditorPage() {
   const [content, setContent] = useState("");
   const [contentBn, setContentBn] = useState("");
   const [category, setCategory] = useState("Market Insights");
+  const [blogCategories, setBlogCategories] = useState<AdminCategory[]>([]);
   const [author, setAuthor] = useState("Corona Research Team");
   const [authorRole, setAuthorRole] = useState("Market Analyst");
   const [image, setImage] = useState("/image-01.webp");
@@ -50,6 +56,9 @@ export default function BlogPostEditorPage() {
   const [activeTab, setActiveTab] = useState<"en" | "bn">("en");
 
   useEffect(() => {
+    getCategoriesAction("blog").then((cats) => {
+      if (cats) setBlogCategories(cats.filter((c) => c.isActive));
+    });
     if (!isNew && idParam) {
       (async () => {
         setLoading(true);
@@ -392,7 +401,15 @@ export default function BlogPostEditorPage() {
             </h3>
 
             <div>
-              <label className="block text-xs font-medium text-navy-600 mb-1">Category</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-medium text-navy-600">Category</label>
+                <Link
+                  href="/admin/categories"
+                  className="text-[10px] font-semibold text-gold-700 hover:underline"
+                >
+                  Manage Categories
+                </Link>
+              </div>
               <div className="space-y-2">
                 <input
                   type="text"
@@ -402,22 +419,23 @@ export default function BlogPostEditorPage() {
                   className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs font-semibold text-navy focus:border-gold focus:outline-none"
                 />
                 <div className="flex flex-wrap gap-1.5">
-                  {["Market Insights", "Architecture", "Investment", "Company News", "Legal Guide"].map(
-                    (cat) => (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => setCategory(cat)}
-                        className={`rounded-lg px-2 py-0.5 text-[10px] font-semibold border transition ${
-                          category === cat
-                            ? "bg-navy text-gold border-navy"
-                            : "bg-slate-50 text-navy-600 border-navy-100 hover:bg-slate-100"
-                        }`}
-                      >
-                        {cat}
-                      </button>
-                    )
-                  )}
+                  {(blogCategories.length > 0
+                    ? blogCategories.map((c) => c.name)
+                    : ["Investment Guide", "Market Trends", "Legal", "Market Insights", "Architecture"]
+                  ).map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setCategory(cat)}
+                      className={`rounded-lg px-2 py-0.5 text-[10px] font-semibold border transition ${
+                        category === cat
+                          ? "bg-navy text-gold border-navy"
+                          : "bg-slate-50 text-navy-600 border-navy-100 hover:bg-slate-100"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>

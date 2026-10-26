@@ -29,23 +29,39 @@ export default async function ServicesPage() {
   ]);
 
   const services = dynamicServices.length > 0 ? dynamicServices : (SERVICES as any[]);
+  const sPage = (siteContent as any)?.servicesPage;
+  const promiseBullets: string[] =
+    sPage?.promiseBullets && sPage.promiseBullets.length > 0
+      ? sPage.promiseBullets
+      : [
+          "Dedicated account manager for every client",
+          "Free site visits and consultation sessions",
+          "Transparent pricing — no hidden charges",
+          "Lifetime after-sales support and advisory",
+        ];
 
   return (
     <>
       <PageHero
-        title="Premium Services"
-        subtitle="From first inquiry to lifetime support — we offer end-to-end land services that make ownership effortless, secure, and rewarding."
-        breadcrumb="Services"
-        bgImage="/image-11.webp"
+        title={sPage?.heroTitle || "Premium Services"}
+        subtitle={
+          sPage?.heroSubtitle ||
+          "From first inquiry to lifetime support — we offer end-to-end land services that make ownership effortless, secure, and rewarding."
+        }
+        breadcrumb={sPage?.breadcrumb || "Services"}
+        bgImage={sPage?.heroBgImage || "/image-11.webp"}
       />
 
       {/* Services grid */}
       <section className="section-padding bg-cream">
         <div className="container-luxury">
           <SectionHeading
-            eyebrow="What We Offer"
-            title="Comprehensive Land Solutions"
-            subtitle="Six pillars of service that cover every aspect of land ownership — backed by a decade of expertise and unwavering integrity."
+            eyebrow={sPage?.sectionEyebrow || "What We Offer"}
+            title={sPage?.sectionHeading || "Comprehensive Land Solutions"}
+            subtitle={
+              sPage?.sectionSubtitle ||
+              "Six pillars of service that cover every aspect of land ownership — backed by a decade of expertise and unwavering integrity."
+            }
           />
 
           <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -114,7 +130,7 @@ export default async function ServicesPage() {
               <div className="relative">
                 <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-navy">
                   <Image
-                    src="/image-02.webp"
+                    src={sPage?.promiseImage || "/image-02.webp"}
                     alt="Corona Properties service quality"
                     fill
                     className="object-cover"
@@ -125,23 +141,16 @@ export default async function ServicesPage() {
             </Reveal>
 
             <Reveal x={50}>
-              <span className="eyebrow">The Corona Promise</span>
+              <span className="eyebrow">{sPage?.promiseEyebrow || "The Corona Promise"}</span>
               <h2 className="mt-5 font-serif text-display-md font-bold text-navy text-balance">
-                White-Glove Service, End to End
+                {sPage?.promiseHeading || "White-Glove Service, End to End"}
               </h2>
               <p className="mt-6 text-lg leading-relaxed text-navy-400">
-                We don't just sell plots and disappear. From the moment you express
-                interest to decades after handover, Corona Properties walks alongside
-                you — handling legalities, infrastructure, documentation, and lifetime
-                advisory with the same care and attention.
+                {sPage?.promiseDescription ||
+                  "We don't just sell plots and disappear. From the moment you express interest to decades after handover, Corona Properties walks alongside you — handling legalities, infrastructure, documentation, and lifetime advisory with the same care and attention."}
               </p>
               <div className="mt-8 space-y-4">
-                {[
-                  "Dedicated account manager for every client",
-                  "Free site visits and consultation sessions",
-                  "Transparent pricing — no hidden charges",
-                  "Lifetime after-sales support and advisory",
-                ].map((item, i) => (
+                {promiseBullets.map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-gold">
                       <Check className="h-4 w-4 text-navy" />
@@ -165,19 +174,22 @@ export default async function ServicesPage() {
         <div className="container-luxury">
           <div className="grid gap-12 lg:grid-cols-2 items-center">
             <div>
-              <span className="eyebrow">Get Expert Help</span>
+              <span className="eyebrow">{sPage?.leadEyebrow || "Get Expert Help"}</span>
               <h2 className="mt-5 font-serif text-display-md font-bold text-navy text-balance">
-                Let Us Handle Everything for You
+                {sPage?.leadHeading || "Let Us Handle Everything for You"}
               </h2>
               <p className="mt-6 text-lg leading-relaxed text-navy-400">
-                From legal documentation to site visits, our team is ready to guide you.
-                Share your requirements and experience the Corona difference.
+                {sPage?.leadDescription ||
+                  "From legal documentation to site visits, our team is ready to guide you. Share your requirements and experience the Corona difference."}
               </p>
             </div>
             <div>
               <LeadForm
-                title="Request a Service Consultation"
-                subtitle="Describe what you need and we'll assign a dedicated expert to assist you within 24 hours."
+                title={sPage?.formTitle || "Request a Service Consultation"}
+                subtitle={
+                  sPage?.formSubtitle ||
+                  "Describe what you need and we'll assign a dedicated expert to assist you within 24 hours."
+                }
                 source="Services Page Inquiry"
               />
             </div>

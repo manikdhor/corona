@@ -20,6 +20,9 @@ import {
   AdminSiteContent,
   AdminNavigation,
   Agent,
+  AdminCategory,
+  CategoryScope,
+  CustomFieldDef,
 } from "./seed";
 import {
   propertySchema,
@@ -739,6 +742,7 @@ export async function deleteSocialLinkAction(id: string) {
 // --- MEDIA LIBRARY ACTIONS ---
 export async function getMediaAction(): Promise<MediaItem[]> {
   try {
+    const savedMeta = await getSetting<MediaItem[]>("media_items", []);
     const supabase = getDbClient();
     const { data, error } = await supabase
       .from("media_library")
@@ -746,23 +750,43 @@ export async function getMediaAction(): Promise<MediaItem[]> {
       .order("created_at", { ascending: false });
 
     if (error || !data || data.length === 0) {
+      if (Array.isArray(savedMeta) && savedMeta.length > 0) {
+        return savedMeta;
+      }
       return adminStore.getMedia();
     }
-    return data.map((m: any) => ({
-      id: m.id,
-      filename: m.filename,
-      filePath: m.file_path,
-      url: m.url,
-      thumbnailUrl: m.thumbnail_url,
-      mimeType: m.mime_type,
-      sizeBytes: Number(m.size_bytes) || 0,
-      width: m.width,
-      height: m.height,
-      altText: m.alt_text,
-      usageCount: m.usage_count || 0,
-      usageReferences: Array.isArray(m.usage_references) ? m.usage_references : [],
-      createdAt: m.created_at,
-    }));
+
+    const metaMap = new Map<string, Partial<MediaItem>>();
+    if (Array.isArray(savedMeta)) {
+      savedMeta.forEach((sm) => {
+        if (sm.id) metaMap.set(sm.id, sm);
+        if (sm.url) metaMap.set(sm.url, sm);
+      });
+    }
+    adminStore.getMedia().forEach((sm) => {
+      if (!metaMap.has(sm.url)) metaMap.set(sm.url, sm);
+    });
+
+    return data.map((m: any) => {
+      const extra = metaMap.get(m.id) || metaMap.get(m.url) || {};
+      return {
+        id: m.id,
+        filename: m.filename,
+        filePath: m.file_path,
+        url: m.url,
+        thumbnailUrl: m.thumbnail_url || m.url,
+        mimeType: m.mime_type,
+        sizeBytes: Number(m.size_bytes) || 0,
+        width: m.width,
+        height: m.height,
+        title: extra.title || m.alt_text || m.filename,
+        category: extra.category || "Residential",
+        altText: m.alt_text || extra.altText || m.filename,
+        usageCount: m.usage_count || 0,
+        usageReferences: Array.isArray(m.usage_references) ? m.usage_references : [],
+        createdAt: m.created_at,
+      };
+    });
   } catch {
     return adminStore.getMedia();
   }
@@ -777,8 +801,16 @@ export async function addMediaItemAction(item: {
   sizeBytes: number;
   width?: number;
   height?: number;
+  title?: string;
+  category?: string;
   altText: string;
 }) {
+  const normalizedItem = {
+    ...item,
+    title: item.title || item.altText || item.filename,
+    category: item.category || "Residential",
+  };
+
   try {
     const supabase = getDbClient();
     const id = crypto.randomUUID();
@@ -787,15 +819,15 @@ export async function addMediaItemAction(item: {
       .from("media_library")
       .insert({
         id,
-        filename: item.filename,
-        file_path: item.filePath,
-        url: item.url,
-        thumbnail_url: item.thumbnailUrl,
-        mime_type: item.mimeType,
-        size_bytes: item.sizeBytes,
-        width: item.width,
-        height: item.height,
-        alt_text: item.altText,
+        filename: normalizedItem.filename,
+        file_path: normalizedItem.filePath,
+        url: normalizedItem.url,
+        thumbnail_url: normalizedItem.thumbnailUrl || normalizedItem.url,
+        mime_type: normalizedItem.mimeType,
+        size_bytes: normalizedItem.sizeBytes,
+        width: normalizedItem.width,
+        height: normalizedItem.height,
+        alt_text: normalizedItem.altText,
         usage_count: 0,
         usage_references: [],
         created_at: now,
@@ -807,13 +839,17 @@ export async function addMediaItemAction(item: {
     if (!error && data) {
       const created: MediaItem = {
         id: data.id,
-        ...item,
+        ...normalizedItem,
         usageCount: 0,
         usageReferences: [],
         createdAt: data.created_at,
       };
       adminStore.addMediaItem(created);
+      const currentList = await getMediaAction();
+      const merged = [created, ...currentList.filter((m) => m.id !== created.id)];
+      await saveSetting("media_items", merged);
       revalidatePath("/admin/media");
+      revalidatePath("/gallery");
       return { success: true, media: created };
     }
   } catch (err) {
@@ -821,11 +857,14 @@ export async function addMediaItemAction(item: {
   }
 
   const created = adminStore.addMediaItem({
-    ...item,
+    ...normalizedItem,
     usageCount: 0,
     usageReferences: [],
   });
+  const currentList = await getSetting<MediaItem[]>("media_items", adminStore.getMedia());
+  await saveSetting("media_items", [created, ...currentList.filter((m) => m.id !== created.id)]);
   revalidatePath("/admin/media");
+  revalidatePath("/gallery");
   return { success: true, media: created };
 }
 
@@ -839,22 +878,39 @@ export async function deleteMediaAction(id: string) {
     console.error("Error deleting media from Supabase:", err);
   }
   const deleted = adminStore.deleteMediaItem(id);
+  const currentList = await getSetting<MediaItem[]>("media_items", adminStore.getMedia());
+  await saveSetting(
+    "media_items",
+    currentList.filter((m) => m.id !== id)
+  );
   revalidatePath("/admin/media");
+  revalidatePath("/gallery");
   return { success: deleted };
 }
 
 export async function updateMediaAltAction(id: string, altText: string) {
+  return updateMediaItemAction(id, { altText });
+}
+
+export async function updateMediaItemAction(
+  id: string,
+  updates: { title?: string; category?: string; altText?: string }
+) {
   try {
     const supabase = getDbClient();
-    if (isUuid(id)) {
-      await supabase.from("media_library").update({ alt_text: altText }).eq("id", id);
+    if (isUuid(id) && updates.altText !== undefined) {
+      await supabase.from("media_library").update({ alt_text: updates.altText }).eq("id", id);
     }
   } catch (err) {
-    console.error("Error updating media alt:", err);
+    console.error("Error updating media item:", err);
   }
-  const updated = adminStore.updateMediaAltText(id, altText);
+  const updated = adminStore.updateMediaItem(id, updates);
+  const currentList = await getMediaAction();
+  const nextList = currentList.map((m) => (m.id === id ? { ...m, ...updates } : m));
+  await saveSetting("media_items", nextList);
   revalidatePath("/admin/media");
-  return { success: !!updated, media: updated };
+  revalidatePath("/gallery");
+  return { success: true, media: updated || nextList.find((m) => m.id === id) };
 }
 
 // --- REDIRECTS ACTIONS ---
@@ -996,7 +1052,20 @@ export async function getAuditLogsAction() {
   try {
     const supabase = getDbClient();
     const { data } = await supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(100);
-    if (data && data.length > 0) return data;
+    if (data && data.length > 0) {
+      return data.map((row: any) => ({
+        id: row.id,
+        actorId: row.actor_id,
+        actorEmail: row.actor_email || "superadmin@coronaproperties.com",
+        action: row.action,
+        entityType: row.entity_type,
+        entityId: row.entity_id,
+        oldValues: row.old_values,
+        newValues: row.new_values,
+        ipAddress: row.ip_address,
+        createdAt: row.created_at,
+      }));
+    }
   } catch {}
   return adminStore.getAuditLogs();
 }
@@ -1005,13 +1074,26 @@ export async function getRolesAction() {
   try {
     const supabase = getDbClient();
     const { data } = await supabase.from("roles").select("*");
-    if (data && data.length > 0) return data;
+    if (data && data.length > 0) {
+      return data.map((r: any) => ({
+        id: r.id,
+        name: r.name,
+        displayName: r.display_name || r.name,
+        description: r.description || "",
+        isSystem: !!r.is_system,
+        userCount: r.user_count || 1,
+      }));
+    }
   } catch {}
   return adminStore.getRoles();
 }
 
 export async function getAgentsAction(): Promise<Agent[]> {
   try {
+    const savedAgents = await getSetting<Agent[]>("agents_list", []);
+    if (Array.isArray(savedAgents) && savedAgents.length > 0) {
+      return savedAgents;
+    }
     const supabase = getDbClient();
     const { data } = await supabase.from("agents").select("*");
     if (data && data.length > 0) {
@@ -1031,19 +1113,79 @@ export async function getAgentsAction(): Promise<Agent[]> {
   return adminStore.getAgents();
 }
 
+export async function saveAgentAction(agentData: Partial<Agent> & { name: string; email: string; phone: string }) {
+  const saved = adminStore.saveAgent(agentData);
+  const currentList = await getAgentsAction();
+  const idx = currentList.findIndex((a) => a.id === saved.id);
+  const nextList = idx >= 0 ? currentList.map((a) => (a.id === saved.id ? saved : a)) : [...currentList, saved];
+  await saveSetting("agents_list", nextList);
+  revalidatePath("/admin/leads");
+  revalidatePath("/admin/team");
+  return { success: true, agent: saved };
+}
+
+export async function deleteAgentAction(id: string) {
+  adminStore.deleteAgent(id);
+  const currentList = await getAgentsAction();
+  await saveSetting(
+    "agents_list",
+    currentList.filter((a) => a.id !== id)
+  );
+  revalidatePath("/admin/leads");
+  return { success: true };
+}
+
 export async function getSettingsAction(): Promise<any> {
   const base = adminStore.getSettings();
-  const branding = await getSetting("branding", base.branding);
+  const savedBranding = await getSetting("branding", base.branding);
+  const branding = { ...base.branding, ...(savedBranding || {}) };
   const webhooks = await getSetting("webhooks", base.webhooks);
-  return { ...base, branding, webhooks };
+  const mapConfig = await getSetting("mapConfig", base.mapConfig);
+  const seo = await getSetting("seo", null);
+  const rolePermissions = await getSetting("role_permissions", null);
+
+  // Normalized `company` object so Navbar, Footer, TopBar, BottomNav, and Contact page always stay in sync with `branding`
+  const company = {
+    name: branding.companyName || "Corona Properties Limited",
+    shortName: branding.shortName || "Corona Properties",
+    tagline: branding.tagline || "Crafting Timeless Land Legacies",
+    taglineBn: branding.taglineBn || "",
+    about:
+      branding.description ||
+      "Bangladesh's premier residential land developer. Crafting legacies through premium plots, transparent transactions, and enduring value since 2015.",
+    description:
+      branding.description ||
+      "Bangladesh's premier residential land developer. Crafting legacies through premium plots, transparent transactions, and enduring value since 2015.",
+    logo: branding.logoUrl || "/image-01.webp",
+    favicon: branding.faviconUrl || "/favicon.ico",
+    phone: branding.phone || "+880 1805 759297",
+    whatsapp: branding.whatsapp || (branding.phone || "8801805759297").replace(/[^0-9]/g, ""),
+    email: branding.email || "cplcoronapropertiesltd@gmail.com",
+    address: branding.address || "House # 145, Flat # 704, Road # 3, Block A, Niketon, Gulshan 01, Dhaka - 1212",
+    hours: branding.hours || "Saturday – Thursday: 9:00 AM – 6:00 PM | Friday: Closed",
+    ctaText: branding.headerCtaText || "Book a Visit",
+    ctaLink: branding.headerCtaLink || "/contact",
+    mapEmbedUrl: branding.mapEmbedUrl || "",
+    directionsUrl: branding.directionsUrl || "https://maps.google.com/?q=Niketon+Gulshan+1+Dhaka+1212",
+  };
+
+  return { ...base, branding, company, webhooks, mapConfig, seo, rolePermissions };
 }
 
 export async function updateSettingsAction(key: string, value: any) {
   await saveSetting(key, value);
   adminStore.updateSettings(key, value);
+  revalidatePath("/", "layout");
+  revalidatePath("/");
+  revalidatePath("/contact");
+  revalidatePath("/about");
+  revalidatePath("/privacy-policy");
+  revalidatePath("/terms-and-conditions");
+  revalidatePath("/refund-policy");
+  revalidatePath("/disclaimer");
   revalidatePath("/admin/settings");
   revalidatePath("/admin/seo");
-  return { success: true, settings: adminStore.getSettings() };
+  return { success: true, settings: await getSettingsAction() };
 }
 
 export async function validateAndSanitizeSvgAction(svgText: string) {
@@ -1493,7 +1635,56 @@ export async function deletePageAction(id: string) {
 
 // --- SITE CONTENT ACTIONS (STORED IN SUPABASE SITE_SETTINGS) ---
 export async function getSiteContentAction(): Promise<AdminSiteContent> {
-  return getSetting<AdminSiteContent>("site_content", adminStore.getSiteContent());
+  const defaults = adminStore.getSiteContent();
+  const saved = await getSetting<Partial<AdminSiteContent>>("site_content", {});
+  return {
+    ...defaults,
+    ...(saved || {}),
+    hero: { ...defaults.hero, ...(saved?.hero || {}) },
+    aboutTeaser: { ...defaults.aboutTeaser, ...(saved?.aboutTeaser || {}) },
+    genesis: { ...defaults.genesis, ...(saved?.genesis || {}) },
+    whyChooseUs: { ...defaults.whyChooseUs, ...(saved?.whyChooseUs || {}) },
+    process: { ...defaults.process, ...(saved?.process || {}) },
+    ctaBanner: { ...defaults.ctaBanner, ...(saved?.ctaBanner || {}) },
+    corporateGroup: {
+      ...defaults.corporateGroup,
+      ...(saved?.corporateGroup || {}),
+      whoWeAre: {
+        ...defaults.corporateGroup.whoWeAre!,
+        ...(saved?.corporateGroup?.whoWeAre || {}),
+      },
+      ethos: {
+        ...defaults.corporateGroup.ethos!,
+        ...(saved?.corporateGroup?.ethos || {}),
+      },
+      foundingPioneer: {
+        ...defaults.corporateGroup.foundingPioneer,
+        ...(saved?.corporateGroup?.foundingPioneer || {}),
+      },
+    },
+    executiveMessages: {
+      mdMessage: {
+        ...defaults.executiveMessages!.mdMessage,
+        ...(saved?.executiveMessages?.mdMessage || {}),
+      },
+      chairmanMessage: {
+        ...defaults.executiveMessages!.chairmanMessage,
+        ...(saved?.executiveMessages?.chairmanMessage || {}),
+      },
+    },
+    coreValues: { ...defaults.coreValues!, ...(saved?.coreValues || {}) },
+    journey: { ...defaults.journey!, ...(saved?.journey || {}) },
+    visionMission: { ...defaults.visionMission!, ...(saved?.visionMission || {}) },
+    leadCapture: { ...defaults.leadCapture!, ...(saved?.leadCapture || {}) },
+    aboutPage: { ...defaults.aboutPage!, ...(saved?.aboutPage || {}) },
+    projectsPage: { ...defaults.projectsPage!, ...(saved?.projectsPage || {}) },
+    propertiesPage: { ...defaults.propertiesPage!, ...(saved?.propertiesPage || {}) },
+    servicesPage: { ...defaults.servicesPage!, ...(saved?.servicesPage || {}) },
+    teamPage: { ...defaults.teamPage!, ...(saved?.teamPage || {}) },
+    galleryPage: { ...defaults.galleryPage!, ...(saved?.galleryPage || {}) },
+    blogPage: { ...defaults.blogPage!, ...(saved?.blogPage || {}) },
+    contactPage: { ...defaults.contactPage!, ...(saved?.contactPage || {}) },
+  };
 }
 
 export async function updateSiteContentAction(section: string, data: any) {
@@ -1507,17 +1698,34 @@ export async function updateSiteContentAction(section: string, data: any) {
   adminStore.updateSiteContent(section as any, data);
 
   revalidatePath("/admin/content");
+  revalidatePath("/", "layout");
   revalidatePath("/");
   revalidatePath("/about");
   revalidatePath("/corona-group");
   revalidatePath("/projects");
+  revalidatePath("/properties");
+  revalidatePath("/services");
+  revalidatePath("/team");
+  revalidatePath("/gallery");
+  revalidatePath("/blog");
   revalidatePath("/contact");
   return { success: true, content: updatedContent };
 }
 
 // --- NAVIGATION ACTIONS (STORED IN SUPABASE SITE_SETTINGS) ---
 export async function getNavigationAction(): Promise<AdminNavigation> {
-  return getSetting<AdminNavigation>("navigation", adminStore.getNavigation());
+  const defaults = adminStore.getNavigation();
+  const saved = await getSetting<Partial<AdminNavigation>>("navigation", {});
+  return {
+    header: saved?.header && saved.header.length > 0 ? saved.header : defaults.header,
+    footer: {
+      company: saved?.footer?.company || defaults.footer.company,
+      services: saved?.footer?.services || defaults.footer.services,
+      support: saved?.footer?.support || defaults.footer.support,
+      legal: saved?.footer?.legal || defaults.footer.legal,
+    },
+    categories: saved?.categories && saved.categories.length > 0 ? saved.categories : defaults.categories,
+  };
 }
 
 export async function updateNavigationAction(navData: any) {
@@ -1527,4 +1735,161 @@ export async function updateNavigationAction(navData: any) {
   revalidatePath("/admin/navigation");
   revalidatePath("/", "layout");
   return { success: true, navigation: navData };
+}
+
+// --- UNIFIED CATEGORIES ACTIONS ---
+export async function getCategoriesAction(scope?: CategoryScope | string): Promise<AdminCategory[]> {
+  const all = await getSetting<AdminCategory[]>("categories", adminStore.getCategories());
+  const list = Array.isArray(all) && all.length > 0 ? all : adminStore.getCategories();
+  const filtered = scope ? list.filter((c) => c.scope === scope) : list;
+  return [...filtered].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+}
+
+export async function saveCategoryAction(
+  catData: Partial<AdminCategory> & { name: string; scope: CategoryScope }
+) {
+  if (!catData.name?.trim()) {
+    return { success: false, error: "Category name is required" };
+  }
+
+  const all = await getCategoriesAction();
+  const savedInStore = adminStore.saveCategory({
+    ...catData,
+    name: catData.name.trim(),
+  });
+
+  const idx = all.findIndex((c) => c.id === savedInStore.id);
+  const updatedList =
+    idx >= 0
+      ? all.map((c) => (c.id === savedInStore.id ? savedInStore : c))
+      : [...all, savedInStore];
+
+  await saveSetting("categories", updatedList);
+
+  revalidatePath("/admin/categories");
+  revalidatePath("/admin/properties");
+  revalidatePath("/admin/media");
+  revalidatePath("/admin/blog");
+  revalidatePath("/admin/content");
+  revalidatePath("/admin/services");
+  revalidatePath("/properties");
+  revalidatePath("/projects");
+  revalidatePath("/gallery");
+  revalidatePath("/blog");
+  revalidatePath("/contact");
+  revalidatePath("/services");
+
+  return { success: true, category: savedInStore };
+}
+
+export async function deleteCategoryAction(id: string) {
+  const all = await getCategoriesAction();
+  adminStore.deleteCategory(id);
+  const updatedList = all.filter((c) => c.id !== id);
+  await saveSetting("categories", updatedList);
+
+  revalidatePath("/admin/categories");
+  revalidatePath("/properties");
+  revalidatePath("/gallery");
+  revalidatePath("/blog");
+  revalidatePath("/contact");
+  return { success: true };
+}
+
+export async function reorderCategoriesAction(ids: string[]) {
+  const all = await getCategoriesAction();
+  adminStore.reorderCategories(ids);
+  const updatedList = all.map((cat) => {
+    const pos = ids.indexOf(cat.id);
+    return pos >= 0 ? { ...cat, sortOrder: pos + 1 } : cat;
+  });
+  await saveSetting("categories", updatedList);
+  revalidatePath("/admin/categories");
+  revalidatePath("/properties");
+  revalidatePath("/gallery");
+  revalidatePath("/blog");
+  revalidatePath("/contact");
+  return { success: true };
+}
+
+// --- CUSTOM FIELDS ACTIONS ---
+export async function getCustomFieldsAction(): Promise<CustomFieldDef[]> {
+  const saved = await getSetting<CustomFieldDef[]>("custom_fields", adminStore.getCustomFields());
+  return Array.isArray(saved) && saved.length > 0 ? saved : adminStore.getCustomFields();
+}
+
+export async function saveCustomFieldAction(
+  fieldData: Partial<CustomFieldDef> & { label: string; type: CustomFieldDef["type"] }
+) {
+  const all = await getCustomFieldsAction();
+  const saved = adminStore.saveCustomField(fieldData);
+  const idx = all.findIndex((f) => f.id === saved.id);
+  const next = idx >= 0 ? all.map((f) => (f.id === saved.id ? saved : f)) : [...all, saved];
+  await saveSetting("custom_fields", next);
+  revalidatePath("/admin/settings/custom-fields");
+  revalidatePath("/admin/properties");
+  return { success: true, field: saved };
+}
+
+export async function deleteCustomFieldAction(id: string) {
+  const all = await getCustomFieldsAction();
+  adminStore.deleteCustomField(id);
+  await saveSetting(
+    "custom_fields",
+    all.filter((f) => f.id !== id)
+  );
+  revalidatePath("/admin/settings/custom-fields");
+  revalidatePath("/admin/properties");
+  return { success: true };
+}
+
+// --- LEAD DETAILS & CUSTOM STAGES ACTIONS ---
+export async function getLeadDetailsAction(leadId: string) {
+  const leads = await getLeadsAction();
+  const lead = leads.find((l) => l.id === leadId) || adminStore.getLeadById(leadId) || null;
+  let activities: LeadActivity[] = adminStore.getLeadActivities(leadId);
+
+  try {
+    if (isUuid(leadId)) {
+      const supabase = getDbClient();
+      const { data } = await supabase
+        .from("lead_activities")
+        .select("*")
+        .eq("lead_id", leadId)
+        .order("created_at", { ascending: false });
+      if (data && data.length > 0) {
+        activities = data.map((a: any) => ({
+          id: a.id,
+          leadId: a.lead_id,
+          actorName: a.actor_name || "Advisor",
+          type: a.type || "note",
+          title: a.title,
+          description: a.description,
+          createdAt: a.created_at,
+        }));
+      }
+    }
+  } catch {}
+
+  return { lead, activities };
+}
+
+export async function saveStageAction(stageData: Partial<LeadStage> & { name: string }) {
+  const saved = adminStore.saveStage(stageData);
+  try {
+    if (isUuid(saved.id)) {
+      const supabase = getDbClient();
+      await supabase.from("lead_stages").upsert({
+        id: saved.id,
+        name: saved.name,
+        slug: saved.slug,
+        color: saved.color,
+        sort_order: saved.sortOrder,
+        is_system: saved.isSystem,
+      });
+    }
+  } catch {}
+  revalidatePath("/admin/leads");
+  revalidatePath("/admin/leads/kanban");
+  return { success: true, stage: saved };
 }

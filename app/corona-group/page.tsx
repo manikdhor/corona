@@ -64,20 +64,26 @@ export default async function CoronaGroupPage() {
     image: "/Kazi_Rafiqul_Islam.jpeg",
   };
 
-  const groupStats = corporateGroup?.groupStats && corporateGroup.groupStats.length > 0
-    ? corporateGroup.groupStats
+  const groupStats = (corporateGroup as any)?.groupStats && (corporateGroup as any).groupStats.length > 0
+    ? (corporateGroup as any).groupStats
     : GROUP_STATS;
 
-  const missionText = corporateGroup?.visionMission?.mission || VISION_MISSION.mission;
-  const visionText = corporateGroup?.visionMission?.vision || VISION_MISSION.vision;
+  const missionText = siteContent?.visionMission?.mission || (corporateGroup as any)?.visionMission?.mission || VISION_MISSION.mission;
+  const visionText = siteContent?.visionMission?.vision || (corporateGroup as any)?.visionMission?.vision || VISION_MISSION.vision;
 
   const sisterConcerns = corporateGroup?.sisterConcerns && corporateGroup.sisterConcerns.length > 0
     ? corporateGroup.sisterConcerns
     : SISTER_CONCERNS;
 
-  const officeLocations = corporateGroup?.officeLocations && corporateGroup.officeLocations.length > 0
-    ? corporateGroup.officeLocations
-    : OFFICE_LOCATIONS;
+  const officeLocations =
+    (corporateGroup?.offices && corporateGroup.offices.length > 0
+      ? corporateGroup.offices
+      : (corporateGroup as any)?.officeLocations && (corporateGroup as any).officeLocations.length > 0
+      ? (corporateGroup as any).officeLocations
+      : OFFICE_LOCATIONS);
+
+  const whoWeAre = corporateGroup?.whoWeAre;
+  const ethos = corporateGroup?.ethos;
 
   const philosophy = [
     {
@@ -110,15 +116,13 @@ export default async function CoronaGroupPage() {
 
         <div className="container-luxury relative z-10 text-center">
           <Reveal y={40}>
-            <span className="eyebrow">Corona Group</span>
+            <span className="eyebrow">{corporateGroup?.heroEyebrow || "Corona Group"}</span>
             <h1 className="mt-6 font-serif text-display-lg font-bold text-cream md:text-display-xl text-balance">
-              Building Trust. Delivering Excellence.<br />
-              <span className="text-gradient-gold">Since 1987</span>
+              {corporateGroup?.heroTitle || "Building Trust. Delivering Excellence. Since 1987"}
             </h1>
             <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-cream/70">
-              A diversified Bangladeshi business conglomerate with a legacy of
-              excellence spanning nearly four decades — driving growth across
-              logistics, trade, and media.
+              {corporateGroup?.heroSubtitle ||
+                "A diversified Bangladeshi business conglomerate with a legacy of excellence spanning nearly four decades — driving growth across logistics, trade, and media."}
             </p>
             <div className="mx-auto mt-10 flex justify-center">
               <span className="ornament-line md:hidden">
@@ -145,6 +149,11 @@ export default async function CoronaGroupPage() {
               <p className="mt-2 text-gold font-medium tracking-wide">
                 {pioneer.title}
               </p>
+              {pioneer.quote && (
+                <blockquote className="mt-4 border-l-2 border-gold pl-4 font-serif italic text-cream/85">
+                  &ldquo;{pioneer.quote}&rdquo;
+                </blockquote>
+              )}
               <div className="mt-6 space-y-3 text-lg leading-relaxed text-cream/70">
                 {Array.isArray(pioneer.bio) ? (
                   pioneer.bio.map((para: string, idx: number) => <p key={idx}>{para}</p>)
@@ -182,22 +191,17 @@ export default async function CoronaGroupPage() {
         <div className="container-luxury">
           <div className="grid items-center gap-16 lg:grid-cols-2">
             <Reveal x={-50}>
-              <span className="eyebrow">Who We Are</span>
+              <span className="eyebrow">{whoWeAre?.eyebrow || "Who We Are"}</span>
               <h2 className="mt-5 font-serif text-display-md font-bold text-navy text-balance">
-                A Legacy of Excellence Across Industries
+                {whoWeAre?.heading || "A Legacy of Excellence Across Industries"}
               </h2>
               <p className="mt-6 text-lg leading-relaxed text-navy-400">
-                Corona Group is a diversified Bangladeshi business conglomerate
-                with a legacy of excellence spanning nearly four decades. Since
-                its inception in 1987, the Group has built a strong reputation
-                across transportation, shipping, customs brokerage,
-                international trade, and media production.
+                {whoWeAre?.p1 ||
+                  "Corona Group is a diversified Bangladeshi business conglomerate with a legacy of excellence spanning nearly four decades. Since its inception in 1987, the Group has built a strong reputation across transportation, shipping, customs brokerage, international trade, and media production."}
               </p>
               <p className="mt-4 leading-relaxed text-navy-400">
-                Driven by professionalism, integrity, and customer-focused
-                solutions, Corona Group continues to deliver reliable,
-                efficient, and innovative services that contribute to the growth
-                of Bangladesh&apos;s logistics and commercial sectors.
+                {whoWeAre?.p2 ||
+                  "Driven by professionalism, integrity, and customer-focused solutions, Corona Group continues to deliver reliable, efficient, and innovative services that contribute to the growth of Bangladesh's logistics and commercial sectors."}
               </p>
 
               <div className="mt-10 grid grid-cols-2 gap-6">
@@ -237,7 +241,7 @@ export default async function CoronaGroupPage() {
               <div className="relative">
                 <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-navy">
                   <Image
-                    src="/About-corone.webp"
+                    src={whoWeAre?.image || "/About-corone.webp"}
                     alt="Corona Group corporate operations"
                     fill
                     className="object-cover"
@@ -246,10 +250,10 @@ export default async function CoronaGroupPage() {
                 <div className="absolute -top-6 -right-6 -z-10 h-full w-full rounded-2xl border-2 border-gold/30" />
                 <div className="absolute -bottom-6 -left-6 bg-gradient-navy p-6 rounded-2xl shadow-gold-lg text-cream max-w-[220px]">
                   <p className="font-serif text-3xl font-bold text-gradient-gold">
-                    37+
+                    {whoWeAre?.badgeValue || "37+"}
                   </p>
                   <p className="mt-1 text-xs uppercase tracking-wider text-cream/70">
-                    Years of Operational Excellence
+                    {whoWeAre?.badgeLabel || "Years of Operational Excellence"}
                   </p>
                 </div>
               </div>
@@ -329,28 +333,31 @@ export default async function CoronaGroupPage() {
                       {concern.description}
                     </p>
 
-                    {concern.strengths && concern.strengths.length > 0 && (
-                      <div className="mt-6 space-y-2.5">
-                        {concern.strengths.map((strength: string, j: number) => (
-                          <div key={j} className="flex items-center gap-3">
-                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-gold">
-                              <svg
-                                className="h-2.5 w-2.5 text-navy"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={3}
-                              >
-                                <path d="M5 13l4 4L19 7" />
-                              </svg>
-                            </span>
-                            <span className="text-xs font-medium text-navy-400">
-                              {strength}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    {(concern.strengths || concern.highlights) &&
+                      (concern.strengths || concern.highlights).length > 0 && (
+                        <div className="mt-6 space-y-2.5">
+                          {(concern.strengths || concern.highlights).map(
+                            (strength: string, j: number) => (
+                              <div key={j} className="flex items-center gap-3">
+                                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-gold">
+                                  <svg
+                                    className="h-2.5 w-2.5 text-navy"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={3}
+                                  >
+                                    <path d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </span>
+                                <span className="text-xs font-medium text-navy-400">
+                                  {strength}
+                                </span>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      )}
                   </div>
                 </Reveal>
               );
@@ -378,13 +385,13 @@ export default async function CoronaGroupPage() {
                     <MapPin className="h-7 w-7 text-gold" />
                   </div>
                   <h3 className="font-serif text-xl font-bold text-cream">
-                    {office.city}
+                    {office.city || office.label}
                   </h3>
                   <p className="mt-1 text-sm font-semibold text-gold">
-                    {office.name}
+                    {office.name || office.company}
                   </p>
                   <p className="mt-3 text-sm leading-relaxed text-cream/65">
-                    {office.description}
+                    {office.description || office.address}
                   </p>
                 </div>
               </Reveal>
@@ -398,17 +405,13 @@ export default async function CoronaGroupPage() {
         <div className="container-luxury">
           <div className="max-w-3xl mx-auto text-center">
             <Reveal y={40}>
-              <span className="eyebrow">Our Ethos</span>
+              <span className="eyebrow">{ethos?.eyebrow || "Our Ethos"}</span>
               <h2 className="mt-6 font-serif text-display-md font-bold text-navy text-balance">
-                Commitment to Sustainable Growth
+                {ethos?.heading || "Commitment to Sustainable Growth"}
               </h2>
               <p className="mt-6 text-lg leading-relaxed text-navy-400">
-                At Corona Group, we believe sustainable success is built on
-                integrity, professionalism, innovation, and long-term
-                partnerships. With decades of operational excellence and industry
-                expertise, we remain committed to delivering world-class services
-                that create value for our clients, partners, employees, and the
-                communities we serve.
+                {ethos?.description ||
+                  "At Corona Group, we believe sustainable success is built on integrity, professionalism, innovation, and long-term partnerships. With decades of operational excellence and industry expertise, we remain committed to delivering world-class services that create value for our clients, partners, employees, and the communities we serve."}
               </p>
               <div className="mx-auto mt-10 flex justify-center">
                 <span className="ornament-line">

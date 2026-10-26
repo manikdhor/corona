@@ -31,8 +31,13 @@ import ImageInput from "@/components/admin/media/ImageInput";
 import GalleryManager from "@/components/admin/media/GalleryManager";
 import IconPicker from "@/components/admin/icons/IconPicker";
 import DynamicIcon from "@/components/ui/DynamicIcon";
-import { AdminProperty, adminStore } from "@/lib/admin/seed";
-import { savePropertyAction } from "@/lib/admin/actions";
+import { AdminProperty, AdminCategory, CustomFieldDef, adminStore } from "@/lib/admin/seed";
+import {
+  savePropertyAction,
+  getCategoriesAction,
+  getAgentsAction,
+  getCustomFieldsAction,
+} from "@/lib/admin/actions";
 
 interface PropertyFormProps {
   initialData?: AdminProperty;
@@ -163,7 +168,29 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const agents = adminStore.getAgents();
+  const [agents, setAgents] = useState(adminStore.getAgents());
+  const [typeCats, setTypeCats] = useState<AdminCategory[]>([]);
+  const [statusCats, setStatusCats] = useState<AdminCategory[]>([]);
+  const [areaCats, setAreaCats] = useState<AdminCategory[]>([]);
+  const [amenityCats, setAmenityCats] = useState<AdminCategory[]>([]);
+  const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDef[]>([]);
+
+  React.useEffect(() => {
+    Promise.all([
+      getCategoriesAction(),
+      getAgentsAction(),
+      getCustomFieldsAction(),
+    ]).then(([cats, ags, cFields]) => {
+      if (cats && cats.length > 0) {
+        setTypeCats(cats.filter((c) => c.scope === "property_type" && c.isActive));
+        setStatusCats(cats.filter((c) => c.scope === "property_status" && c.isActive));
+        setAreaCats(cats.filter((c) => c.scope === "property_area" && c.isActive));
+        setAmenityCats(cats.filter((c) => c.scope === "amenity" && c.isActive));
+      }
+      if (ags && ags.length > 0) setAgents(ags);
+      if (cFields) setCustomFieldDefs(cFields);
+    });
+  }, []);
 
   // Auto-generate slug from title
   const handleTitleChange = (val: string) => {
@@ -518,16 +545,33 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-navy-700 block mb-1">
-                  Area / Micro-location <span className="text-red-500">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-semibold text-navy-700">
+                    Area / Micro-location <span className="text-red-500">*</span>
+                  </label>
+                  <Link
+                    href="/admin/categories"
+                    className="text-[10px] font-semibold text-gold-700 hover:underline"
+                  >
+                    Manage Areas
+                  </Link>
+                </div>
                 <input
                   type="text"
+                  list="property-area-options"
                   value={formData.area || ""}
                   onChange={(e) => setFormData({ ...formData, area: e.target.value })}
                   placeholder="e.g. Purbachal Sector 4"
                   className="w-full rounded-xl border border-navy-200 px-3.5 py-2 text-xs focus:border-gold outline-none"
                 />
+                <datalist id="property-area-options">
+                  {(areaCats.length > 0
+                    ? areaCats.map((c) => c.name)
+                    : ["Purbachal", "Gulshan", "Banani", "Baridhara", "Uttara", "Dhanmondi", "Bashundhara"]
+                  ).map((areaName) => (
+                    <option key={areaName} value={areaName} />
+                  ))}
+                </datalist>
               </div>
             </div>
 
@@ -591,31 +635,54 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
             <h3 className="font-serif text-base font-bold text-navy">Publishing Controls</h3>
 
             <div>
-              <label className="text-xs font-semibold text-navy-700 block mb-1">Market Status</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-semibold text-navy-700">Market Status</label>
+                <Link
+                  href="/admin/categories"
+                  className="text-[10px] font-semibold text-gold-700 hover:underline"
+                >
+                  Manage Statuses
+                </Link>
+              </div>
               <select
                 value={formData.status || "Available"}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
                 className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs focus:border-gold outline-none"
               >
-                <option value="Available">Available</option>
-                <option value="New Launch">New Launch / Launching</option>
-                <option value="Almost Sold Out">Almost Sold Out</option>
-                <option value="Featured">Featured</option>
-                <option value="Sold Out">Sold Out</option>
+                {(statusCats.length > 0
+                  ? Array.from(new Set([...statusCats.map((c) => c.name), formData.status || "Available"]))
+                  : ["Available", "New Launch", "Almost Sold Out", "Featured", "Sold Out"]
+                ).map((st) => (
+                  <option key={st} value={st}>
+                    {st}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-navy-700 block mb-1">Project Category</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-semibold text-navy-700">Project Category</label>
+                <Link
+                  href="/admin/categories"
+                  className="text-[10px] font-semibold text-gold-700 hover:underline"
+                >
+                  Manage Categories
+                </Link>
+              </div>
               <select
                 value={formData.type || "Exclusive"}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
                 className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs focus:border-gold outline-none"
               >
-                <option value="Exclusive">Exclusive</option>
-                <option value="Premium">Premium</option>
-                <option value="Standard">Standard</option>
-                <option value="Investment">Investment</option>
+                {(typeCats.length > 0
+                  ? Array.from(new Set([...typeCats.map((c) => c.name), formData.type || "Exclusive"]))
+                  : ["Exclusive", "Premium", "Standard", "Investment"]
+                ).map((tp) => (
+                  <option key={tp} value={tp}>
+                    {tp}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -981,6 +1048,79 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
                 />
               </div>
             </div>
+
+            {customFieldDefs.length > 0 && (
+              <div className="pt-4 border-t border-navy-100 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-navy uppercase tracking-wider">
+                    Custom Property Attributes
+                  </h4>
+                  <Link
+                    href="/admin/settings/custom-fields"
+                    className="text-[10px] font-semibold text-gold-700 hover:underline"
+                  >
+                    Configure Custom Fields
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {customFieldDefs.map((field) => {
+                    const fieldKey = field.key || field.name;
+                    const currentVal = formData.customFieldValues?.[fieldKey] ?? "";
+                    const setCustomVal = (val: any) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        customFieldValues: {
+                          ...prev.customFieldValues,
+                          [fieldKey]: val,
+                        },
+                      }));
+                    return (
+                      <div key={field.id}>
+                        <label className="text-xs font-semibold text-navy-700 block mb-1">
+                          {field.label} {(field.isRequired || field.required) && <span className="text-red-500">*</span>}
+                        </label>
+                        {field.type === "select" ? (
+                          <select
+                            value={currentVal}
+                            onChange={(e) => setCustomVal(e.target.value)}
+                            className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs focus:border-gold outline-none"
+                          >
+                            <option value="">Select {field.label}...</option>
+                            {(field.options || []).map((opt) => (
+                              <option key={opt} value={opt}>
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+                        ) : field.type === "boolean" ? (
+                          <label className="flex items-center gap-2 pt-2 text-xs text-navy-700 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(currentVal)}
+                              onChange={(e) => setCustomVal(e.target.checked)}
+                              className="rounded text-gold focus:ring-gold"
+                            />
+                            Yes / Enabled
+                          </label>
+                        ) : (
+                          <input
+                            type={field.type === "number" ? "number" : "text"}
+                            value={currentVal}
+                            onChange={(e) =>
+                              setCustomVal(
+                                field.type === "number" ? Number(e.target.value) : e.target.value
+                              )
+                            }
+                            placeholder={field.label}
+                            className="w-full rounded-xl border border-navy-200 px-3.5 py-2 text-xs focus:border-gold outline-none"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1039,6 +1179,41 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
                     placeholder="e.g. Central Hospital"
                     className="w-full rounded-xl border border-navy-200 px-3 py-1.5 text-xs font-semibold text-navy focus:border-gold outline-none"
                   />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[10px] font-semibold text-navy-600">
+                      Amenity Category
+                    </label>
+                    <Link
+                      href="/admin/categories"
+                      className="text-[10px] font-semibold text-gold-700 hover:underline"
+                    >
+                      Manage
+                    </Link>
+                  </div>
+                  <select
+                    value={a.category || ""}
+                    onChange={(e) => handleUpdateAmenity(idx, "category", e.target.value)}
+                    className="w-full rounded-xl border border-navy-200 px-2.5 py-1.5 text-xs text-navy focus:border-gold outline-none"
+                  >
+                    <option value="">General Facility</option>
+                    {(amenityCats.length > 0
+                      ? amenityCats.map((c) => c.name)
+                      : [
+                          "Civic & Healthcare",
+                          "Sports & Recreation",
+                          "Nature & Parks",
+                          "Security & Utilities",
+                          "Commercial & Retail",
+                        ]
+                    ).map((catName) => (
+                      <option key={catName} value={catName}>
+                        {catName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>

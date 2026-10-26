@@ -27,6 +27,8 @@ export default function Navbar() {
     phone: CONTACT_INFO.phone,
     phoneRaw: CONTACT_INFO.phoneRaw,
     email: CONTACT_INFO.email,
+    ctaText: "Book a Visit",
+    ctaLink: "/contact",
   });
 
   useEffect(() => {
@@ -59,10 +61,13 @@ export default function Navbar() {
         setCompanyInfo((prev) => ({
           ...prev,
           name: s.company.name || prev.name,
+          shortName: s.company.shortName || prev.shortName,
           logo: s.company.logo || prev.logo,
           phone: s.company.phone || prev.phone,
           phoneRaw: (s.company.phone || prev.phone).replace(/[^0-9+]/g, ""),
           email: s.company.email || prev.email,
+          ctaText: s.company.ctaText || prev.ctaText,
+          ctaLink: s.company.ctaLink || prev.ctaLink,
         }));
       }
     });
@@ -265,7 +270,7 @@ export default function Navbar() {
           {/* Right Side: CTA */}
           <div className="flex items-center gap-3">
             <Link
-              href="/contact"
+              href={companyInfo.ctaLink || "/contact"}
               className={cn(
                 "hidden lg:inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-[12px] font-bold uppercase tracking-[0.15em] transition-all duration-400 hover:-translate-y-0.5",
                 scrolled
@@ -274,7 +279,7 @@ export default function Navbar() {
               )}
             >
               <Diamond className="h-3.5 w-3.5" />
-              Book a Visit
+              {companyInfo.ctaText || "Book a Visit"}
             </Link>
           </div>
         </nav>

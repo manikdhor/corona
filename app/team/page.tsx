@@ -3,7 +3,7 @@ import PageHero from "@/components/ui/PageHero";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Reveal from "@/components/ui/Reveal";
 import { TEAM } from "@/lib/data";
-import { getTeamMembersAction } from "@/lib/admin/actions";
+import { getTeamMembersAction, getSiteContentAction } from "@/lib/admin/actions";
 import Image from "next/image";
 
 export const metadata: Metadata = {
@@ -29,24 +29,34 @@ function MemberBio({ text }: { text: string }) {
 }
 
 export default async function TeamPage() {
-  const dynamicMembers = await getTeamMembersAction();
+  const [dynamicMembers, siteContent] = await Promise.all([
+    getTeamMembersAction(),
+    getSiteContentAction(),
+  ]);
   const team = dynamicMembers.length > 0 ? dynamicMembers : TEAM;
+  const tPage = (siteContent as any)?.teamPage;
 
   return (
     <>
       <PageHero
-        title="Management Messages"
-        subtitle="The vision, values, and commitment behind Corona Properties and Maple Leaf Garden City."
-        breadcrumb="Management Messages"
-        bgImage="/image-11.webp"
+        title={tPage?.heroTitle || "Management Messages"}
+        subtitle={
+          tPage?.heroSubtitle ||
+          "The vision, values, and commitment behind Corona Properties and Maple Leaf Garden City."
+        }
+        breadcrumb={tPage?.breadcrumb || "Management Messages"}
+        bgImage={tPage?.heroBgImage || "/image-11.webp"}
       />
 
       <section className="section-padding bg-cream">
         <div className="container-luxury">
           <SectionHeading
-            eyebrow="Our Leadership"
-            title="Words From the Top"
-            subtitle="Transparency, integrity, and a commitment to building communities — hear directly from the leaders driving our mission."
+            eyebrow={tPage?.sectionEyebrow || "Our Leadership"}
+            title={tPage?.sectionHeading || "Words From the Top"}
+            subtitle={
+              tPage?.sectionSubtitle ||
+              "Transparency, integrity, and a commitment to building communities — hear directly from the leaders driving our mission."
+            }
           />
 
           <div className="mt-24 md:mt-32 space-y-24 md:space-y-36">
@@ -110,12 +120,15 @@ export default async function TeamPage() {
         <div className="absolute inset-0 texture-noise" />
         <div className="absolute top-0 left-0 h-full w-px bg-gradient-to-b from-transparent via-gold/30 to-transparent" />
         <div className="container-luxury relative text-center">
-          <p className="eyebrow justify-center text-gold mb-6">Join Our Community</p>
+          <p className="eyebrow justify-center text-gold mb-6">
+            {tPage?.ctaEyebrow || "Join Our Community"}
+          </p>
           <h2 className="font-serif text-display-md font-bold text-cream text-balance">
-            Ready to Build Your Legacy?
+            {tPage?.ctaHeading || "Ready to Build Your Legacy?"}
           </h2>
           <p className="mt-6 max-w-2xl mx-auto text-cream/75 text-lg leading-relaxed">
-            Discover Maple Leaf Garden City — where Canadian living meets Bangladeshi warmth, and every plot is a promise of quality.
+            {tPage?.ctaDescription ||
+              "Discover Maple Leaf Garden City — where Canadian living meets Bangladeshi warmth, and every plot is a promise of quality."}
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <a href="/contact" className="btn-gold">

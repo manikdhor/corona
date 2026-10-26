@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { SITE_CONFIG } from "@/lib/constants";
 
 const HERO_SLIDES = [
@@ -12,7 +14,16 @@ const HERO_SLIDES = [
 
 export interface HeroProps {
   data?: {
+    eyebrow?: string;
+    headline?: string;
+    subtitle?: string;
+    primaryCtaText?: string;
+    primaryCtaLink?: string;
+    secondaryCtaText?: string;
+    secondaryCtaLink?: string;
     slides?: string[];
+    stats?: { value: string; label: string }[];
+    showOverlay?: boolean;
   };
 }
 
@@ -32,7 +43,7 @@ export default function Hero({ data }: HeroProps = {}) {
   const next = () => setCurrent((prev) => (prev + 1) % slides.length);
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-navy-900 md:min-h-[90vh]">
+    <section className="relative min-h-screen overflow-hidden bg-navy-900 md:min-h-[90vh] flex items-center">
       <div className="absolute inset-0">
         {slides.map((src, i) => (
           <div
@@ -53,7 +64,61 @@ export default function Hero({ data }: HeroProps = {}) {
         ))}
       </div>
 
-      <div className="absolute inset-0 bg-navy-950/30" />
+      <div
+        className={`absolute inset-0 ${
+          data?.showOverlay ? "bg-gradient-to-b from-navy-950/75 via-navy-950/60 to-navy-950/85" : "bg-navy-950/30"
+        }`}
+      />
+
+      {data?.showOverlay && (
+        <div className="container-luxury relative z-10 py-28 text-center text-cream">
+          {data.eyebrow && (
+            <span className="inline-block rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-gold backdrop-blur-sm">
+              {data.eyebrow}
+            </span>
+          )}
+          {data.headline && (
+            <h1 className="mx-auto mt-6 max-w-4xl font-serif text-4xl font-bold leading-tight text-cream sm:text-5xl md:text-6xl">
+              {data.headline}
+            </h1>
+          )}
+          {data.subtitle && (
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-cream/80 sm:text-lg">
+              {data.subtitle}
+            </p>
+          )}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            {data.primaryCtaText && (
+              <Link
+                href={data.primaryCtaLink || "/projects/maple-leaf-garden-city"}
+                className="btn-gold inline-flex items-center gap-2"
+              >
+                {data.primaryCtaText}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
+            {data.secondaryCtaText && (
+              <Link
+                href={data.secondaryCtaLink || "/contact"}
+                className="inline-flex items-center gap-2 rounded-full border border-cream/30 bg-white/10 px-7 py-3.5 text-xs font-semibold uppercase tracking-widest text-cream backdrop-blur-md transition hover:border-gold hover:bg-gold hover:text-navy"
+              >
+                {data.secondaryCtaText}
+              </Link>
+            )}
+          </div>
+
+          {data.stats && data.stats.length > 0 && (
+            <div className="mx-auto mt-16 grid max-w-4xl grid-cols-2 gap-6 rounded-2xl border border-white/15 bg-navy-950/60 p-6 backdrop-blur-md sm:grid-cols-4">
+              {data.stats.map((st, idx) => (
+                <div key={idx} className="text-center">
+                  <p className="font-serif text-2xl font-bold text-gold sm:text-3xl">{st.value}</p>
+                  <p className="mt-1 text-xs uppercase tracking-wider text-cream/70">{st.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <button
         onClick={prev}

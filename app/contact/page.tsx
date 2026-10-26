@@ -17,7 +17,13 @@ import LeadForm from "@/components/lead/LeadForm";
 import FAQ from "@/components/contact/FAQ";
 import { CONTACT_INFO, SOCIAL_LINKS } from "@/lib/constants";
 import PinterestIcon from "@/components/ui/PinterestIcon";
-import { getFaqsAction, getSettingsAction, getSocialLinksAction } from "@/lib/admin/actions";
+import {
+  getFaqsAction,
+  getSettingsAction,
+  getSocialLinksAction,
+  getCategoriesAction,
+  getSiteContentAction,
+} from "@/lib/admin/actions";
 
 const PLATFORM_ICONS: Record<string, any> = {
   Facebook,
@@ -35,12 +41,15 @@ export const metadata: Metadata = {
 };
 
 export default async function ContactPage() {
-  const [faqs, settings, socialLinks] = await Promise.all([
+  const [faqs, settings, socialLinks, faqCategories, siteContent] = await Promise.all([
     getFaqsAction(),
     getSettingsAction(),
     getSocialLinksAction(),
+    getCategoriesAction("faq"),
+    getSiteContentAction(),
   ]);
 
+  const cPage = (siteContent as any)?.contactPage;
   const activeSocials = socialLinks.filter((s) => s.isActive);
   const socials =
     activeSocials.length > 0
@@ -57,8 +66,15 @@ export default async function ContactPage() {
   const company = settings?.company;
   const address = company?.address || CONTACT_INFO.address;
   const phone = company?.phone || CONTACT_INFO.phone;
-  const phoneRaw = phone.replace(/[^0-9+]/g, "");
+  const phoneRaw = (company?.whatsapp || phone).replace(/[^0-9+]/g, "");
   const email = company?.email || CONTACT_INFO.email;
+  const hours = company?.hours || CONTACT_INFO.hours;
+  const directionsUrl =
+    company?.directionsUrl ||
+    "https://maps.google.com/?q=Mar+garden,+House+%23145,+Flat+%23704,+Road+%233,+Block+A,+Niketon,+Gulshan+01,+Dhaka+1212";
+  const mapEmbedUrl =
+    company?.mapEmbedUrl ||
+    "https://www.google.com/maps?q=Mar+garden,+House+%23145,+Flat+%23704,+Road+%233,+Block+A,+Niketon,+Gulshan+01,+Dhaka+1212&z=16&output=embed";
 
   const contactCards = [
     {
@@ -67,14 +83,14 @@ export default async function ContactPage() {
       lines: [address],
       action: {
         label: "Get Directions",
-        href: "https://maps.google.com/?q=Mar+garden,+House+%23145,+Flat+%23704,+Road+%233,+Block+A,+Niketon,+Gulshan+01,+Dhaka+1212",
+        href: directionsUrl,
       },
     },
     {
       icon: Phone,
       title: "Call Us",
-      lines: [phone, "Sat – Thu: 9 AM – 6 PM"],
-      action: { label: "Call Now", href: `tel:${phoneRaw}` },
+      lines: [phone, hours],
+      action: { label: "Call Now", href: `tel:${phone.replace(/[^0-9+]/g, "")}` },
     },
     {
       icon: Mail,
@@ -87,10 +103,13 @@ export default async function ContactPage() {
   return (
     <>
       <PageHero
-        title="Get in Touch"
-        subtitle="Have questions about our properties or services? We're here to help you make confident, informed decisions about your land investment."
-        breadcrumb="Contact"
-        bgImage="/image-07.webp"
+        title={cPage?.heroTitle || "Get in Touch"}
+        subtitle={
+          cPage?.heroSubtitle ||
+          "Have questions about our properties or services? We're here to help you make confident, informed decisions about your land investment."
+        }
+        breadcrumb={cPage?.breadcrumb || "Contact"}
+        bgImage={cPage?.heroBgImage || "/image-07.webp"}
       />
 
       {/* Contact cards */}
@@ -132,8 +151,11 @@ export default async function ContactPage() {
           <div className="mt-20 grid gap-12 lg:grid-cols-5">
             <div className="lg:col-span-3">
               <LeadForm
-                title="Send Us a Message"
-                subtitle="Fill out the form below and our team will get back to you within 24 hours."
+                title={cPage?.formTitle || "Send Us a Message"}
+                subtitle={
+                  cPage?.formSubtitle ||
+                  "Fill out the form below and our team will get back to you within 24 hours."
+                }
                 source="Contact Page Form"
               />
             </div>
@@ -147,8 +169,8 @@ export default async function ContactPage() {
                 </div>
                 <ul className="space-y-3 text-sm">
                   <li className="flex justify-between border-b border-white/10 pb-3">
-                    <span className="text-cream/70">Saturday – Thursday</span>
-                    <span className="font-semibold text-gold">9:00 AM – 6:00 PM</span>
+                    <span className="text-cream/70">Working Hours</span>
+                    <span className="font-semibold text-gold">{hours}</span>
                   </li>
                   <li className="flex justify-between">
                     <span className="text-cream/70">Friday</span>
@@ -208,16 +230,16 @@ export default async function ContactPage() {
       <section className="bg-navy-950">
         <div className="container-luxury py-16">
           <SectionHeading
-            eyebrow="Find Us"
-            title="Our Location"
-            subtitle="Visit our office in the heart of Gulshan, Dhaka."
+            eyebrow={cPage?.mapEyebrow || "Find Us"}
+            title={cPage?.mapHeading || "Our Location"}
+            subtitle={cPage?.mapSubtitle || "Visit our office in the heart of Gulshan, Dhaka."}
             light
           />
         </div>
         <div className="h-[450px] w-full">
           <iframe
             title="Corona Properties Ltd"
-            src="https://www.google.com/maps?q=Mar+garden,+House+%23145,+Flat+%23704,+Road+%233,+Block+A,+Niketon,+Gulshan+01,+Dhaka+1212&z=16&output=embed"
+            src={mapEmbedUrl}
             className="h-full w-full border-0 grayscale-[0.3]"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
@@ -229,12 +251,15 @@ export default async function ContactPage() {
       <section className="section-padding bg-cream">
         <div className="container-luxury">
           <SectionHeading
-            eyebrow="Common Questions"
-            title="Frequently Asked Questions"
-            subtitle="Quick answers to the questions we hear most often from our clients."
+            eyebrow={cPage?.faqEyebrow || "Common Questions"}
+            title={cPage?.faqHeading || "Frequently Asked Questions"}
+            subtitle={
+              cPage?.faqSubtitle ||
+              "Quick answers to the questions we hear most often from our clients."
+            }
           />
           <div className="mt-14">
-            <FAQ items={faqs} />
+            <FAQ items={faqs} categories={faqCategories} />
           </div>
         </div>
       </section>

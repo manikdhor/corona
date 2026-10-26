@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, SlidersHorizontal, X, ChevronUp } from "lucide-react";
 import PropertyCard from "./PropertyCard";
 import { PROPERTIES } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import type { AdminCategory } from "@/lib/admin/seed";
 
-const AREAS = ["All Areas", "Gulshan", "Banani", "Baridhara", "Uttara", "Dhanmondi", "Bashundhara"];
-const TYPES = ["All Types", "Exclusive", "Premium", "Standard", "Investment"];
+const DEFAULT_AREAS = ["Gulshan", "Banani", "Baridhara", "Uttara", "Dhanmondi", "Bashundhara", "Purbachal"];
+const DEFAULT_TYPES = ["Exclusive", "Premium", "Standard", "Investment"];
 const SORT_OPTIONS = [
   { value: "featured", label: "Featured" },
   { value: "price-low", label: "Price: Low to High" },
@@ -18,9 +19,15 @@ const SORT_OPTIONS = [
 
 interface PropertyFilterProps {
   initialProperties?: any[];
+  typeCategories?: AdminCategory[];
+  areaCategories?: AdminCategory[];
 }
 
-export default function PropertyFilter({ initialProperties }: PropertyFilterProps) {
+export default function PropertyFilter({
+  initialProperties,
+  typeCategories,
+  areaCategories,
+}: PropertyFilterProps) {
   const [area, setArea] = useState("All Areas");
   const [type, setType] = useState("All Types");
   const [search, setSearch] = useState("");
@@ -39,14 +46,55 @@ export default function PropertyFilter({ initialProperties }: PropertyFilterProp
       }));
   }, [initialProperties]);
 
+  const AREAS = useMemo(() => {
+    const activeCats = (areaCategories || []).filter((c) => c.isActive).map((c) => c.name);
+    const base = activeCats.length > 0 ? activeCats : DEFAULT_AREAS;
+    const distinctFromProps = Array.from(
+      new Set(sourceList.map((p) => p.area).filter(Boolean))
+    );
+    const merged = Array.from(new Set([...base, ...distinctFromProps]));
+    return ["All Areas", ...merged];
+  }, [areaCategories, sourceList]);
+
+  const TYPES = useMemo(() => {
+    const activeCats = (typeCategories || []).filter((c) => c.isActive).map((c) => c.name);
+    const base = activeCats.length > 0 ? activeCats : DEFAULT_TYPES;
+    const distinctFromProps = Array.from(
+      new Set(sourceList.map((p) => p.type).filter(Boolean))
+    );
+    const merged = Array.from(new Set([...base, ...distinctFromProps]));
+    return ["All Types", ...merged];
+  }, [typeCategories, sourceList]);
+
+  // Support URL query params (?type=Exclusive&area=Purbachal)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const qType = params.get("type");
+    const qArea = params.get("area");
+    if (qType) {
+      const matchedType = TYPES.find((t) => t.toLowerCase() === qType.toLowerCase());
+      setType(matchedType || qType);
+    }
+    if (qArea) {
+      const matchedArea = AREAS.find((a) => a.toLowerCase() === qArea.toLowerCase());
+      setArea(matchedArea || qArea);
+    }
+  }, [TYPES, AREAS]);
+
   const filtered = useMemo(() => {
     let result = [...sourceList];
 
     if (area !== "All Areas") {
-      result = result.filter((p) => p.area === area);
+      result = result.filter(
+        (p) =>
+          p.area === area ||
+          p.area?.toLowerCase().includes(area.toLowerCase()) ||
+          p.location?.toLowerCase().includes(area.toLowerCase())
+      );
     }
     if (type !== "All Types") {
-      result = result.filter((p) => p.type === type);
+      result = result.filter((p) => p.type?.toLowerCase() === type.toLowerCase());
     }
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -143,7 +191,7 @@ export default function PropertyFilter({ initialProperties }: PropertyFilterProp
         <div className="mt-3 flex items-center justify-between text-xs text-navy-400">
           <p>
             Showing <span className="font-bold text-navy">{filtered.length}</span> of{" "}
-            {PROPERTIES.length} properties
+            {sourceList.length} properties
           </p>
         </div>
       </div>

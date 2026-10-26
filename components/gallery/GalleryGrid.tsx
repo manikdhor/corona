@@ -1,32 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
 import { GALLERY_IMAGES } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import type { AdminCategory } from "@/lib/admin/seed";
 
-const CATEGORIES = ["All", "Residential", "Aerial Views", "Layouts"];
+const DEFAULT_CATEGORIES = ["Residential", "Aerial Views", "Layouts"];
 
 interface GalleryGridProps {
   items?: any[];
+  categories?: AdminCategory[];
 }
 
-export default function GalleryGrid({ items }: GalleryGridProps) {
+export default function GalleryGrid({ items, categories }: GalleryGridProps) {
   const [filter, setFilter] = useState("All");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const sourceImages = items && items.length > 0
-    ? items.map((m, idx) => ({
-        id: m.id || `img-${idx}`,
-        src: m.url || m.src || "/image-01.webp",
-        alt: m.altText || m.alt || m.title || "Corona Properties Gallery",
-        category: m.category || "Residential",
-        aspect: m.aspect || "aspect-[4/3]",
-        title: m.title || m.filename || "Property View",
-      }))
-    : GALLERY_IMAGES;
+  const sourceImages = useMemo(
+    () =>
+      items && items.length > 0
+        ? items.map((m, idx) => ({
+            id: m.id || `img-${idx}`,
+            src: m.url || m.src || "/image-01.webp",
+            alt: m.altText || m.alt || m.title || "Corona Properties Gallery",
+            category: m.category || "Residential",
+            aspect: m.aspect || "aspect-[4/3]",
+            title: m.title || m.filename || "Property View",
+          }))
+        : GALLERY_IMAGES,
+    [items]
+  );
+
+  const CATEGORIES = useMemo(() => {
+    const activeCats = (categories || []).filter((c) => c.isActive).map((c) => c.name);
+    const base = activeCats.length > 0 ? activeCats : DEFAULT_CATEGORIES;
+    const distinctFromItems = Array.from(
+      new Set(sourceImages.map((img) => img.category).filter(Boolean))
+    );
+    return ["All", ...Array.from(new Set([...base, ...distinctFromItems]))];
+  }, [categories, sourceImages]);
 
   const filtered =
     filter === "All"

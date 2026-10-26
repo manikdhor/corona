@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Globe,
@@ -15,7 +15,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { SITE_CONFIG } from "@/lib/constants";
-import { updateSettingsAction } from "@/lib/admin/actions";
+import { getSettingsAction, updateSettingsAction } from "@/lib/admin/actions";
 
 export default function SeoManagerPage() {
   const [activeTab, setActiveTab] = useState<"general" | "robots" | "jsonld">("general");
@@ -61,6 +61,20 @@ export default function SeoManagerPage() {
 
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    getSettingsAction().then((s) => {
+      if (s?.seo) {
+        if (s.seo.defaultTitle) setDefaultTitle(s.seo.defaultTitle);
+        if (s.seo.defaultDesc) setDefaultDesc(s.seo.defaultDesc);
+        if (s.seo.canonicalBase) setCanonicalBase(s.seo.canonicalBase);
+        if (typeof s.seo.robotsIndex === "boolean") setRobotsIndex(s.seo.robotsIndex);
+        if (typeof s.seo.robotsFollow === "boolean") setRobotsFollow(s.seo.robotsFollow);
+        if (s.seo.robotsTxt) setRobotsTxt(s.seo.robotsTxt);
+        if (s.seo.jsonLdSchema) setJsonLdSchema(s.seo.jsonLdSchema);
+      }
+    });
+  }, []);
 
   const handleSave = async () => {
     setIsSaving(true);

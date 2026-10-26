@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Settings,
@@ -16,13 +16,20 @@ import {
 } from "lucide-react";
 import { adminStore } from "@/lib/admin/seed";
 import ImageInput from "@/components/admin/media/ImageInput";
-import { updateSettingsAction } from "@/lib/admin/actions";
+import { getSettingsAction, updateSettingsAction } from "@/lib/admin/actions";
 
 export default function SettingsPage() {
   const currentSettings = adminStore.getSettings();
-  const [branding, setBranding] = useState(currentSettings.branding || {});
-  const [mapConfig, setMapConfig] = useState(currentSettings.mapConfig || {});
+  const [branding, setBranding] = useState<any>(currentSettings.branding || {});
+  const [mapConfig, setMapConfig] = useState<any>(currentSettings.mapConfig || {});
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  useEffect(() => {
+    getSettingsAction().then((s) => {
+      if (s?.branding) setBranding(s.branding);
+      if (s?.mapConfig) setMapConfig(s.mapConfig);
+    });
+  }, []);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,6 +166,63 @@ export default function SettingsPage() {
                 className="w-full rounded-xl border border-navy-200 px-3.5 py-2 focus:border-gold outline-none"
               />
             </div>
+
+            <div>
+              <label className="font-semibold text-navy-700 block mb-1">WhatsApp Number</label>
+              <input
+                type="text"
+                value={branding.whatsapp || ""}
+                onChange={(e) => setBranding({ ...branding, whatsapp: e.target.value })}
+                className="w-full rounded-xl border border-navy-200 px-3.5 py-2 focus:border-gold outline-none font-mono"
+                placeholder="+8801833156200"
+              />
+            </div>
+
+            <div>
+              <label className="font-semibold text-navy-700 block mb-1">Office Operating Hours</label>
+              <input
+                type="text"
+                value={branding.hours || ""}
+                onChange={(e) => setBranding({ ...branding, hours: e.target.value })}
+                className="w-full rounded-xl border border-navy-200 px-3.5 py-2 focus:border-gold outline-none"
+                placeholder="Sat - Thu: 9:00 AM - 6:00 PM"
+              />
+            </div>
+
+            <div>
+              <label className="font-semibold text-navy-700 block mb-1">Header CTA Button Text</label>
+              <input
+                type="text"
+                value={branding.headerCtaText || ""}
+                onChange={(e) => setBranding({ ...branding, headerCtaText: e.target.value })}
+                className="w-full rounded-xl border border-navy-200 px-3.5 py-2 focus:border-gold outline-none"
+                placeholder="Book a Visit"
+              />
+            </div>
+
+            <div>
+              <label className="font-semibold text-navy-700 block mb-1">Header CTA Button Link</label>
+              <input
+                type="text"
+                value={branding.headerCtaLink || ""}
+                onChange={(e) => setBranding({ ...branding, headerCtaLink: e.target.value })}
+                className="w-full rounded-xl border border-navy-200 px-3.5 py-2 focus:border-gold outline-none font-mono"
+                placeholder="/contact"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <ImageInput
+              label="Primary Brand Logo URL"
+              value={branding.logoUrl || ""}
+              onChange={(url) => setBranding({ ...branding, logoUrl: url })}
+            />
+            <ImageInput
+              label="Favicon / App Icon URL"
+              value={branding.faviconUrl || ""}
+              onChange={(url) => setBranding({ ...branding, faviconUrl: url })}
+            />
           </div>
 
           <div className="pt-2">
@@ -169,6 +233,38 @@ export default function SettingsPage() {
               onChange={(e) => setBranding({ ...branding, address: e.target.value })}
               className="w-full rounded-xl border border-navy-200 px-3.5 py-2 text-xs focus:border-gold outline-none"
             />
+          </div>
+
+          <div className="pt-2">
+            <label className="font-semibold text-xs text-navy-700 block mb-1">Footer Company Bio / About Description</label>
+            <textarea
+              rows={2}
+              value={branding.description || ""}
+              onChange={(e) => setBranding({ ...branding, description: e.target.value })}
+              className="w-full rounded-xl border border-navy-200 px-3.5 py-2 text-xs focus:border-gold outline-none"
+              placeholder="Premium township and real estate development in Dhaka..."
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 text-xs">
+            <div>
+              <label className="font-semibold text-navy-700 block mb-1">Contact Page Google Maps Embed URL</label>
+              <input
+                type="text"
+                value={branding.mapEmbedUrl || ""}
+                onChange={(e) => setBranding({ ...branding, mapEmbedUrl: e.target.value })}
+                className="w-full rounded-xl border border-navy-200 px-3.5 py-2 focus:border-gold outline-none font-mono"
+              />
+            </div>
+            <div>
+              <label className="font-semibold text-navy-700 block mb-1">Contact Page &ldquo;Get Directions&rdquo; URL</label>
+              <input
+                type="text"
+                value={branding.directionsUrl || ""}
+                onChange={(e) => setBranding({ ...branding, directionsUrl: e.target.value })}
+                className="w-full rounded-xl border border-navy-200 px-3.5 py-2 focus:border-gold outline-none font-mono"
+              />
+            </div>
           </div>
         </div>
 

@@ -30,13 +30,14 @@ export default async function ProjectsPage() {
   return (
     <>
       <PageHero
-        title={pContent?.title || "Our Projects"}
+        title={pContent?.heroTitle || pContent?.title || "Our Projects"}
         subtitle={
+          pContent?.heroSubtitle ||
           pContent?.subtitle ||
           "A curated portfolio of premium residential land developments — each crafted as a landmark community."
         }
         breadcrumb={pContent?.breadcrumb || "Projects"}
-        bgImage={pContent?.bgImage || "/image-04.webp"}
+        bgImage={pContent?.heroBgImage || pContent?.bgImage || "/image-04.webp"}
       />
 
       <section className="section-padding bg-cream">

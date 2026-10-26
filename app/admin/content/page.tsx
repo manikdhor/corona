@@ -1,14 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   Save,
   CheckCircle2,
   Plus,
   Trash2,
 } from "lucide-react";
-import { adminStore, AdminSiteContent, AdminFaq } from "@/lib/admin/seed";
-import { updateSiteContentAction, saveFaqAction, deleteFaqAction } from "@/lib/admin/actions";
+import { adminStore, AdminSiteContent, AdminFaq, AdminCategory } from "@/lib/admin/seed";
+import {
+  getSiteContentAction,
+  updateSiteContentAction,
+  getFaqsAction,
+  saveFaqAction,
+  deleteFaqAction,
+  getCategoriesAction,
+} from "@/lib/admin/actions";
 import ImageInput from "@/components/admin/media/ImageInput";
 
 const DEFAULT_CORE_VALUES = {
@@ -52,7 +60,18 @@ const DEFAULT_LEAD_CAPTURE = {
 
 export default function ContentManagerPage() {
   const [activeTab, setActiveTab] = useState<
-    "hero" | "about" | "values" | "journey" | "leadCapture" | "genesis" | "why" | "process" | "cta" | "group" | "faqs"
+    | "hero"
+    | "about"
+    | "values"
+    | "journey"
+    | "leadCapture"
+    | "genesis"
+    | "why"
+    | "process"
+    | "cta"
+    | "group"
+    | "faqs"
+    | "pageBanners"
   >("hero");
 
   const [content, setContent] = useState<AdminSiteContent>(() => {
@@ -65,8 +84,29 @@ export default function ContentManagerPage() {
     };
   });
   const [faqs, setFaqs] = useState<AdminFaq[]>(adminStore.getFaqs());
+  const [faqCategories, setFaqCategories] = useState<AdminCategory[]>([]);
   const [savedSuccess, setSavedSuccess] = useState<string | null>(null);
   const [editingFaq, setEditingFaq] = useState<Partial<AdminFaq> | null>(null);
+
+  useEffect(() => {
+    Promise.all([
+      getSiteContentAction(),
+      getFaqsAction(),
+      getCategoriesAction("faq"),
+    ]).then(([sc, fq, cats]) => {
+      if (sc) {
+        setContent((prev) => ({
+          ...prev,
+          ...sc,
+          coreValues: sc.coreValues || prev.coreValues || DEFAULT_CORE_VALUES,
+          journey: sc.journey || prev.journey || DEFAULT_JOURNEY,
+          leadCapture: sc.leadCapture || prev.leadCapture || DEFAULT_LEAD_CAPTURE,
+        }));
+      }
+      if (fq) setFaqs(fq);
+      if (cats) setFaqCategories(cats.filter((c) => c.isActive));
+    });
+  }, []);
 
   const notifySaved = (section: string) => {
     setSavedSuccess(`${section} updated and published successfully!`);
@@ -83,7 +123,8 @@ export default function ContentManagerPage() {
     if (!editingFaq?.question || !editingFaq?.answer) return;
     const res = await saveFaqAction(editingFaq);
     if (res.success) {
-      setFaqs(adminStore.getFaqs());
+      const updated = await getFaqsAction();
+      setFaqs(updated);
       setEditingFaq(null);
       notifySaved("FAQ");
     }
@@ -92,7 +133,8 @@ export default function ContentManagerPage() {
   const handleDeleteFaq = async (id: string) => {
     if (!confirm("Are you sure you want to delete this FAQ item?")) return;
     await deleteFaqAction(id);
-    setFaqs(adminStore.getFaqs());
+    const updated = await getFaqsAction();
+    setFaqs(updated);
     notifySaved("FAQ Deleted");
   };
 
@@ -134,6 +176,7 @@ export default function ContentManagerPage() {
           { id: "cta", label: "CTA Banners" },
           { id: "group", label: "Corona Group" },
           { id: "faqs", label: "FAQs" },
+          { id: "pageBanners", label: "Page Banners & Copy" },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -240,16 +283,80 @@ export default function ContentManagerPage() {
                   className="w-full rounded-xl border border-navy-200 px-3.5 py-2 focus:border-gold outline-none font-mono"
                 />
               </div>
+
+              <div>
+                <label className="font-semibold text-navy-700 block mb-1">Secondary CTA Button Text</label>
+                <input
+                  type="text"
+                  value={content.hero.secondaryCtaText || ""}
+                  onChange={(e) =>
+                    setContent({
+                      ...content,
+                      hero: { ...content.hero, secondaryCtaText: e.target.value },
+                    })
+                  }
+                  className="w-full rounded-xl border border-navy-200 px-3.5 py-2 focus:border-gold outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="font-semibold text-navy-700 block mb-1">Secondary CTA Button URL</label>
+                <input
+                  type="text"
+                  value={content.hero.secondaryCtaLink || ""}
+                  onChange={(e) =>
+                    setContent({
+                      ...content,
+                      hero: { ...content.hero, secondaryCtaLink: e.target.value },
+                    })
+                  }
+                  className="w-full rounded-xl border border-navy-200 px-3.5 py-2 focus:border-gold outline-none font-mono"
+                />
+              </div>
+
+              <div className="md:col-span-2 pt-2">
+                <label className="flex items-center gap-2 text-xs font-semibold text-navy-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(content.hero.showOverlay)}
+                    onChange={(e) =>
+                      setContent({
+                        ...content,
+                        hero: { ...content.hero, showOverlay: e.target.checked },
+                      })
+                    }
+                    className="rounded text-gold focus:ring-gold"
+                  />
+                  Display Headline, CTAs & Stats Overlay on Hero Slider (Uncheck for clean full-screen image banner)
+                </label>
+              </div>
             </div>
 
             {/* Slides Array */}
             <div className="pt-4 border-t border-navy-50">
-              <label className="font-semibold text-xs text-navy-700 block mb-2">
-                Background Slideshow Images (Rotates every 5 seconds)
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="font-semibold text-xs text-navy-700">
+                  Background Slideshow Images (Rotates every 5 seconds)
+                </label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setContent({
+                      ...content,
+                      hero: {
+                        ...content.hero,
+                        slides: [...content.hero.slides, "/image-01.webp"],
+                      },
+                    })
+                  }
+                  className="flex items-center gap-1 text-xs font-semibold text-gold-700 hover:underline"
+                >
+                  <Plus className="h-3.5 w-3.5" /> Add Slide
+                </button>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {content.hero.slides.map((slide, idx) => (
-                  <div key={idx} className="space-y-1.5">
+                  <div key={idx} className="space-y-1.5 relative group">
                     <ImageInput
                       label={`Slide ${idx + 1}`}
                       value={slide}
@@ -259,6 +366,18 @@ export default function ContentManagerPage() {
                         setContent({ ...content, hero: { ...content.hero, slides: next } });
                       }}
                     />
+                    {content.hero.slides.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = content.hero.slides.filter((_, i) => i !== idx);
+                          setContent({ ...content, hero: { ...content.hero, slides: next } });
+                        }}
+                        className="text-[10px] text-rose-500 hover:underline"
+                      >
+                        Remove Slide
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -444,6 +563,56 @@ export default function ContentManagerPage() {
                   className="rounded-xl border border-navy-200 px-3 py-2 text-xs"
                 />
               ))}
+            </div>
+          </div>
+
+          {/* Vision & Mission Card */}
+          <div className="pt-6 border-t border-navy-100 space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-serif font-bold text-sm text-navy">Vision & Mission Statements (About Page)</h4>
+              <button
+                type="button"
+                onClick={() => handleSaveSection("visionMission")}
+                className="flex items-center gap-1.5 rounded-xl bg-navy px-3.5 py-1.5 text-xs font-semibold text-gold hover:bg-navy-800 transition"
+              >
+                <Save className="h-3.5 w-3.5" /> Save Vision & Mission
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div>
+                <label className="font-semibold text-navy-700 block mb-1">Our Vision</label>
+                <textarea
+                  rows={3}
+                  value={content.visionMission?.vision || ""}
+                  onChange={(e) =>
+                    setContent({
+                      ...content,
+                      visionMission: {
+                        vision: e.target.value,
+                        mission: content.visionMission?.mission || "",
+                      },
+                    })
+                  }
+                  className="w-full rounded-xl border border-navy-200 px-3.5 py-2"
+                />
+              </div>
+              <div>
+                <label className="font-semibold text-navy-700 block mb-1">Our Mission</label>
+                <textarea
+                  rows={3}
+                  value={content.visionMission?.mission || ""}
+                  onChange={(e) =>
+                    setContent({
+                      ...content,
+                      visionMission: {
+                        vision: content.visionMission?.vision || "",
+                        mission: e.target.value,
+                      },
+                    })
+                  }
+                  className="w-full rounded-xl border border-navy-200 px-3.5 py-2"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1236,7 +1405,148 @@ export default function ContentManagerPage() {
               </button>
             </div>
 
-            <div className="space-y-3">
+            {/* Hero & Who We Are & Ethos */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gold-700">Hero & Group Overview</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div>
+                  <label className="font-semibold text-navy-700 block mb-1">Hero Eyebrow</label>
+                  <input
+                    type="text"
+                    value={content.corporateGroup.heroEyebrow || ""}
+                    onChange={(e) =>
+                      setContent({
+                        ...content,
+                        corporateGroup: { ...content.corporateGroup, heroEyebrow: e.target.value },
+                      })
+                    }
+                    className="w-full rounded-xl border border-navy-200 px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="font-semibold text-navy-700 block mb-1">Hero Title</label>
+                  <input
+                    type="text"
+                    value={content.corporateGroup.heroTitle || ""}
+                    onChange={(e) =>
+                      setContent({
+                        ...content,
+                        corporateGroup: { ...content.corporateGroup, heroTitle: e.target.value },
+                      })
+                    }
+                    className="w-full rounded-xl border border-navy-200 px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="font-semibold text-navy-700 block mb-1">Hero Subtitle</label>
+                  <input
+                    type="text"
+                    value={content.corporateGroup.heroSubtitle || ""}
+                    onChange={(e) =>
+                      setContent({
+                        ...content,
+                        corporateGroup: { ...content.corporateGroup, heroSubtitle: e.target.value },
+                      })
+                    }
+                    className="w-full rounded-xl border border-navy-200 px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              {content.corporateGroup.whoWeAre && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-2">
+                  <div>
+                    <label className="font-semibold text-navy-700 block mb-1">Who We Are Heading</label>
+                    <input
+                      type="text"
+                      value={content.corporateGroup.whoWeAre.heading}
+                      onChange={(e) =>
+                        setContent({
+                          ...content,
+                          corporateGroup: {
+                            ...content.corporateGroup,
+                            whoWeAre: { ...content.corporateGroup.whoWeAre!, heading: e.target.value },
+                          },
+                        })
+                      }
+                      className="w-full rounded-xl border border-navy-200 px-3 py-2"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="font-semibold text-navy-700 block mb-1">Badge Value</label>
+                      <input
+                        type="text"
+                        value={content.corporateGroup.whoWeAre.badgeValue}
+                        onChange={(e) =>
+                          setContent({
+                            ...content,
+                            corporateGroup: {
+                              ...content.corporateGroup,
+                              whoWeAre: { ...content.corporateGroup.whoWeAre!, badgeValue: e.target.value },
+                            },
+                          })
+                        }
+                        className="w-full rounded-xl border border-navy-200 px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-semibold text-navy-700 block mb-1">Badge Label</label>
+                      <input
+                        type="text"
+                        value={content.corporateGroup.whoWeAre.badgeLabel}
+                        onChange={(e) =>
+                          setContent({
+                            ...content,
+                            corporateGroup: {
+                              ...content.corporateGroup,
+                              whoWeAre: { ...content.corporateGroup.whoWeAre!, badgeLabel: e.target.value },
+                            },
+                          })
+                        }
+                        className="w-full rounded-xl border border-navy-200 px-3 py-2"
+                      />
+                    </div>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="font-semibold text-navy-700 block mb-1">Paragraph 1</label>
+                    <textarea
+                      rows={2}
+                      value={content.corporateGroup.whoWeAre.p1}
+                      onChange={(e) =>
+                        setContent({
+                          ...content,
+                          corporateGroup: {
+                            ...content.corporateGroup,
+                            whoWeAre: { ...content.corporateGroup.whoWeAre!, p1: e.target.value },
+                          },
+                        })
+                      }
+                      className="w-full rounded-xl border border-navy-200 px-3 py-2"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="font-semibold text-navy-700 block mb-1">Paragraph 2</label>
+                    <textarea
+                      rows={2}
+                      value={content.corporateGroup.whoWeAre.p2}
+                      onChange={(e) =>
+                        setContent({
+                          ...content,
+                          corporateGroup: {
+                            ...content.corporateGroup,
+                            whoWeAre: { ...content.corporateGroup.whoWeAre!, p2: e.target.value },
+                          },
+                        })
+                      }
+                      className="w-full rounded-xl border border-navy-200 px-3 py-2"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3 pt-4 border-t border-navy-50">
               <h4 className="text-xs font-bold uppercase tracking-wider text-gold-700">Founding Pioneer Tribute</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
@@ -1279,17 +1589,95 @@ export default function ContentManagerPage() {
                     className="w-full rounded-xl border border-navy-200 px-3.5 py-2"
                   />
                 </div>
+                <div className="sm:col-span-2">
+                  <label className="font-semibold text-navy-700 block mb-1">Tribute Quote</label>
+                  <input
+                    type="text"
+                    value={content.corporateGroup.foundingPioneer.quote || ""}
+                    onChange={(e) =>
+                      setContent({
+                        ...content,
+                        corporateGroup: {
+                          ...content.corporateGroup,
+                          foundingPioneer: {
+                            ...content.corporateGroup.foundingPioneer,
+                            quote: e.target.value,
+                          },
+                        },
+                      })
+                    }
+                    className="w-full rounded-xl border border-navy-200 px-3.5 py-2 italic"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="font-semibold text-navy-700 block mb-1">Biography</label>
+                  <textarea
+                    rows={3}
+                    value={content.corporateGroup.foundingPioneer.bio || ""}
+                    onChange={(e) =>
+                      setContent({
+                        ...content,
+                        corporateGroup: {
+                          ...content.corporateGroup,
+                          foundingPioneer: {
+                            ...content.corporateGroup.foundingPioneer,
+                            bio: e.target.value,
+                          },
+                        },
+                      })
+                    }
+                    className="w-full rounded-xl border border-navy-200 px-3.5 py-2"
+                  />
+                </div>
               </div>
             </div>
 
             {/* Sister Concerns */}
             <div className="pt-4 border-t border-navy-50 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-gold-700">
-                Sister Concerns ({content.corporateGroup.sisterConcerns.length})
-              </h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gold-700">
+                  Sister Concerns ({content.corporateGroup.sisterConcerns.length})
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = [
+                      ...content.corporateGroup.sisterConcerns,
+                      {
+                        id: `sc-${Date.now()}`,
+                        name: "New Sister Concern",
+                        established: 2024,
+                        tagline: "Business Division",
+                        description: "Description of sister concern operations.",
+                        highlights: ["Key Highlight 1"],
+                      },
+                    ];
+                    setContent({
+                      ...content,
+                      corporateGroup: { ...content.corporateGroup, sisterConcerns: next },
+                    });
+                  }}
+                  className="flex items-center gap-1 text-xs font-semibold text-gold-700 hover:underline"
+                >
+                  <Plus className="h-3.5 w-3.5" /> Add Sister Concern
+                </button>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {content.corporateGroup.sisterConcerns.map((sc, idx) => (
-                  <div key={sc.id} className="p-4 rounded-xl border border-navy-100 bg-slate-50 space-y-2 text-xs">
+                  <div key={sc.id} className="p-4 rounded-xl border border-navy-100 bg-slate-50 space-y-2 text-xs relative group">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = content.corporateGroup.sisterConcerns.filter((_, i) => i !== idx);
+                        setContent({
+                          ...content,
+                          corporateGroup: { ...content.corporateGroup, sisterConcerns: next },
+                        });
+                      }}
+                      className="absolute top-2 right-2 p-1 text-rose-500 opacity-0 group-hover:opacity-100 transition"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                     <input
                       type="text"
                       value={sc.name}
@@ -1352,6 +1740,101 @@ export default function ContentManagerPage() {
                 ))}
               </div>
             </div>
+
+            {/* Office Locations */}
+            <div className="pt-4 border-t border-navy-50 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gold-700">
+                  Corporate Office Locations ({(content.corporateGroup.offices || content.corporateGroup.officeLocations || []).length})
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const current = content.corporateGroup.offices || content.corporateGroup.officeLocations || [];
+                    const next = [
+                      ...current,
+                      {
+                        city: "Branch Office",
+                        name: "Corona Properties Ltd.",
+                        description: "Dhaka, Bangladesh",
+                        label: "Branch Office",
+                        company: "Corona Properties Ltd.",
+                        address: "Dhaka, Bangladesh",
+                      },
+                    ];
+                    setContent({
+                      ...content,
+                      corporateGroup: { ...content.corporateGroup, offices: next, officeLocations: next },
+                    });
+                  }}
+                  className="flex items-center gap-1 text-xs font-semibold text-gold-700 hover:underline"
+                >
+                  <Plus className="h-3.5 w-3.5" /> Add Office
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {(content.corporateGroup.offices || content.corporateGroup.officeLocations || []).map((off: any, idx: number) => (
+                  <div key={idx} className="p-4 rounded-xl border border-navy-100 bg-slate-50 space-y-2 text-xs relative group">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = content.corporateGroup.offices || content.corporateGroup.officeLocations || [];
+                        const next = current.filter((_: any, i: number) => i !== idx);
+                        setContent({
+                          ...content,
+                          corporateGroup: { ...content.corporateGroup, offices: next, officeLocations: next },
+                        });
+                      }}
+                      className="absolute top-2 right-2 p-1 text-rose-500 opacity-0 group-hover:opacity-100 transition"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                    <input
+                      type="text"
+                      value={off.label || off.city || ""}
+                      placeholder="Office Label / City"
+                      onChange={(e) => {
+                        const next = [...(content.corporateGroup.offices || content.corporateGroup.officeLocations || [])];
+                        next[idx] = { ...next[idx], label: e.target.value, city: e.target.value };
+                        setContent({
+                          ...content,
+                          corporateGroup: { ...content.corporateGroup, offices: next, officeLocations: next },
+                        });
+                      }}
+                      className="w-full rounded-lg border border-navy-200 px-2.5 py-1 font-bold text-gold-700"
+                    />
+                    <input
+                      type="text"
+                      value={off.company || off.name || ""}
+                      placeholder="Entity Name"
+                      onChange={(e) => {
+                        const next = [...(content.corporateGroup.offices || content.corporateGroup.officeLocations || [])];
+                        next[idx] = { ...next[idx], company: e.target.value, name: e.target.value };
+                        setContent({
+                          ...content,
+                          corporateGroup: { ...content.corporateGroup, offices: next, officeLocations: next },
+                        });
+                      }}
+                      className="w-full rounded-lg border border-navy-200 px-2.5 py-1 font-semibold text-navy"
+                    />
+                    <textarea
+                      rows={2}
+                      value={off.address || off.description || ""}
+                      placeholder="Full Address"
+                      onChange={(e) => {
+                        const next = [...(content.corporateGroup.offices || content.corporateGroup.officeLocations || [])];
+                        next[idx] = { ...next[idx], address: e.target.value, description: e.target.value };
+                        setContent({
+                          ...content,
+                          corporateGroup: { ...content.corporateGroup, offices: next, officeLocations: next },
+                        });
+                      }}
+                      className="w-full rounded-lg border border-navy-200 px-2.5 py-1 text-navy-600"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -1378,15 +1861,42 @@ export default function ContentManagerPage() {
               <h4 className="font-bold text-navy text-sm">
                 {editingFaq.id ? "Edit Question & Answer" : "Add New Question"}
               </h4>
-              <div>
-                <label className="font-semibold text-navy-700 block mb-1">Question</label>
-                <input
-                  type="text"
-                  required
-                  value={editingFaq.question || ""}
-                  onChange={(e) => setEditingFaq({ ...editingFaq, question: e.target.value })}
-                  className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2 text-xs"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="font-semibold text-navy-700 block mb-1">Question</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingFaq.question || ""}
+                    onChange={(e) => setEditingFaq({ ...editingFaq, question: e.target.value })}
+                    className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2 text-xs"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-navy-700">FAQ Category</label>
+                    <Link
+                      href="/admin/categories"
+                      className="text-[10px] font-semibold text-gold-700 hover:underline"
+                    >
+                      Manage
+                    </Link>
+                  </div>
+                  <select
+                    value={editingFaq.category || "General"}
+                    onChange={(e) => setEditingFaq({ ...editingFaq, category: e.target.value })}
+                    className="w-full rounded-xl border border-navy-200 bg-white px-3 py-2 text-xs"
+                  >
+                    {(faqCategories.length > 0
+                      ? faqCategories.map((c) => c.name)
+                      : ["Legal", "Financing", "NRB Services", "Handover & Support", "Site Visits", "General"]
+                    ).map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div>
                 <label className="font-semibold text-navy-700 block mb-1">Answer</label>
@@ -1448,6 +1958,91 @@ export default function ContentManagerPage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* TAB 9: PAGE BANNERS & COPY */}
+      {activeTab === "pageBanners" && (
+        <div className="space-y-6">
+          {(
+            [
+              { key: "aboutPage", label: "About Page Banner & Management Banner" },
+              { key: "projectsPage", label: "Projects Page Banner & Headings" },
+              { key: "propertiesPage", label: "Properties Page Banner & Lead Section" },
+              { key: "servicesPage", label: "Services Page Banner & Corona Promise" },
+              { key: "teamPage", label: "Leadership / Team Page Banner & Copy" },
+              { key: "galleryPage", label: "Gallery Page Banner & Lead Section" },
+              { key: "blogPage", label: "Blog Page Banner & Lead Section" },
+              { key: "contactPage", label: "Contact Page Banner, Map & FAQ Headings" },
+            ] as const
+          ).map(({ key, label }) => {
+            const pageData: any = (content as any)[key] || {};
+            const updatePageField = (field: string, val: any) => {
+              setContent((prev) => ({
+                ...prev,
+                [key]: {
+                  ...((prev as any)[key] || {}),
+                  [field]: val,
+                },
+              }));
+            };
+            return (
+              <div
+                key={key}
+                className="rounded-2xl bg-white p-6 shadow-xs border border-navy-100 space-y-4"
+              >
+                <div className="flex items-center justify-between border-b border-navy-50 pb-3">
+                  <h3 className="font-serif font-bold text-sm text-navy">{label}</h3>
+                  <button
+                    type="button"
+                    onClick={() => handleSaveSection(key)}
+                    className="flex items-center gap-1.5 rounded-xl bg-navy px-4 py-2 text-xs font-semibold text-gold hover:bg-navy-800 transition"
+                  >
+                    <Save className="h-3.5 w-3.5" /> Save {key}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                  <div>
+                    <label className="font-semibold text-navy-700 block mb-1">Hero Title</label>
+                    <input
+                      type="text"
+                      value={pageData.heroTitle || ""}
+                      onChange={(e) => updatePageField("heroTitle", e.target.value)}
+                      className="w-full rounded-xl border border-navy-200 px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-semibold text-navy-700 block mb-1">Breadcrumb</label>
+                    <input
+                      type="text"
+                      value={pageData.breadcrumb || ""}
+                      onChange={(e) => updatePageField("breadcrumb", e.target.value)}
+                      className="w-full rounded-xl border border-navy-200 px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-semibold text-navy-700 block mb-1">Hero Background Image URL</label>
+                    <input
+                      type="text"
+                      value={pageData.heroBgImage || ""}
+                      onChange={(e) => updatePageField("heroBgImage", e.target.value)}
+                      className="w-full rounded-xl border border-navy-200 px-3 py-2 font-mono"
+                    />
+                  </div>
+                  <div className="md:col-span-3">
+                    <label className="font-semibold text-navy-700 block mb-1">Hero Subtitle</label>
+                    <textarea
+                      rows={2}
+                      value={pageData.heroSubtitle || ""}
+                      onChange={(e) => updatePageField("heroSubtitle", e.target.value)}
+                      className="w-full rounded-xl border border-navy-200 px-3 py-2"
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

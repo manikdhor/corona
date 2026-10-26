@@ -24,8 +24,9 @@ import {
   getServicesAction,
   saveServiceAction,
   deleteServiceAction,
+  getCategoriesAction,
 } from "@/lib/admin/actions";
-import { AdminService } from "@/lib/admin/seed";
+import { AdminService, AdminCategory } from "@/lib/admin/seed";
 
 const ICON_OPTIONS = [
   { name: "Building2", label: "Building & Construction" },
@@ -38,6 +39,7 @@ const ICON_OPTIONS = [
 
 export default function ServicesAdminPage() {
   const [services, setServices] = useState<AdminService[]>([]);
+  const [serviceCats, setServiceCats] = useState<AdminCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -51,8 +53,12 @@ export default function ServicesAdminPage() {
 
   const loadServices = async () => {
     setLoading(true);
-    const data = await getServicesAction();
+    const [data, cats] = await Promise.all([
+      getServicesAction(),
+      getCategoriesAction("service"),
+    ]);
     setServices(data);
+    if (cats) setServiceCats(cats.filter((c) => c.isActive));
     setLoading(false);
   };
 
@@ -63,6 +69,7 @@ export default function ServicesAdminPage() {
   const handleOpenAdd = () => {
     setEditingItem({
       title: "",
+      category: serviceCats[0]?.name || "Land Acquisition & Sales",
       iconName: "Building2",
       description: "",
       sortOrder: services.length + 1,
@@ -291,7 +298,30 @@ export default function ServicesAdminPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-medium text-navy-600 mb-1">Service Category</label>
+                  <select
+                    value={editingItem.category || ""}
+                    onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value })}
+                    className="w-full rounded-xl border border-navy-200 bg-white px-3 py-2 text-xs text-navy focus:border-gold focus:outline-none"
+                  >
+                    <option value="">General Service</option>
+                    {(serviceCats.length > 0
+                      ? serviceCats.map((c) => c.name)
+                      : [
+                          "Land Acquisition & Sales",
+                          "Legal & Documentation",
+                          "Development & Infrastructure",
+                          "Investment & Advisory",
+                        ]
+                    ).map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div>
                   <label className="block font-medium text-navy-600 mb-1">Icon Style</label>
                   <select

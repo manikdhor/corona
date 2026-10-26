@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Webhook,
@@ -14,6 +14,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { adminStore } from "@/lib/admin/seed";
+import { getSettingsAction, updateSettingsAction } from "@/lib/admin/actions";
 
 export default function WebhooksPage() {
   const currentSettings = adminStore.getSettings();
@@ -22,9 +23,15 @@ export default function WebhooksPage() {
   const [testResult, setTestResult] = useState<string | null>(null);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    getSettingsAction().then((s) => {
+      if (s?.webhooks) setWebhooks(s.webhooks);
+    });
+  }, []);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    adminStore.updateSettings("webhooks", webhooks);
+    await updateSettingsAction("webhooks", webhooks);
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 2500);
   };

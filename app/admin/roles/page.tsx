@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Shield,
   Check,
@@ -16,6 +16,7 @@ import {
   Info,
 } from "lucide-react";
 import { adminStore } from "@/lib/admin/seed";
+import { getRolesAction, getSettingsAction, updateSettingsAction } from "@/lib/admin/actions";
 
 const MODULES = [
   { id: "properties", label: "Properties & Enclaves" },
@@ -69,6 +70,20 @@ export default function RolesMatrixPage() {
     },
   });
 
+  useEffect(() => {
+    getRolesAction().then((r) => {
+      if (r && r.length > 0) {
+        setRoles(r);
+        setSelectedRole(r[0]);
+      }
+    });
+    getSettingsAction().then((s) => {
+      if (s?.rolePermissions && Object.keys(s.rolePermissions).length > 0) {
+        setPermissionMatrix(s.rolePermissions);
+      }
+    });
+  }, []);
+
   // Active Sessions
   const [activeSessions, setActiveSessions] = useState([
     {
@@ -110,7 +125,8 @@ export default function RolesMatrixPage() {
     });
   };
 
-  const handleSaveMatrix = () => {
+  const handleSaveMatrix = async () => {
+    await updateSettingsAction("rolePermissions", permissionMatrix);
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 2500);
   };

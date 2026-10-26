@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Clock,
   Search,
@@ -13,12 +13,19 @@ import {
   Shield,
 } from "lucide-react";
 import { adminStore, AuditLogItem } from "@/lib/admin/seed";
+import { getAuditLogsAction } from "@/lib/admin/actions";
 
 export default function AuditLogsPage() {
   const [logs, setLogs] = useState<AuditLogItem[]>(adminStore.getAuditLogs());
   const [search, setSearch] = useState("");
   const [selectedEntity, setSelectedEntity] = useState("All");
   const [viewingLog, setViewingLog] = useState<AuditLogItem | null>(null);
+
+  useEffect(() => {
+    getAuditLogsAction().then((data) => {
+      if (data && data.length > 0) setLogs(data);
+    });
+  }, []);
 
   const filtered = logs.filter((log) => {
     if (selectedEntity !== "All" && log.entityType !== selectedEntity) return false;

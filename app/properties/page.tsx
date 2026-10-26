@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import PageHero from "@/components/ui/PageHero";
 import PropertyFilter from "@/components/property/PropertyFilter";
 import LeadForm from "@/components/lead/LeadForm";
-import { getPropertiesAction, getSiteContentAction } from "@/lib/admin/actions";
+import { getPropertiesAction, getSiteContentAction, getCategoriesAction } from "@/lib/admin/actions";
 
 export const metadata: Metadata = {
   title: "Properties",
@@ -11,9 +11,11 @@ export const metadata: Metadata = {
 };
 
 export default async function PropertiesPage() {
-  const [properties, siteContent] = await Promise.all([
+  const [properties, siteContent, typeCategories, areaCategories] = await Promise.all([
     getPropertiesAction(),
     getSiteContentAction(),
+    getCategoriesAction("property_type"),
+    getCategoriesAction("property_area"),
   ]);
 
   const pContent = (siteContent as any)?.propertiesPage;
@@ -21,18 +23,23 @@ export default async function PropertiesPage() {
   return (
     <>
       <PageHero
-        title={pContent?.title || "Premium Land Collection"}
+        title={pContent?.heroTitle || pContent?.title || "Premium Land Collection"}
         subtitle={
+          pContent?.heroSubtitle ||
           pContent?.subtitle ||
           "Discover Bangladesh's finest residential plots — each one with full documentation and ready for your dream project."
         }
         breadcrumb={pContent?.breadcrumb || "Properties"}
-        bgImage={pContent?.bgImage || "/image-03.webp"}
+        bgImage={pContent?.heroBgImage || pContent?.bgImage || "/image-03.webp"}
       />
 
       <section className="section-padding bg-cream">
         <div className="container-luxury">
-          <PropertyFilter initialProperties={properties} />
+          <PropertyFilter
+            initialProperties={properties}
+            typeCategories={typeCategories}
+            areaCategories={areaCategories}
+          />
         </div>
       </section>
 

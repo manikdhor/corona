@@ -14,22 +14,30 @@ import {
   Building,
 } from "lucide-react";
 import DataTable, { ColumnDef } from "@/components/admin/table/DataTable";
-import { AdminProperty } from "@/lib/admin/seed";
+import { AdminProperty, AdminCategory } from "@/lib/admin/seed";
 import {
   getPropertiesAction,
   savePropertyAction,
   deletePropertyAction,
   bulkUpdatePropertiesAction,
+  getCategoriesAction,
 } from "@/lib/admin/actions";
 
 export default function PropertiesListPage() {
   const [properties, setProperties] = useState<AdminProperty[]>([]);
+  const [typeCats, setTypeCats] = useState<AdminCategory[]>([]);
+  const [statusCats, setStatusCats] = useState<AdminCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadProperties = async () => {
     try {
-      const data = await getPropertiesAction();
+      const [data, allCats] = await Promise.all([
+        getPropertiesAction(),
+        getCategoriesAction(),
+      ]);
       setProperties(data);
+      setTypeCats(allCats.filter((c) => c.scope === "property_type" && c.isActive));
+      setStatusCats(allCats.filter((c) => c.scope === "property_status" && c.isActive));
     } finally {
       setLoading(false);
     }
@@ -76,6 +84,16 @@ export default function PropertiesListPage() {
     return true;
   });
 
+  const typeOptions =
+    typeCats.length > 0
+      ? Array.from(new Set(["All", ...typeCats.map((c) => c.name), ...properties.map((p) => p.type).filter(Boolean)]))
+      : ["All", "Exclusive", "Premium", "Standard", "Investment"];
+
+  const statusOptionsList =
+    statusCats.length > 0
+      ? Array.from(new Set([...statusCats.map((c) => c.name), ...properties.map((p) => p.status).filter(Boolean)]))
+      : ["Available", "New Launch", "Almost Sold Out", "Featured", "Sold Out"];
+
   const columns: ColumnDef<AdminProperty>[] = [
     {
       id: "featuredImage",
@@ -112,7 +130,7 @@ export default function PropertiesListPage() {
             {row.title}
           </Link>
           <p className="text-[11px] text-navy-400 font-mono truncate max-w-xs">
-            /{row.slug}
+            /{row.slug} ({row.type})
           </p>
         </div>
       ),
@@ -152,10 +170,11 @@ export default function PropertiesListPage() {
               : "bg-navy-50 text-navy-700 border-navy-200"
           }`}
         >
-          <option value="Available">Available</option>
-          <option value="New Launch">New Launch</option>
-          <option value="Almost Sold Out">Almost Sold Out</option>
-          <option value="Sold Out">Sold Out</option>
+          {statusOptionsList.map((st) => (
+            <option key={st} value={st}>
+              {st}
+            </option>
+          ))}
         </select>
       ),
     },
@@ -229,16 +248,24 @@ export default function PropertiesListPage() {
         searchPlaceholder="Search properties by title, location, or area..."
         searchFields={["title", "location", "area", "slug"]}
         entityName="properties"
-        statusOptions={["Available", "New Launch", "Almost Sold Out", "Sold Out"]}
+        statusOptions={statusOptionsList}
         onBulkDelete={handleBulkDelete}
         onBulkStatusChange={handleBulkStatusChange}
         actionsSlot={
-          <Link
-            href="/admin/properties/new"
-            className="flex items-center gap-2 rounded-xl bg-navy px-4 py-2.5 text-xs font-semibold text-gold hover:bg-navy-800 transition shadow-sm"
-          >
-            <Plus className="h-4 w-4" /> Add Property
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/admin/categories"
+              className="flex items-center gap-1.5 rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-navy-700 hover:bg-navy-50 transition"
+            >
+              Manage Categories
+            </Link>
+            <Link
+              href="/admin/properties/new"
+              className="flex items-center gap-2 rounded-xl bg-navy px-4 py-2.5 text-xs font-semibold text-gold hover:bg-navy-800 transition shadow-sm"
+            >
+              <Plus className="h-4 w-4" /> Add Property
+            </Link>
+          </div>
         }
         filterDrawerContent={
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
@@ -251,11 +278,11 @@ export default function PropertiesListPage() {
                 onChange={(e) => setSelectedType(e.target.value)}
                 className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs outline-none focus:border-gold"
               >
-                <option value="All">All Types</option>
-                <option value="Exclusive">Exclusive</option>
-                <option value="Premium">Premium</option>
-                <option value="Standard">Standard</option>
-                <option value="Investment">Investment</option>
+                {typeOptions.map((tp) => (
+                  <option key={tp} value={tp}>
+                    {tp === "All" ? "All Types" : tp}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -269,10 +296,11 @@ export default function PropertiesListPage() {
                 className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs outline-none focus:border-gold"
               >
                 <option value="All">All Statuses</option>
-                <option value="Available">Available</option>
-                <option value="New Launch">New Launch</option>
-                <option value="Almost Sold Out">Almost Sold Out</option>
-                <option value="Sold Out">Sold Out</option>
+                {statusOptionsList.map((st) => (
+                  <option key={st} value={st}>
+                    {st}
+                  </option>
+                ))}
               </select>
             </div>
 

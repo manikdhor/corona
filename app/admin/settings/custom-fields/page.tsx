@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Sliders,
@@ -11,18 +11,15 @@ import {
   Layers,
   Sparkles,
 } from "lucide-react";
-
-interface CustomField {
-  id: string;
-  name: string;
-  label: string;
-  type: "text" | "number" | "select" | "boolean";
-  options?: string[];
-  isRequired: boolean;
-}
+import {
+  getCustomFieldsAction,
+  saveCustomFieldAction,
+  deleteCustomFieldAction,
+} from "@/lib/admin/actions";
+import { CustomFieldDef } from "@/lib/admin/seed";
 
 export default function CustomFieldsPage() {
-  const [fields, setFields] = useState<CustomField[]>([
+  const [fields, setFields] = useState<CustomFieldDef[]>([
     { id: "f-1", name: "road_facing", label: "Road Facing Direction", type: "select", options: ["North", "South", "East", "West", "Corner Double Road"], isRequired: true },
     { id: "f-2", name: "soil_test_certified", label: "Soil Test Certified", type: "boolean", isRequired: true },
     { id: "f-3", name: "distance_to_metro", label: "Distance to Metro Rail (km)", type: "number", isRequired: false },
@@ -36,12 +33,17 @@ export default function CustomFieldsPage() {
   const [optionsStr, setOptionsStr] = useState("");
   const [isRequired, setIsRequired] = useState(false);
 
-  const handleAddField = (e: React.FormEvent) => {
+  useEffect(() => {
+    getCustomFieldsAction().then((data) => {
+      if (data && data.length > 0) setFields(data);
+    });
+  }, []);
+
+  const handleAddField = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!label.trim()) return;
 
-    const newField: CustomField = {
-      id: `f-${Date.now()}`,
+    const newField = {
       name: name.trim() || label.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
       label: label.trim(),
       type,
@@ -49,7 +51,11 @@ export default function CustomFieldsPage() {
       isRequired,
     };
 
-    setFields([...fields, newField]);
+    const res = await saveCustomFieldAction(newField);
+    if (res.success && res.field) {
+      const refreshed = await getCustomFieldsAction();
+      setFields(refreshed);
+    }
     setShowAddModal(false);
     setName("");
     setLabel("");
@@ -57,8 +63,9 @@ export default function CustomFieldsPage() {
     setIsRequired(false);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Delete this custom field? Existing values stored in properties will remain preserved in JSON.")) {
+      await deleteCustomFieldAction(id);
       setFields(fields.filter((f) => f.id !== id));
     }
   };

@@ -796,25 +796,137 @@ export default function NavigationAdminPage() {
       {/* TAB 3: PROPERTY CATEGORIES */}
       {activeTab === "categories" && (
         <div className="rounded-2xl border border-navy-100 bg-white p-5 shadow-xs space-y-4">
-          <div className="border-b border-navy-100 pb-3">
-            <h3 className="text-xs font-bold text-navy uppercase tracking-wider">
-              Property Categories Dropdown
-            </h3>
-            <p className="text-[11px] text-navy-400">
-              Categories highlighted across property filter dropdowns and search menus.
-            </p>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-navy-100 pb-3">
+            <div>
+              <h3 className="text-xs font-bold text-navy uppercase tracking-wider">
+                Property Categories Dropdown
+              </h3>
+              <p className="text-[11px] text-navy-400">
+                Categories highlighted across property filter dropdowns and search menus. Remember to click Save Navigation after editing.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/admin/categories"
+                className="flex items-center gap-1.5 rounded-xl border border-gold/40 bg-gold/10 px-3 py-1.5 text-[11px] font-bold text-navy hover:bg-gold/20 transition"
+              >
+                <FolderTree className="h-3.5 w-3.5 text-gold-700" /> Universal Category Manager
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  const list = [...(nav.categories || [])];
+                  list.push({
+                    label: "New Category",
+                    href: "/properties?type=New%20Category",
+                    description: "Category description",
+                  });
+                  setNav({ ...nav, categories: list });
+                }}
+                className="flex items-center gap-1 rounded-xl bg-navy px-3 py-1.5 text-[11px] font-semibold text-gold hover:bg-navy-800 transition"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add Category Link
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {nav.categories?.map((cat, idx) => (
               <div
                 key={idx}
-                className="flex items-center justify-between rounded-xl border border-navy-100 bg-slate-50/50 p-3"
+                className="rounded-xl border border-navy-100 bg-slate-50/50 p-3.5 space-y-2.5"
               >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-gold-700">
+                    Category #{idx + 1}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={idx === 0}
+                      onClick={() => {
+                        const list = [...(nav.categories || [])];
+                        [list[idx - 1], list[idx]] = [list[idx], list[idx - 1]];
+                        setNav({ ...nav, categories: list });
+                      }}
+                      className="rounded p-1 text-navy-400 hover:bg-white hover:text-navy disabled:opacity-30"
+                      title="Move Up"
+                    >
+                      <ArrowUp className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={idx === (nav.categories?.length || 0) - 1}
+                      onClick={() => {
+                        const list = [...(nav.categories || [])];
+                        [list[idx + 1], list[idx]] = [list[idx], list[idx + 1]];
+                        setNav({ ...nav, categories: list });
+                      }}
+                      className="rounded p-1 text-navy-400 hover:bg-white hover:text-navy disabled:opacity-30"
+                      title="Move Down"
+                    >
+                      <ArrowDown className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const list = (nav.categories || []).filter((_, i) => i !== idx);
+                        setNav({ ...nav, categories: list });
+                      }}
+                      className="rounded p-1 text-rose-500 hover:bg-rose-50"
+                      title="Remove Category"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <label className="text-[10px] font-semibold text-navy-500 block mb-0.5">
+                      Category Label
+                    </label>
+                    <input
+                      type="text"
+                      value={cat.label}
+                      onChange={(e) => {
+                        const list = [...(nav.categories || [])];
+                        list[idx] = { ...list[idx], label: e.target.value };
+                        setNav({ ...nav, categories: list });
+                      }}
+                      className="w-full rounded-lg border border-navy-200 bg-white px-2.5 py-1.5 font-semibold text-navy focus:border-gold outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-navy-500 block mb-0.5">
+                      Target URL / Filter Link
+                    </label>
+                    <input
+                      type="text"
+                      value={cat.href}
+                      onChange={(e) => {
+                        const list = [...(nav.categories || [])];
+                        list[idx] = { ...list[idx], href: e.target.value };
+                        setNav({ ...nav, categories: list });
+                      }}
+                      className="w-full rounded-lg border border-navy-200 bg-white px-2.5 py-1.5 font-mono text-[11px] text-gold-700 focus:border-gold outline-none"
+                    />
+                  </div>
+                </div>
                 <div>
-                  <h4 className="text-xs font-bold text-navy">{cat.label}</h4>
-                  <p className="text-[11px] text-navy-500">{cat.description}</p>
-                  <p className="text-[10px] font-mono text-gold-700 mt-0.5">{cat.href}</p>
+                  <label className="text-[10px] font-semibold text-navy-500 block mb-0.5">
+                    Subtitle / Description
+                  </label>
+                  <input
+                    type="text"
+                    value={cat.description || ""}
+                    onChange={(e) => {
+                      const list = [...(nav.categories || [])];
+                      list[idx] = { ...list[idx], description: e.target.value };
+                      setNav({ ...nav, categories: list });
+                    }}
+                    className="w-full rounded-lg border border-navy-200 bg-white px-2.5 py-1.5 text-xs text-navy-600 focus:border-gold outline-none"
+                  />
                 </div>
               </div>
             ))}

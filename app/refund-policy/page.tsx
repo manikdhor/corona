@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/ui/PageHero";
-import { getPageAction } from "@/lib/admin/actions";
+import { getPageAction, getSettingsAction } from "@/lib/admin/actions";
 
 export const metadata: Metadata = {
   title: "Refund Policy",
@@ -9,9 +9,18 @@ export const metadata: Metadata = {
 };
 
 export default async function RefundPolicyPage() {
-  const page = await getPageAction("refund-policy");
+  const [page, settings] = await Promise.all([
+    getPageAction("refund-policy"),
+    getSettingsAction(),
+  ]);
   const lastUpdated = page?.lastUpdated || "August 29, 2026";
   const title = page?.title || "Refund Policy";
+  const company = settings?.company || {
+    name: "Corona Properties Limited",
+    address: "Mar garden, House # 145, Flat # 704, Road # 3, Block A, Niketon, Gulshan 01, Dhaka 1212",
+    email: "cplcoronapropertiesltd@gmail.com",
+    phone: "+880 18 0575 9297",
+  };
 
   return (
     <>
@@ -123,20 +132,18 @@ export default async function RefundPolicyPage() {
                   For questions about cancellations or refunds, please contact us at:
                 </p>
                 <div className="mt-4 p-6 bg-white rounded-xl border border-navy-50 shadow-card">
-                  <p className="font-semibold text-navy">Corona Properties Limited</p>
-                  <p className="text-navy-400 mt-1">
-                    Mar garden, House # 145, Flat # 704, Road # 3, Block A, Niketon, Gulshan 01, Dhaka 1212
-                  </p>
+                  <p className="font-semibold text-navy">{company.name}</p>
+                  <p className="text-navy-400 mt-1">{company.address}</p>
                   <p className="text-navy-400 mt-1">
                     Email:{" "}
-                    <a href="mailto:cplcoronapropertiesltd@gmail.com" className="text-gold-600 hover:underline">
-                      cplcoronapropertiesltd@gmail.com
+                    <a href={`mailto:${company.email}`} className="text-gold-600 hover:underline">
+                      {company.email}
                     </a>
                   </p>
                   <p className="text-navy-400 mt-1">
                     Phone:{" "}
-                    <a href="tel:+8801805759297" className="text-gold-600 hover:underline">
-                      +880 18 0575 9297
+                    <a href={`tel:${company.phone.replace(/[^0-9+]/g, "")}`} className="text-gold-600 hover:underline">
+                      {company.phone}
                     </a>
                   </p>
                 </div>
