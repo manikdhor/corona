@@ -13,23 +13,49 @@ import { cn, normalizeImageUrl } from "@/lib/utils";
 import { getNavigationAction, getSettingsAction } from "@/lib/admin/actions";
 import { AdminNavigation } from "@/lib/admin/seed";
 
-export default function Navbar() {
+interface NavbarProps {
+  initialCompany?: any;
+  initialNavigation?: AdminNavigation | null;
+}
+
+export default function Navbar({ initialCompany, initialNavigation }: NavbarProps = {}) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
-  // Dynamic Navigation & Company settings
-  const [navData, setNavData] = useState<AdminNavigation | null>(null);
+  // Dynamic Navigation & Company settings initialized directly from server props
+  const [navData, setNavData] = useState<AdminNavigation | null>(initialNavigation || null);
   const [companyInfo, setCompanyInfo] = useState({
-    name: SITE_CONFIG.name,
-    shortName: SITE_CONFIG.shortName,
-    logo: SITE_CONFIG.logo,
-    phone: CONTACT_INFO.phone,
-    phoneRaw: CONTACT_INFO.phoneRaw,
-    email: CONTACT_INFO.email,
-    ctaText: "Book a Visit",
-    ctaLink: "/contact",
+    name: initialCompany?.name || SITE_CONFIG.name,
+    shortName: initialCompany?.shortName || SITE_CONFIG.shortName,
+    logo: initialCompany?.logo || SITE_CONFIG.logo,
+    phone: initialCompany?.phone || CONTACT_INFO.phone,
+    phoneRaw: (initialCompany?.phone || CONTACT_INFO.phone).replace(/[^0-9+]/g, ""),
+    email: initialCompany?.email || CONTACT_INFO.email,
+    ctaText: initialCompany?.ctaText || "Book a Visit",
+    ctaLink: initialCompany?.ctaLink || "/contact",
   });
+
+  useEffect(() => {
+    if (initialCompany) {
+      setCompanyInfo({
+        name: initialCompany.name || SITE_CONFIG.name,
+        shortName: initialCompany.shortName || SITE_CONFIG.shortName,
+        logo: initialCompany.logo || SITE_CONFIG.logo,
+        phone: initialCompany.phone || CONTACT_INFO.phone,
+        phoneRaw: (initialCompany.phone || CONTACT_INFO.phone).replace(/[^0-9+]/g, ""),
+        email: initialCompany.email || CONTACT_INFO.email,
+        ctaText: initialCompany.ctaText || "Book a Visit",
+        ctaLink: initialCompany.ctaLink || "/contact",
+      });
+    }
+  }, [initialCompany]);
+
+  useEffect(() => {
+    if (initialNavigation) {
+      setNavData(initialNavigation);
+    }
+  }, [initialNavigation]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -50,28 +76,32 @@ export default function Navbar() {
   }, [mobileOpen]);
 
   useEffect(() => {
-    // Fetch dynamic navigation
-    getNavigationAction().then((nav) => {
-      if (nav) setNavData(nav);
-    });
+    // Fetch dynamic navigation if not provided by server
+    if (!initialNavigation) {
+      getNavigationAction().then((nav) => {
+        if (nav) setNavData(nav);
+      });
+    }
 
-    // Fetch dynamic company info
-    getSettingsAction().then((s) => {
-      if (s?.company) {
-        setCompanyInfo((prev) => ({
-          ...prev,
-          name: s.company.name || prev.name,
-          shortName: s.company.shortName || prev.shortName,
-          logo: s.company.logo || prev.logo,
-          phone: s.company.phone || prev.phone,
-          phoneRaw: (s.company.phone || prev.phone).replace(/[^0-9+]/g, ""),
-          email: s.company.email || prev.email,
-          ctaText: s.company.ctaText || prev.ctaText,
-          ctaLink: s.company.ctaLink || prev.ctaLink,
-        }));
-      }
-    });
-  }, []);
+    // Fetch dynamic company info if not provided by server
+    if (!initialCompany) {
+      getSettingsAction().then((s) => {
+        if (s?.company) {
+          setCompanyInfo((prev) => ({
+            ...prev,
+            name: s.company.name || prev.name,
+            shortName: s.company.shortName || prev.shortName,
+            logo: s.company.logo || prev.logo,
+            phone: s.company.phone || prev.phone,
+            phoneRaw: (s.company.phone || prev.phone).replace(/[^0-9+]/g, ""),
+            email: s.company.email || prev.email,
+            ctaText: s.company.ctaText || prev.ctaText,
+            ctaLink: s.company.ctaLink || prev.ctaLink,
+          }));
+        }
+      });
+    }
+  }, [initialCompany, initialNavigation]);
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -325,7 +355,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-3">
                   <div className="relative h-10 w-10 overflow-hidden rounded-lg bg-white/10 p-1.5">
                     <Image
-                      src={companyInfo.logo}
+                      src={normalizeImageUrl(companyInfo.logo)}
                       alt={companyInfo.name}
                       fill
                       className="object-contain"

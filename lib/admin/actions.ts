@@ -1208,7 +1208,7 @@ export async function getSettingsAction(): Promise<any> {
   const company = {
     name: branding.companyName || "Corona Properties Limited",
     shortName: branding.shortName || "Corona Properties",
-    tagline: branding.tagline || "Crafting Timeless Land Legacies",
+    tagline: branding.tagline || "Transparency, Commitment, Trust",
     taglineBn: branding.taglineBn || "",
     about:
       branding.description ||
@@ -1220,8 +1220,8 @@ export async function getSettingsAction(): Promise<any> {
     favicon: branding.faviconUrl || "/favicon.ico",
     phone: branding.phone || "+880 1805 759297",
     whatsapp: branding.whatsapp || (branding.phone || "8801805759297").replace(/[^0-9]/g, ""),
-    email: branding.email || "cplcoronapropertiesltd@gmail.com",
-    address: branding.address || "House # 145, Flat # 704, Road # 3, Block A, Niketon, Gulshan 01, Dhaka - 1212",
+    email: branding.email || "info@coronapropertiesltd.com",
+    address: branding.address || "Mar Garden, House #145, Flat #704, Road #3, Block A, Niketan, Gulshan 01, Dhaka - 1212",
     hours: branding.hours || "Saturday – Thursday: 9:00 AM – 6:00 PM | Friday: Closed",
     ctaText: branding.headerCtaText || "Book a Visit",
     ctaLink: branding.headerCtaLink || "/contact",

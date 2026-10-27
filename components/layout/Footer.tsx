@@ -40,82 +40,139 @@ const PLATFORM_ICONS: Record<string, any> = {
   YouTube: Youtube,
 };
 
-export default function Footer() {
+interface FooterProps {
+  initialCompany?: any;
+  initialNavigation?: any;
+  initialSocials?: any[];
+}
+
+export default function Footer({ initialCompany, initialNavigation, initialSocials }: FooterProps = {}) {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Dynamic Navigation state with static defaults
+  // Dynamic Navigation state with server defaults
   const [footerLinks, setFooterLinks] = useState<{
     company: { label: string; href: string }[];
     services: { label: string; href: string }[];
     support: { label: string; href: string }[];
     legal: { label: string; href: string }[];
-  }>({
-    company: [...FOOTER_LINKS.company],
-    services: [...FOOTER_LINKS.services],
-    support: [...FOOTER_LINKS.support],
-    legal: [...FOOTER_LINKS.legal],
+  }>(() => {
+    if (initialNavigation?.footer) {
+      return {
+        company: initialNavigation.footer.company?.length ? initialNavigation.footer.company : [...FOOTER_LINKS.company],
+        services: initialNavigation.footer.services?.length ? initialNavigation.footer.services : [...FOOTER_LINKS.services],
+        support: initialNavigation.footer.support?.length ? initialNavigation.footer.support : [...FOOTER_LINKS.support],
+        legal: initialNavigation.footer.legal?.length ? initialNavigation.footer.legal : [...FOOTER_LINKS.legal],
+      };
+    }
+    return {
+      company: [...FOOTER_LINKS.company],
+      services: [...FOOTER_LINKS.services],
+      support: [...FOOTER_LINKS.support],
+      legal: [...FOOTER_LINKS.legal],
+    };
   });
   
-  // Dynamic Contact & Company info with static defaults
+  // Dynamic Contact & Company info initialized directly from server props
   const [contactInfo, setContactInfo] = useState({
-    address: CONTACT_INFO.address,
-    phone: CONTACT_INFO.phone,
-    phoneRaw: CONTACT_INFO.phoneRaw,
-    email: CONTACT_INFO.email,
-    companyDescription: SITE_CONFIG.description,
-    companyName: SITE_CONFIG.name,
-    logo: SITE_CONFIG.logo,
+    address: initialCompany?.address || CONTACT_INFO.address,
+    phone: initialCompany?.phone || CONTACT_INFO.phone,
+    phoneRaw: (initialCompany?.phone || CONTACT_INFO.phone).replace(/[^0-9+]/g, ""),
+    email: initialCompany?.email || CONTACT_INFO.email,
+    companyDescription: initialCompany?.about || initialCompany?.description || SITE_CONFIG.description,
+    companyName: initialCompany?.name || SITE_CONFIG.name,
+    logo: initialCompany?.logo || SITE_CONFIG.logo,
   });
 
-  // Dynamic Social Links
-  const [socials, setSocials] = useState<any[]>([
-    { platform: "Facebook", url: SOCIAL_LINKS.facebook },
-    { platform: "Instagram", url: SOCIAL_LINKS.instagram },
-    { platform: "LinkedIn", url: SOCIAL_LINKS.linkedin },
-    { platform: "Twitter", url: SOCIAL_LINKS.twitter },
-    { platform: "Pinterest", url: SOCIAL_LINKS.pinterest },
-    { platform: "YouTube", url: SOCIAL_LINKS.youtube },
-  ]);
+  // Dynamic Social Links initialized with server props if available
+  const [socials, setSocials] = useState<any[]>(
+    initialSocials && initialSocials.length > 0
+      ? initialSocials.filter((s) => s.isActive !== false)
+      : [
+          { platform: "Facebook", url: SOCIAL_LINKS.facebook },
+          { platform: "Instagram", url: SOCIAL_LINKS.instagram },
+          { platform: "LinkedIn", url: SOCIAL_LINKS.linkedin },
+          { platform: "Twitter", url: SOCIAL_LINKS.twitter },
+          { platform: "Pinterest", url: SOCIAL_LINKS.pinterest },
+          { platform: "YouTube", url: SOCIAL_LINKS.youtube },
+        ]
+  );
 
   useEffect(() => {
-    // 1. Fetch Dynamic Navigation
-    getNavigationAction().then((nav) => {
-      if (nav?.footer) {
-        setFooterLinks({
-          company: nav.footer.company || FOOTER_LINKS.company,
-          services: nav.footer.services || FOOTER_LINKS.services,
-          support: nav.footer.support || FOOTER_LINKS.support,
-          legal: nav.footer.legal || FOOTER_LINKS.legal,
-        });
-      }
-    });
+    if (initialCompany) {
+      setContactInfo({
+        address: initialCompany.address || CONTACT_INFO.address,
+        phone: initialCompany.phone || CONTACT_INFO.phone,
+        phoneRaw: (initialCompany.phone || CONTACT_INFO.phone).replace(/[^0-9+]/g, ""),
+        email: initialCompany.email || CONTACT_INFO.email,
+        companyDescription: initialCompany.about || initialCompany.description || SITE_CONFIG.description,
+        companyName: initialCompany.name || SITE_CONFIG.name,
+        logo: initialCompany.logo || SITE_CONFIG.logo,
+      });
+    }
+  }, [initialCompany]);
 
-    // 2. Fetch Dynamic Settings
-    getSettingsAction().then((s) => {
-      if (s?.company) {
-        setContactInfo((prev) => ({
-          ...prev,
-          address: s.company.address || prev.address,
-          phone: s.company.phone || prev.phone,
-          phoneRaw: (s.company.phone || prev.phone).replace(/[^0-9+]/g, ""),
-          email: s.company.email || prev.email,
-          companyDescription: s.company.about || prev.companyDescription,
-          companyName: s.company.name || prev.companyName,
-          logo: s.company.logo || prev.logo,
-        }));
-      }
-    });
+  useEffect(() => {
+    if (initialNavigation?.footer) {
+      setFooterLinks({
+        company: initialNavigation.footer.company?.length ? initialNavigation.footer.company : [...FOOTER_LINKS.company],
+        services: initialNavigation.footer.services?.length ? initialNavigation.footer.services : [...FOOTER_LINKS.services],
+        support: initialNavigation.footer.support?.length ? initialNavigation.footer.support : [...FOOTER_LINKS.support],
+        legal: initialNavigation.footer.legal?.length ? initialNavigation.footer.legal : [...FOOTER_LINKS.legal],
+      });
+    }
+  }, [initialNavigation]);
 
-    // 3. Fetch Dynamic Social Links
-    getSocialLinksAction().then((links) => {
-      const active = links.filter((l) => l.isActive);
-      if (active.length > 0) {
-        setSocials(active);
-      }
-    });
-  }, []);
+  useEffect(() => {
+    if (initialSocials && initialSocials.length > 0) {
+      setSocials(initialSocials.filter((s) => s.isActive !== false));
+    }
+  }, [initialSocials]);
+
+  useEffect(() => {
+    // 1. Fetch Dynamic Navigation if not provided
+    if (!initialNavigation) {
+      getNavigationAction().then((nav) => {
+        if (nav?.footer) {
+          setFooterLinks({
+            company: nav.footer.company || FOOTER_LINKS.company,
+            services: nav.footer.services || FOOTER_LINKS.services,
+            support: nav.footer.support || FOOTER_LINKS.support,
+            legal: nav.footer.legal || FOOTER_LINKS.legal,
+          });
+        }
+      });
+    }
+
+    // 2. Fetch Dynamic Settings if not provided
+    if (!initialCompany) {
+      getSettingsAction().then((s) => {
+        if (s?.company) {
+          setContactInfo((prev) => ({
+            ...prev,
+            address: s.company.address || prev.address,
+            phone: s.company.phone || prev.phone,
+            phoneRaw: (s.company.phone || prev.phone).replace(/[^0-9+]/g, ""),
+            email: s.company.email || prev.email,
+            companyDescription: s.company.about || prev.companyDescription,
+            companyName: s.company.name || prev.companyName,
+            logo: s.company.logo || prev.logo,
+          }));
+        }
+      });
+    }
+
+    // 3. Fetch Dynamic Social Links if not provided
+    if (!initialSocials || initialSocials.length === 0) {
+      getSocialLinksAction().then((links) => {
+        const active = links.filter((l) => l.isActive);
+        if (active.length > 0) {
+          setSocials(active);
+        }
+      });
+    }
+  }, [initialCompany, initialNavigation, initialSocials]);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();

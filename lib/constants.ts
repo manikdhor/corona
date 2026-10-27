@@ -6,18 +6,18 @@
 export const SITE_CONFIG = {
   name: "Corona Properties Limited",
   shortName: "Corona Properties",
-  tagline: "Premium Land. Lasting Legacy.",
+  tagline: "Transparency, Commitment, Trust",
   description:
     "Corona Properties Limited is a leading residential land developer in Bangladesh, crafting premium plots and exclusive communities with integrity, vision, and unmatched quality.",
-  logo: "/corona-logo.png",
+  logo: "/image-01.webp",
   url: "https://coronapropertiesltd.com",
 } as const;
 
 export const CONTACT_INFO = {
   address:
-    "Mar garden, House # 145, Flat # 704, Road # 3, Block A, Niketon, Gulshan 01, Dhaka 1212",
+    "Mar Garden, House #145, Flat #704, Road #3, Block A, Niketan, Gulshan 01, Dhaka - 1212",
   addressShort: "Gulshan 01, Dhaka 1212, Bangladesh",
-  email: "cplcoronapropertiesltd@gmail.com",
+  email: "info@coronapropertiesltd.com",
   phone: "+880 18 0575 9297",
   phoneRaw: "+8801805759297",
   hours: "Saturday – Thursday: 9:00 AM – 6:00 PM",

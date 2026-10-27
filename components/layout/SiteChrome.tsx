@@ -13,24 +13,65 @@ import { SITE_CONFIG } from "@/lib/constants";
 import { getCustomScriptsAction, getSettingsAction } from "@/lib/admin/actions";
 import { CustomScript } from "@/lib/admin/seed";
 
-export default function SiteChrome({ children }: { children: React.ReactNode }) {
+interface SiteChromeProps {
+  children: React.ReactNode;
+  initialSettings?: any;
+  initialNavigation?: any;
+  initialSocialLinks?: any[];
+  initialCustomScripts?: CustomScript[];
+}
+
+export default function SiteChrome({
+  children,
+  initialSettings,
+  initialNavigation,
+  initialSocialLinks,
+  initialCustomScripts,
+}: SiteChromeProps) {
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith("/admin");
-  const [activeScripts, setActiveScripts] = useState<CustomScript[]>([]);
-  const [jsonLd, setJsonLd] = useState<string | null>(null);
+  const [activeScripts, setActiveScripts] = useState<CustomScript[]>(
+    initialCustomScripts?.filter((s) => s.isActive) || []
+  );
+  const [settings, setSettings] = useState<any>(initialSettings || null);
+  const [jsonLd, setJsonLd] = useState<string | null>(
+    initialSettings?.seo?.jsonLdSchema || null
+  );
+
+  useEffect(() => {
+    if (initialSettings) {
+      setSettings(initialSettings);
+      if (initialSettings?.seo?.jsonLdSchema) {
+        setJsonLd(initialSettings.seo.jsonLdSchema);
+      }
+    }
+  }, [initialSettings]);
+
+  useEffect(() => {
+    if (initialCustomScripts) {
+      setActiveScripts(initialCustomScripts.filter((s) => s.isActive));
+    }
+  }, [initialCustomScripts]);
 
   useEffect(() => {
     if (!isAdminRoute) {
-      getCustomScriptsAction().then((scripts) => {
-        setActiveScripts(scripts.filter((s) => s.isActive));
-      });
-      getSettingsAction().then((settings) => {
-        if (settings?.seo?.jsonLdSchema) {
-          setJsonLd(settings.seo.jsonLdSchema);
-        }
-      });
+      if (!initialCustomScripts) {
+        getCustomScriptsAction().then((scripts) => {
+          setActiveScripts(scripts.filter((s) => s.isActive));
+        });
+      }
+      if (!initialSettings) {
+        getSettingsAction().then((s) => {
+          if (s) {
+            setSettings(s);
+            if (s?.seo?.jsonLdSchema) {
+              setJsonLd(s.seo.jsonLdSchema);
+            }
+          }
+        });
+      }
     }
-  }, [isAdminRoute]);
+  }, [isAdminRoute, initialCustomScripts, initialSettings]);
 
   if (isAdminRoute) {
     return <>{children}</>;
@@ -38,6 +79,7 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
 
   const headScripts = activeScripts.filter((s) => s.placement === "head");
   const bodyScripts = activeScripts.filter((s) => s.placement === "body_end");
+  const company = settings?.company;
 
   return (
     <>
@@ -50,14 +92,21 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
         />
       ))}
 
-      <Preloader />
+      <Preloader logo={company?.logo} name={company?.name} />
       <ScrollProgress />
-      <TopBar />
-      <Navbar />
+      <TopBar initialCompany={company} initialSocials={initialSocialLinks} />
+      <Navbar initialCompany={company} initialNavigation={initialNavigation} />
       <main>{children}</main>
-      <Footer />
+      <Footer
+        initialCompany={company}
+        initialNavigation={initialNavigation}
+        initialSocials={initialSocialLinks}
+      />
       <ScrollToTop />
-      <BottomNav />
+      <BottomNav
+        initialNavLinks={initialNavigation?.header}
+        initialPhone={company?.phone}
+      />
 
       {/* Injected Body Custom Scripts from Admin CMS */}
       {bodyScripts.map((s) => (
@@ -77,15 +126,17 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
             JSON.stringify({
               "@context": "https://schema.org",
               "@type": "RealEstateAgent",
-              name: SITE_CONFIG.name,
-              description: SITE_CONFIG.description,
+              name: company?.name || SITE_CONFIG.name,
+              description: company?.description || SITE_CONFIG.description,
               url: SITE_CONFIG.url,
-              logo: SITE_CONFIG.logo,
-              telephone: "+8801805759297",
-              email: "cplcoronapropertiesltd@gmail.com",
+              logo: company?.logo || SITE_CONFIG.logo,
+              telephone: company?.phone || "+8801805759297",
+              email: company?.email || "info@coronapropertiesltd.com",
               address: {
                 "@type": "PostalAddress",
-                streetAddress: "House # 145, Flat # 704, Road # 3, Block A, Niketon, Gulshan 01",
+                streetAddress:
+                  company?.address ||
+                  "Mar Garden, House #145, Flat #704, Road #3, Block A, Niketan, Gulshan 01",
                 addressLocality: "Dhaka",
                 postalCode: "1212",
                 addressCountry: "BD",

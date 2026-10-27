@@ -20,42 +20,62 @@ const TABS = [
 interface BottomNavProps {
   adminNavLinks?: { label: string; href: string }[];
   adminPhone?: string;
+  initialNavLinks?: { label: string; href: string }[];
+  initialPhone?: string;
 }
 
-export default function BottomNav({ adminNavLinks, adminPhone }: BottomNavProps) {
+export default function BottomNav({
+  adminNavLinks,
+  adminPhone,
+  initialNavLinks,
+  initialPhone,
+}: BottomNavProps = {}) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
-  const [fetchedNavLinks, setFetchedNavLinks] = useState<{ label: string; href: string }[] | null>(null);
-  const [fetchedPhone, setFetchedPhone] = useState<string | null>(null);
+  const [navLinks, setNavLinks] = useState<{ label: string; href: string }[] | null>(
+    initialNavLinks || adminNavLinks || null
+  );
+  const [phone, setPhone] = useState<string | null>(() => {
+    const raw = initialPhone || adminPhone;
+    return raw ? raw.replace(/[^0-9+]/g, "") : null;
+  });
 
   useEffect(() => {
-    if (!adminNavLinks) {
+    if (initialNavLinks) setNavLinks(initialNavLinks);
+  }, [initialNavLinks]);
+
+  useEffect(() => {
+    if (initialPhone) setPhone(initialPhone.replace(/[^0-9+]/g, ""));
+  }, [initialPhone]);
+
+  useEffect(() => {
+    if (!initialNavLinks && !adminNavLinks) {
       getNavigationAction().then((nav) => {
         if (nav?.header && nav.header.length > 0) {
-          setFetchedNavLinks(nav.header);
+          setNavLinks(nav.header);
         }
       });
     }
-    if (!adminPhone) {
+    if (!initialPhone && !adminPhone) {
       getSettingsAction().then((settings) => {
         if (settings?.company?.phone) {
           const raw = settings.company.phone.replace(/[^0-9+]/g, "");
-          setFetchedPhone(raw);
+          setPhone(raw);
         }
       });
     }
-  }, [adminNavLinks, adminPhone]);
+  }, [adminNavLinks, adminPhone, initialNavLinks, initialPhone]);
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   // Admin-first: use prop > fetched > hardcoded fallback
-  const effectiveNav = adminNavLinks || fetchedNavLinks;
+  const effectiveNav = navLinks || adminNavLinks;
   const navSource = effectiveNav && effectiveNav.length > 0 ? effectiveNav : NAV_LINKS;
   const secondaryLinks = navSource.filter(
     (l) => !TABS.some((t) => t.href === l.href)
   );
-  const phoneRaw = adminPhone || fetchedPhone || CONTACT_INFO.phoneRaw;
+  const phoneRaw = phone || adminPhone || CONTACT_INFO.phoneRaw;
 
   return (
     <>

@@ -15,28 +15,52 @@ const PLATFORM_ICONS: Record<string, any> = {
   YouTube: Youtube,
 };
 
-export default function TopBar() {
-  const [phone, setPhone] = useState(CONTACT_INFO.phone);
-  const [email, setEmail] = useState(CONTACT_INFO.email);
-  const [socials, setSocials] = useState<any[]>([
-    { platform: "Facebook", url: SOCIAL_LINKS.facebook },
-    { platform: "Instagram", url: SOCIAL_LINKS.instagram },
-    { platform: "LinkedIn", url: SOCIAL_LINKS.linkedin },
-    { platform: "Twitter", url: SOCIAL_LINKS.twitter },
-    { platform: "Pinterest", url: SOCIAL_LINKS.pinterest },
-    { platform: "YouTube", url: SOCIAL_LINKS.youtube },
-  ]);
+interface TopBarProps {
+  initialCompany?: any;
+  initialSocials?: any[];
+}
+
+export default function TopBar({ initialCompany, initialSocials }: TopBarProps = {}) {
+  const [phone, setPhone] = useState(initialCompany?.phone || CONTACT_INFO.phone);
+  const [email, setEmail] = useState(initialCompany?.email || CONTACT_INFO.email);
+  const [socials, setSocials] = useState<any[]>(
+    initialSocials && initialSocials.length > 0
+      ? initialSocials.filter((s) => s.isActive !== false)
+      : [
+          { platform: "Facebook", url: SOCIAL_LINKS.facebook },
+          { platform: "Instagram", url: SOCIAL_LINKS.instagram },
+          { platform: "LinkedIn", url: SOCIAL_LINKS.linkedin },
+          { platform: "Twitter", url: SOCIAL_LINKS.twitter },
+          { platform: "Pinterest", url: SOCIAL_LINKS.pinterest },
+          { platform: "YouTube", url: SOCIAL_LINKS.youtube },
+        ]
+  );
 
   useEffect(() => {
-    getSettingsAction().then((s) => {
-      if (s?.company?.phone) setPhone(s.company.phone);
-      if (s?.company?.email) setEmail(s.company.email);
-    });
-    getSocialLinksAction().then((links) => {
-      const active = links.filter((l) => l.isActive);
-      if (active.length > 0) setSocials(active);
-    });
-  }, []);
+    if (initialCompany?.phone) setPhone(initialCompany.phone);
+    if (initialCompany?.email) setEmail(initialCompany.email);
+  }, [initialCompany]);
+
+  useEffect(() => {
+    if (initialSocials && initialSocials.length > 0) {
+      setSocials(initialSocials.filter((s) => s.isActive !== false));
+    }
+  }, [initialSocials]);
+
+  useEffect(() => {
+    if (!initialCompany) {
+      getSettingsAction().then((s) => {
+        if (s?.company?.phone) setPhone(s.company.phone);
+        if (s?.company?.email) setEmail(s.company.email);
+      });
+    }
+    if (!initialSocials || initialSocials.length === 0) {
+      getSocialLinksAction().then((links) => {
+        const active = links.filter((l) => l.isActive);
+        if (active.length > 0) setSocials(active);
+      });
+    }
+  }, [initialCompany, initialSocials]);
 
   const phoneRaw = phone.replace(/[^0-9+]/g, "");
 

@@ -6,7 +6,12 @@ import Image from "next/image";
 import { SITE_CONFIG } from "@/lib/constants";
 import { normalizeImageUrl } from "@/lib/utils";
 
-export default function Preloader() {
+interface PreloaderProps {
+  logo?: string;
+  name?: string;
+}
+
+export default function Preloader({ logo, name }: PreloaderProps = {}) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -23,6 +28,12 @@ export default function Preloader() {
       setLoading(false);
     }
   }, []);
+
+  const effectiveLogo = logo || SITE_CONFIG.logo;
+  const effectiveName = name || SITE_CONFIG.name;
+  const nameParts = effectiveName.split(" ");
+  const firstWord = nameParts[0]?.toUpperCase() || "CORONA";
+  const restWords = nameParts.slice(1).join(" ") || "Properties Limited";
 
   return (
     <AnimatePresence>
@@ -41,8 +52,8 @@ export default function Preloader() {
           >
             <div className="relative h-20 w-20" style={{ position: "relative" }}>
               <Image
-                src={normalizeImageUrl(SITE_CONFIG.logo)}
-                alt={SITE_CONFIG.name}
+                src={normalizeImageUrl(effectiveLogo)}
+                alt={effectiveName}
                 fill
                 sizes="80px"
                 className="object-contain preloader-logo"
@@ -51,10 +62,10 @@ export default function Preloader() {
             </div>
             <div className="mt-4 text-center">
               <p className="font-serif text-xl font-bold text-cream tracking-wider">
-                CORONA
+                {firstWord}
               </p>
               <p className="text-[10px] uppercase tracking-[0.35em] text-gold mt-1">
-                Properties Limited
+                {restWords}
               </p>
             </div>
             <div className="preloader-bar" />
