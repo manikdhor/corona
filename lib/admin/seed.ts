@@ -734,6 +734,23 @@ class AdminDataStore {
     // 4. Initialize Media Items
     this.media = [
       {
+        id: "media-yt-1",
+        filename: "youtube-tour-1.mp4",
+        filePath: "youtube/ysz5S6PUM-U",
+        url: "https://www.youtube.com/watch?v=ysz5S6PUM-U",
+        thumbnailUrl: "https://img.youtube.com/vi/ysz5S6PUM-U/hqdefault.jpg",
+        mimeType: "video/youtube",
+        sizeBytes: 0,
+        width: 1920,
+        height: 1080,
+        title: "Maple Leaf Garden City — Cinematic Drone Tour",
+        category: "Video Tours",
+        altText: "Maple Leaf Garden City Cinematic Drone Tour 4K",
+        usageCount: 1,
+        usageReferences: [{ type: "property", title: "Maple Leaf Garden City", id: "prop-flagship-1" }],
+        createdAt: "2026-02-01T12:00:00Z",
+      },
+      {
         id: "media-1",
         filename: "image-06.webp",
         filePath: "properties/image-06.webp",
@@ -1747,6 +1764,7 @@ All maps, plot sizes, artistic 3D renderings, and master plans are conceptual re
       { id: "cat-gal-2", name: "Aerial Views", slug: "aerial-views", scope: "gallery", description: "Drone & panoramic perspectives of project sites", sortOrder: 2, isActive: true },
       { id: "cat-gal-3", name: "Layouts", slug: "layouts", scope: "gallery", description: "Master plans, plot grids, and architectural layouts", sortOrder: 3, isActive: true },
       { id: "cat-gal-4", name: "Infrastructure", slug: "infrastructure", scope: "gallery", description: "On-site roadworks, utilities, and civic development", sortOrder: 4, isActive: true },
+      { id: "cat-gal-5", name: "Video Tours", slug: "video-tours", scope: "gallery", description: "Drone & cinematic video tours of our premium developments", sortOrder: 5, isActive: true },
 
       // Blog Categories
       { id: "cat-blog-1", name: "Investment Guide", slug: "investment-guide", scope: "blog", description: "ROI analysis and land buying guides", sortOrder: 1, isActive: true },

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import fs from "fs";
+import path from "path";
 
 export const dynamic = "force-dynamic";
 
@@ -20,9 +22,15 @@ export async function POST(req: NextRequest) {
 
       const bytes = await file.arrayBuffer();
       fileBuffer = Buffer.from(bytes);
-      mimeType = file.type || "image/webp";
-      const originalExt = file.name.split(".").pop() || "webp";
-      fileName = `asset-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${originalExt}`;
+      mimeType = file.type || "application/octet-stream";
+      const originalExt = file.name.split(".").pop() || "pdf";
+      // Sanitize filename to avoid weird character issues
+      const cleanName = file.name
+        .replace(/\.[^/.]+$/, "")
+        .replace(/[^a-zA-Z0-9-_]/g, "-")
+        .toLowerCase()
+        .slice(0, 40);
+      fileName = `${cleanName}-${Date.now()}.${originalExt}`;
     } else {
       const body = await req.json();
       if (!body.dataUrl) {
@@ -45,34 +53,56 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Failed to read file buffer" }, { status: 400 });
     }
 
-    // Upload to Supabase Storage bucket "media"
-    const supabase = createAdminClient();
+    let finalPublicUrl = "";
 
-    // Ensure bucket exists
+    // 1. Try uploading to Supabase Storage bucket "media"
     try {
-      await supabase.storage.createBucket("media", { public: true, fileSizeLimit: 10485760 });
-    } catch {}
+      const supabase = createAdminClient();
+      try {
+        await supabase.storage.createBucket("media", { public: true, fileSizeLimit: 26214400 });
+      } catch {}
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("media")
-      .upload(fileName, fileBuffer, {
-        contentType: mimeType,
-        upsert: true,
-      });
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("media")
+        .upload(fileName, fileBuffer, {
+          contentType: mimeType,
+          upsert: true,
+        });
 
-    if (uploadError || !uploadData) {
-      console.error("Supabase Storage upload error:", uploadError);
-      return NextResponse.json(
-        { success: false, error: uploadError?.message || "Storage upload failed" },
-        { status: 500 }
-      );
+      if (!uploadError && uploadData) {
+        const { data: publicUrlData } = supabase.storage.from("media").getPublicUrl(uploadData.path || fileName);
+        if (publicUrlData?.publicUrl) {
+          finalPublicUrl = publicUrlData.publicUrl;
+        }
+      } else if (uploadError) {
+        console.warn("Supabase Storage upload warning, falling back to local:", uploadError.message);
+      }
+    } catch (sbErr) {
+      console.warn("Supabase client error in upload API, falling back to local:", sbErr);
     }
 
-    const { data: publicUrlData } = supabase.storage.from("media").getPublicUrl(uploadData.path || fileName);
+    // 2. If Supabase upload was not possible or returned empty, save to local public/uploads directory
+    if (!finalPublicUrl) {
+      try {
+        const uploadsDir = path.join(process.cwd(), "public", "uploads");
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        const filePath = path.join(uploadsDir, fileName);
+        await fs.promises.writeFile(filePath, fileBuffer);
+        finalPublicUrl = `/uploads/${fileName}`;
+      } catch (localErr) {
+        console.error("Local file save error:", localErr);
+        return NextResponse.json(
+          { success: false, error: "Could not save file to storage or local disk" },
+          { status: 500 }
+        );
+      }
+    }
 
     return NextResponse.json({
       success: true,
-      url: publicUrlData.publicUrl,
+      url: finalPublicUrl,
       filename: fileName,
       sizeBytes: fileBuffer.length,
       mimeType,
@@ -80,7 +110,7 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error("Upload API Error:", err);
     return NextResponse.json(
-      { success: false, error: err.message || "Internal server error uploading image" },
+      { success: false, error: err.message || "Internal server error uploading file" },
       { status: 500 }
     );
   }

@@ -370,11 +370,13 @@ export async function savePropertyAction(formData: any) {
     });
 
     revalidatePath("/admin/properties");
+    revalidatePath(`/admin/properties/${savedRow.id}`);
     revalidatePath("/properties");
     revalidatePath(`/properties/${parsed.data.slug}`);
     revalidatePath("/projects");
     revalidatePath(`/projects/${parsed.data.slug}`);
     revalidatePath("/");
+    revalidatePath("/", "layout");
 
     return { success: true, property: mapDbPropertyToAdmin(savedRow) };
   } catch (err: any) {
@@ -396,7 +398,9 @@ export async function deletePropertyAction(id: string) {
 
     revalidatePath("/admin/properties");
     revalidatePath("/properties");
+    revalidatePath("/projects");
     revalidatePath("/");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (err) {
     console.error("Error deleting property from Supabase:", err);
@@ -902,6 +906,7 @@ export async function addMediaItemAction(item: {
       await saveSetting("media_items", merged);
       revalidatePath("/admin/media");
       revalidatePath("/gallery");
+      revalidatePath("/", "layout");
       return { success: true, media: created };
     }
   } catch (err) {
@@ -917,6 +922,7 @@ export async function addMediaItemAction(item: {
   await saveSetting("media_items", [created, ...currentList.filter((m) => m.id !== created.id)]);
   revalidatePath("/admin/media");
   revalidatePath("/gallery");
+  revalidatePath("/", "layout");
   return { success: true, media: created };
 }
 
@@ -937,6 +943,7 @@ export async function deleteMediaAction(id: string) {
   );
   revalidatePath("/admin/media");
   revalidatePath("/gallery");
+  revalidatePath("/", "layout");
   return { success: deleted };
 }
 
@@ -962,6 +969,7 @@ export async function updateMediaItemAction(
   await saveSetting("media_items", nextList);
   revalidatePath("/admin/media");
   revalidatePath("/gallery");
+  revalidatePath("/", "layout");
   return { success: true, media: updated || nextList.find((m) => m.id === id) };
 }
 

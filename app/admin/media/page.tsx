@@ -19,9 +19,19 @@ import {
   Plus,
   Loader2,
   CheckCircle2,
+  Play,
+  Video,
+  Youtube,
+  Image as ImageIcon,
 } from "lucide-react";
 import { adminStore, MediaItem, AdminCategory } from "@/lib/admin/seed";
 import ImageInput from "@/components/admin/media/ImageInput";
+import {
+  getYoutubeVideoId,
+  getYoutubeThumbnail,
+  isYoutubeUrl,
+  getYoutubeEmbedUrl,
+} from "@/lib/utils";
 import {
   getMediaAction,
   addMediaItemAction,
@@ -47,6 +57,8 @@ export default function MediaLibraryPage() {
 
   // Upload modal state
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadTab, setUploadTab] = useState<"image" | "youtube">("image");
+  const [youtubeUrl, setYoutubeUrl] = useState("");
   const [newUploadedUrl, setNewUploadedUrl] = useState("");
   const [newUploadedTitle, setNewUploadedTitle] = useState("");
   const [newUploadedCategory, setNewUploadedCategory] = useState("Residential");
@@ -184,6 +196,53 @@ export default function MediaLibraryPage() {
     }
   };
 
+  const handleSaveYoutubeVideo = async () => {
+    const vidId = getYoutubeVideoId(youtubeUrl);
+    if (!vidId) {
+      setSaveError("Please enter a valid YouTube video URL (e.g. https://www.youtube.com/watch?v=... or https://youtu.be/...)");
+      return;
+    }
+
+    try {
+      setIsSavingMedia(true);
+      setSaveError(null);
+
+      const title = newUploadedTitle.trim() || "YouTube Video Tour";
+      const cat = newUploadedCategory || "Aerial Views";
+      const alt = newUploadedAlt.trim() || title;
+
+      const res = await addMediaItemAction({
+        filename: `youtube-${vidId}.mp4`,
+        filePath: `youtube/${vidId}`,
+        url: `https://www.youtube.com/watch?v=${vidId}`,
+        thumbnailUrl: getYoutubeThumbnail(vidId, "hqdefault"),
+        mimeType: "video/youtube",
+        sizeBytes: 0,
+        title,
+        category: cat,
+        altText: alt,
+      });
+
+      if (res.success && res.media) {
+        await loadData();
+        setSelectedItem(res.media);
+        setShowUploadModal(false);
+        setYoutubeUrl("");
+        setNewUploadedTitle("");
+        setNewUploadedAlt("");
+        setSaveSuccessMsg("YouTube video embedded successfully and added to the gallery!");
+        setTimeout(() => setSaveSuccessMsg(null), 3500);
+      } else {
+        setSaveError((res as any)?.error || "Failed to embed YouTube video.");
+      }
+    } catch (err: any) {
+      console.error("YouTube save error:", err);
+      setSaveError(err.message || "Failed to embed video. Please try again.");
+    } finally {
+      setIsSavingMedia(false);
+    }
+  };
+
   const handleAddGalleryCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCatName.trim()) return;
@@ -247,6 +306,18 @@ export default function MediaLibraryPage() {
           <button
             type="button"
             onClick={() => {
+              setUploadTab("youtube");
+              setSaveError(null);
+              setShowUploadModal(true);
+            }}
+            className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50/70 px-3.5 py-2.5 text-xs font-semibold text-red-700 hover:bg-red-100 transition shadow-2xs"
+          >
+            <Youtube className="h-4 w-4 text-red-600" /> Embed YouTube Video
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setUploadTab("image");
               setSaveError(null);
               setShowUploadModal(true);
             }}
@@ -321,6 +392,8 @@ export default function MediaLibraryPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {filtered.map((item) => {
                 const isSelected = selectedItem?.id === item.id;
+                const isVid = item.mimeType === "video/youtube" || isYoutubeUrl(item.url);
+                const thumbUrl = isVid ? (item.thumbnailUrl || getYoutubeThumbnail(item.url)) : item.url;
                 return (
                   <div
                     key={item.id}
@@ -338,7 +411,7 @@ export default function MediaLibraryPage() {
                     }`}
                   >
                     <Image
-                      src={item.url}
+                      src={thumbUrl}
                       alt={item.altText}
                       fill
                       className="object-cover transition group-hover:scale-105"
@@ -350,8 +423,12 @@ export default function MediaLibraryPage() {
                       {item.category || "Residential"}
                     </span>
 
-                    {/* Usage Tag */}
-                    {item.usageCount > 0 ? (
+                    {/* Usage Tag / Video Badge */}
+                    {isVid ? (
+                      <span className="absolute top-2 left-2 rounded-md bg-red-600/90 text-white px-2 py-0.5 text-[10px] font-bold flex items-center gap-1 shadow-sm backdrop-blur-xs">
+                        <Play className="h-2.5 w-2.5 fill-white" /> Video
+                      </span>
+                    ) : item.usageCount > 0 ? (
                       <span className="absolute top-2 left-2 rounded-md bg-navy-900/80 px-2 py-0.5 text-[10px] font-bold text-gold-300 backdrop-blur-xs">
                         {item.usageCount} in use
                       </span>
@@ -379,15 +456,27 @@ export default function MediaLibraryPage() {
           <div className="rounded-2xl bg-white p-6 shadow-xs border border-navy-100 space-y-5 h-fit">
             <h3 className="font-serif font-bold text-sm text-navy">Asset Details</h3>
 
-            <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-navy-100 bg-navy-50 shadow-xs">
-              <Image
-                src={selectedItem.url}
-                alt={selectedItem.altText}
-                fill
-                className="object-cover"
-                sizes="350px"
-              />
-            </div>
+            {selectedItem.mimeType === "video/youtube" || isYoutubeUrl(selectedItem.url) ? (
+              <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-navy-700 bg-black shadow-xs">
+                <iframe
+                  src={`https://www.youtube.com/embed/${getYoutubeVideoId(selectedItem.url)}?rel=0`}
+                  title={selectedItem.title || "YouTube Video"}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-navy-100 bg-navy-50 shadow-xs">
+                <Image
+                  src={selectedItem.url}
+                  alt={selectedItem.altText}
+                  fill
+                  className="object-cover"
+                  sizes="350px"
+                />
+              </div>
+            )}
 
             <div>
               <h4 className="font-bold text-xs text-navy truncate" title={selectedItem.filename}>
@@ -565,76 +654,210 @@ export default function MediaLibraryPage() {
         )}
       </div>
 
-      {/* UPLOAD MODAL */}
+      {/* UPLOAD & EMBED MODAL */}
       {showUploadModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/60 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-navy-100">
-            <h3 className="text-base font-serif font-bold text-navy">Upload Asset to Media Library</h3>
-            <p className="text-xs text-navy-400 mt-1">
-              Uploaded files are converted to WebP and stripped of all EXIF metadata before caching.
-            </p>
-
-            <div className="mt-4 space-y-3">
-              <div>
-                <label className="text-xs font-semibold text-navy-700 block mb-1">
-                  Display Title
-                </label>
-                <input
-                  type="text"
-                  value={newUploadedTitle}
-                  onChange={(e) => setNewUploadedTitle(e.target.value)}
-                  placeholder="e.g. Maple Leaf Garden City Aerial View"
-                  className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs focus:border-gold outline-none"
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-semibold text-navy-700">
-                    Gallery Category
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowCatModal(true)}
-                    className="text-[11px] font-bold text-gold-700 hover:underline flex items-center gap-1"
-                  >
-                    <Plus className="h-3 w-3" /> Add / Modify Categories
-                  </button>
-                </div>
-                <select
-                  value={newUploadedCategory}
-                  onChange={(e) => setNewUploadedCategory(e.target.value)}
-                  className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs focus:border-gold outline-none"
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-navy-100">
+            {/* Modal Tabs */}
+            <div className="flex items-center justify-between border-b border-navy-100 pb-3">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUploadTab("image");
+                    setSaveError(null);
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                    uploadTab === "image"
+                      ? "bg-navy text-gold shadow-xs"
+                      : "text-navy-500 hover:bg-slate-100"
+                  }`}
                 >
-                  {categoryOptions.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
+                  <Upload className="h-3.5 w-3.5" /> Upload Image
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUploadTab("youtube");
+                    setSaveError(null);
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                    uploadTab === "youtube"
+                      ? "bg-red-600 text-white shadow-xs"
+                      : "text-navy-500 hover:bg-slate-100"
+                  }`}
+                >
+                  <Youtube className="h-3.5 w-3.5" /> Embed YouTube Video
+                </button>
               </div>
-
-              <ImageInput
-                value={newUploadedUrl}
-                onChange={(url) => {
-                  setNewUploadedUrl(url);
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUploadModal(false);
                   setSaveError(null);
                 }}
-                altValue={newUploadedAlt}
-                onAltChange={(alt) => setNewUploadedAlt(alt)}
-                label="Choose Image"
-              />
+                className="text-navy-400 hover:text-navy-700"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
 
+            {uploadTab === "youtube" ? (
+              /* YOUTUBE EMBED FORM */
+              <div className="mt-4 space-y-3">
+                <div>
+                  <label className="text-xs font-semibold text-navy-700 block mb-1">
+                    YouTube Video URL *
+                  </label>
+                  <input
+                    type="text"
+                    value={youtubeUrl}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setYoutubeUrl(val);
+                      setSaveError(null);
+                      const id = getYoutubeVideoId(val);
+                      if (id && !newUploadedTitle) {
+                        setNewUploadedTitle(`YouTube Tour - ${id}`);
+                      }
+                    }}
+                    placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                    className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs focus:border-gold outline-none"
+                  />
+                  <p className="text-[11px] text-navy-400 mt-1">
+                    Paste any YouTube video link (watch, share, embed, or shorts link).
+                  </p>
+                </div>
+
+                {/* Live YouTube Preview */}
+                {getYoutubeVideoId(youtubeUrl) && (
+                  <div className="rounded-xl overflow-hidden aspect-video bg-black border border-navy-200 shadow-sm relative">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${getYoutubeVideoId(youtubeUrl)}?rel=0`}
+                      title="YouTube Preview"
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-xs font-semibold text-navy-700 block mb-1">
+                    Display Title (Shown in Lightbox & Gallery)
+                  </label>
+                  <input
+                    type="text"
+                    value={newUploadedTitle}
+                    onChange={(e) => setNewUploadedTitle(e.target.value)}
+                    placeholder="e.g. Corona Green Valley Aerial Drone Tour 4K"
+                    className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs focus:border-gold outline-none"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-navy-700">
+                      Gallery Category
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowCatModal(true)}
+                      className="text-[11px] font-bold text-gold-700 hover:underline flex items-center gap-1"
+                    >
+                      <Plus className="h-3 w-3" /> Add / Modify Categories
+                    </button>
+                  </div>
+                  <select
+                    value={newUploadedCategory}
+                    onChange={(e) => setNewUploadedCategory(e.target.value)}
+                    className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs focus:border-gold outline-none"
+                  >
+                    {categoryOptions.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-navy-700 block mb-1">
+                    SEO Alt / Description Text
+                  </label>
+                  <input
+                    type="text"
+                    value={newUploadedAlt}
+                    onChange={(e) => setNewUploadedAlt(e.target.value)}
+                    placeholder="e.g. Corona Properties luxury drone video footage"
+                    className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs focus:border-gold outline-none"
+                  />
+                </div>
+              </div>
+            ) : (
+              /* IMAGE UPLOAD FORM */
+              <div className="mt-4 space-y-3">
+                <div>
+                  <label className="text-xs font-semibold text-navy-700 block mb-1">
+                    Display Title
+                  </label>
+                  <input
+                    type="text"
+                    value={newUploadedTitle}
+                    onChange={(e) => setNewUploadedTitle(e.target.value)}
+                    placeholder="e.g. Maple Leaf Garden City Aerial View"
+                    className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs focus:border-gold outline-none"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-navy-700">
+                      Gallery Category
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowCatModal(true)}
+                      className="text-[11px] font-bold text-gold-700 hover:underline flex items-center gap-1"
+                    >
+                      <Plus className="h-3 w-3" /> Add / Modify Categories
+                    </button>
+                  </div>
+                  <select
+                    value={newUploadedCategory}
+                    onChange={(e) => setNewUploadedCategory(e.target.value)}
+                    className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs focus:border-gold outline-none"
+                  >
+                    {categoryOptions.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <ImageInput
+                  value={newUploadedUrl}
+                  onChange={(url) => {
+                    setNewUploadedUrl(url);
+                    setSaveError(null);
+                  }}
+                  altValue={newUploadedAlt}
+                  onAltChange={(alt) => setNewUploadedAlt(alt)}
+                  label="Choose Image"
+                />
+              </div>
+            )}
+
             {saveError && (
-              <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 flex items-start gap-2 animate-fade-down">
+              <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 flex items-start gap-2 animate-fade-down">
                 <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
                 <span className="leading-snug">{saveError}</span>
               </div>
             )}
 
-            {!newUploadedUrl && (
-              <p className="text-[11px] text-navy-400 italic text-center">
+            {uploadTab === "image" && !newUploadedUrl && (
+              <p className="mt-2 text-[11px] text-navy-400 italic text-center">
                 * Click or drag an image above, or switch to Paste URL to select an image before saving.
               </p>
             )}
@@ -651,24 +874,45 @@ export default function MediaLibraryPage() {
               >
                 Cancel
               </button>
-              <button
-                type="button"
-                onClick={() => handleNewUpload(newUploadedUrl)}
-                disabled={!newUploadedUrl || isSavingMedia}
-                className="flex items-center gap-2 px-5 py-2 text-xs font-semibold rounded-xl bg-navy text-gold hover:bg-navy-800 disabled:opacity-40 shadow-sm transition"
-              >
-                {isSavingMedia ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin text-gold" />
-                    <span>Saving to Library...</span>
-                  </>
-                ) : (
-                  <>
-                    <Check className="h-4 w-4" />
-                    <span>Save to Library</span>
-                  </>
-                )}
-              </button>
+              {uploadTab === "youtube" ? (
+                <button
+                  type="button"
+                  onClick={handleSaveYoutubeVideo}
+                  disabled={!getYoutubeVideoId(youtubeUrl) || isSavingMedia}
+                  className="flex items-center gap-2 px-5 py-2 text-xs font-semibold rounded-xl bg-red-600 text-white hover:bg-red-700 disabled:opacity-40 shadow-sm transition"
+                >
+                  {isSavingMedia ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin text-white" />
+                      <span>Embedding Video...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Youtube className="h-4 w-4" />
+                      <span>Embed in Gallery</span>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleNewUpload(newUploadedUrl)}
+                  disabled={!newUploadedUrl || isSavingMedia}
+                  className="flex items-center gap-2 px-5 py-2 text-xs font-semibold rounded-xl bg-navy text-gold hover:bg-navy-800 disabled:opacity-40 shadow-sm transition"
+                >
+                  {isSavingMedia ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin text-gold" />
+                      <span>Saving to Library...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="h-4 w-4" />
+                      <span>Save to Library</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>

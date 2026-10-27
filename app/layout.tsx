@@ -4,6 +4,10 @@ import "./globals.css";
 import { SITE_CONFIG } from "@/lib/constants";
 import SiteChrome from "@/components/layout/SiteChrome";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",

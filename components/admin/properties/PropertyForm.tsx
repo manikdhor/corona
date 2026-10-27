@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import RichTextEditor from "@/components/admin/editor/RichTextEditor";
 import ImageInput from "@/components/admin/media/ImageInput";
+import FileUploadInput from "@/components/admin/media/FileUploadInput";
 import GalleryManager from "@/components/admin/media/GalleryManager";
 import IconPicker from "@/components/admin/icons/IconPicker";
 import DynamicIcon from "@/components/ui/DynamicIcon";
@@ -224,6 +225,8 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
       setSaveSuccess(true);
       setSaving(false);
       setTimeout(() => setSaveSuccess(false), 3000);
+
+      router.refresh();
 
       if (isNew) {
         router.push(`/admin/properties/${result.property?.id}`);
@@ -1367,31 +1370,21 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
               Provide PDF links for master layouts and project brochures shown in the Key Assets card.
             </p>
 
-            <div>
-              <label className="text-xs font-semibold text-navy-700 block mb-1">
-                Layout Plan File / PDF URL
-              </label>
-              <input
-                type="text"
-                value={assetsState.layoutPlan || ""}
-                onChange={(e) => handleUpdateAsset("layoutPlan", e.target.value)}
-                placeholder="/Layout-Plan.pdf or https://..."
-                className="w-full rounded-xl border border-navy-200 px-3.5 py-2 text-xs focus:border-gold outline-none"
-              />
-            </div>
+            <FileUploadInput
+              label="Layout Plan File / PDF URL"
+              value={assetsState.layoutPlan || ""}
+              onChange={(url) => handleUpdateAsset("layoutPlan", url)}
+              placeholder="/Layout-Plan.pdf or https://..."
+              helperText="Upload master layout PDF, CAD export or blueprint (max 25MB)"
+            />
 
-            <div>
-              <label className="text-xs font-semibold text-navy-700 block mb-1">
-                Brochure Download URL
-              </label>
-              <input
-                type="text"
-                value={assetsState.brochure || ""}
-                onChange={(e) => handleUpdateAsset("brochure", e.target.value)}
-                placeholder="/brochure-maple-leaf.pdf"
-                className="w-full rounded-xl border border-navy-200 px-3.5 py-2 text-xs focus:border-gold outline-none"
-              />
-            </div>
+            <FileUploadInput
+              label="Brochure Download URL"
+              value={assetsState.brochure || ""}
+              onChange={(url) => handleUpdateAsset("brochure", url)}
+              placeholder="/brochure-maple-leaf.pdf or https://..."
+              helperText="Upload official project brochure PDF (max 25MB)"
+            />
 
             <div>
               <label className="text-xs font-semibold text-navy-700 block mb-1">
@@ -1406,18 +1399,13 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
               />
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-navy-700 block mb-1">
-                Brochure Direct File / Secondary URL
-              </label>
-              <input
-                type="text"
-                value={assetsState.brochureFile || ""}
-                onChange={(e) => handleUpdateAsset("brochureFile", e.target.value)}
-                placeholder="/brochure-maple-leaf.pdf"
-                className="w-full rounded-xl border border-navy-200 px-3.5 py-2 text-xs focus:border-gold outline-none"
-              />
-            </div>
+            <FileUploadInput
+              label="Brochure Direct File / Secondary URL"
+              value={assetsState.brochureFile || ""}
+              onChange={(url) => handleUpdateAsset("brochureFile", url)}
+              placeholder="/brochure-maple-leaf.pdf or https://..."
+              helperText="Upload or link secondary downloadable brochure file"
+            />
           </div>
 
           <div className="space-y-4 rounded-2xl bg-white p-6 shadow-xs border border-navy-100">

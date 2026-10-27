@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { Plus, X, Star, MoveLeft, MoveRight, Image as ImageIcon } from "lucide-react";
+import { Plus, X, Star, MoveLeft, MoveRight, Image as ImageIcon, Play, Youtube } from "lucide-react";
 import ImageInput from "./ImageInput";
+import { isYoutubeUrl, getYoutubeThumbnail, getYoutubeVideoId } from "@/lib/utils";
 
 interface GalleryManagerProps {
   images: string[];
@@ -19,8 +20,10 @@ export default function GalleryManager({
   onSetFeatured,
 }: GalleryManagerProps) {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [addMode, setAddMode] = useState<"image" | "youtube">("image");
   const [newImageUrl, setNewImageUrl] = useState("");
   const [newImageAlt, setNewImageAlt] = useState("");
+  const [youtubeInput, setYoutubeInput] = useState("");
 
   const handleAddImage = (url: string) => {
     if (url && !images.includes(url)) {
@@ -28,6 +31,18 @@ export default function GalleryManager({
       onChange(updated);
       setNewImageUrl("");
       setNewImageAlt("");
+      setYoutubeInput("");
+      setShowAddModal(false);
+    }
+  };
+
+  const handleAddYoutube = () => {
+    const vidId = getYoutubeVideoId(youtubeInput);
+    if (!vidId) return;
+    const standardUrl = `https://www.youtube.com/watch?v=${vidId}`;
+    if (!images.includes(standardUrl)) {
+      onChange([...images, standardUrl]);
+      setYoutubeInput("");
       setShowAddModal(false);
     }
   };
@@ -53,37 +68,58 @@ export default function GalleryManager({
       <div className="flex items-center justify-between">
         <div>
           <h4 className="text-xs font-semibold uppercase tracking-wider text-navy-700">
-            Property Gallery ({images.length} Images)
+            Property Gallery ({images.length} Items)
           </h4>
           <p className="text-xs text-navy-400">
-            Drag, reorder, and set the primary featured cover image.
+            Drag, reorder, embed YouTube video tours, and set the primary featured cover image.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-1.5 rounded-lg bg-navy px-3 py-1.5 text-xs font-semibold text-gold hover:bg-navy-800 transition"
-        >
-          <Plus className="h-3.5 w-3.5" /> Add Gallery Image
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setAddMode("youtube");
+              setShowAddModal(true);
+            }}
+            className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50/60 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 transition shadow-2xs"
+          >
+            <Youtube className="h-3.5 w-3.5 text-red-600" /> Embed YouTube
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setAddMode("image");
+              setShowAddModal(true);
+            }}
+            className="flex items-center gap-1.5 rounded-lg bg-navy px-3 py-1.5 text-xs font-semibold text-gold hover:bg-navy-800 transition"
+          >
+            <Plus className="h-3.5 w-3.5" /> Add Gallery Image
+          </button>
+        </div>
       </div>
 
       {images.length === 0 ? (
         <div className="rounded-xl border-2 border-dashed border-navy-200 p-8 text-center bg-slate-50/50">
           <ImageIcon className="h-8 w-8 text-navy-300 mx-auto mb-2" />
-          <p className="text-xs font-medium text-navy-600">No gallery images added yet.</p>
+          <p className="text-xs font-medium text-navy-600">No gallery items added yet.</p>
           <button
             type="button"
-            onClick={() => setShowAddModal(true)}
+            onClick={() => {
+              setAddMode("image");
+              setShowAddModal(true);
+            }}
             className="mt-2 text-xs font-semibold text-gold-700 hover:underline"
           >
-            Click here to add your first photo
+            Click here to add your first photo or video
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {images.map((img, idx) => {
             const isFeatured = featuredImage === img;
+            const isVid = isYoutubeUrl(img);
+            const thumbSrc = isVid ? getYoutubeThumbnail(img) : img;
+
             return (
               <div
                 key={idx}
@@ -92,16 +128,23 @@ export default function GalleryManager({
                 }`}
               >
                 <Image
-                  src={img}
+                  src={thumbSrc}
                   alt={`Gallery Image ${idx + 1}`}
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 50vw, 25vw"
-                  unoptimized={img.startsWith("data:")}
+                  unoptimized={thumbSrc.startsWith("data:")}
                 />
 
+                {/* Video Tag */}
+                {isVid && (
+                  <span className="absolute top-2 left-2 z-10 rounded bg-red-600/90 text-white px-1.5 py-0.5 text-[9px] font-bold flex items-center gap-1 shadow-sm">
+                    <Play className="h-2 w-2 fill-white" /> Video
+                  </span>
+                )}
+
                 {/* Badges and Actions overlay */}
-                <div className="absolute inset-0 bg-navy-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
+                <div className="absolute inset-0 bg-navy-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2 z-20">
                   <div className="flex items-center justify-between">
                     {onSetFeatured && (
                       <button
@@ -119,7 +162,7 @@ export default function GalleryManager({
                       type="button"
                       onClick={() => handleRemoveImage(idx)}
                       className="p-1.5 rounded-md bg-red-600/90 text-white hover:bg-red-600 transition ml-auto"
-                      title="Delete Image"
+                      title="Delete Item"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -152,7 +195,7 @@ export default function GalleryManager({
                 </div>
 
                 {isFeatured && (
-                  <span className="absolute bottom-2 left-2 rounded bg-gold px-1.5 py-0.5 text-[10px] font-bold text-navy shadow-sm">
+                  <span className="absolute bottom-2 left-2 rounded bg-gold px-1.5 py-0.5 text-[10px] font-bold text-navy shadow-sm z-10">
                     Featured
                   </span>
                 )}
@@ -162,41 +205,114 @@ export default function GalleryManager({
         </div>
       )}
 
-      {/* Add Image Modal */}
+      {/* Add Item Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-navy-100">
-            <h3 className="text-lg font-serif font-bold text-navy">Add Gallery Image</h3>
-            <p className="text-xs text-navy-400 mt-1">Upload an image file or paste an external image URL.</p>
-
-            <div className="mt-4">
-              <ImageInput
-                value={newImageUrl}
-                onChange={(url) => setNewImageUrl(url)}
-                altValue={newImageAlt}
-                onAltChange={(alt) => setNewImageAlt(alt)}
-                label="Select Photo"
-                requiredAlt={false}
-              />
-            </div>
-
-            <div className="mt-6 flex justify-end gap-2">
+            {/* Modal Tabs */}
+            <div className="flex items-center justify-between border-b border-navy-100 pb-3">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAddMode("image")}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
+                    addMode === "image" ? "bg-navy text-gold" : "text-navy-500 hover:bg-slate-100"
+                  }`}
+                >
+                  Image Asset
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAddMode("youtube")}
+                  className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
+                    addMode === "youtube" ? "bg-red-600 text-white" : "text-navy-500 hover:bg-slate-100"
+                  }`}
+                >
+                  <Youtube className="h-3.5 w-3.5" /> YouTube Embed
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 text-xs font-medium rounded-lg text-navy-600 hover:bg-navy-50"
+                className="text-navy-400 hover:text-navy-700"
               >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAddImage(newImageUrl)}
-                disabled={!newImageUrl}
-                className="px-4 py-2 text-xs font-medium rounded-lg bg-navy text-gold hover:bg-navy-800 disabled:opacity-40"
-              >
-                Add to Gallery
+                <X className="h-4 w-4" />
               </button>
             </div>
+
+            {addMode === "youtube" ? (
+              <div className="mt-4 space-y-3">
+                <p className="text-xs text-navy-500">
+                  Enter a YouTube video URL to embed it into the property gallery.
+                </p>
+                <input
+                  type="text"
+                  value={youtubeInput}
+                  onChange={(e) => setYoutubeInput(e.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                  className="w-full rounded-xl border border-navy-200 px-3.5 py-2 text-xs focus:border-gold outline-none"
+                />
+
+                {getYoutubeVideoId(youtubeInput) && (
+                  <div className="aspect-video w-full rounded-xl overflow-hidden bg-black border border-navy-200">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${getYoutubeVideoId(youtubeInput)}?rel=0`}
+                      title="YouTube Preview"
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                )}
+
+                <div className="mt-4 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 text-xs font-medium rounded-lg text-navy-600 hover:bg-navy-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddYoutube}
+                    disabled={!getYoutubeVideoId(youtubeInput)}
+                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-40"
+                  >
+                    <Youtube className="h-3.5 w-3.5" /> Add Video
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-4">
+                <p className="text-xs text-navy-400 mb-3">Upload an image file or paste an external image URL.</p>
+                <ImageInput
+                  value={newImageUrl}
+                  onChange={(url) => setNewImageUrl(url)}
+                  altValue={newImageAlt}
+                  onAltChange={(alt) => setNewImageAlt(alt)}
+                  label="Select Photo"
+                  requiredAlt={false}
+                />
+                <div className="mt-6 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 text-xs font-medium rounded-lg text-navy-600 hover:bg-navy-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddImage(newImageUrl)}
+                    disabled={!newImageUrl}
+                    className="px-4 py-2 text-xs font-medium rounded-lg bg-navy text-gold hover:bg-navy-800 disabled:opacity-40"
+                  >
+                    Add to Gallery
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -6,6 +6,10 @@ import { TEAM } from "@/lib/data";
 import { getTeamMembersAction, getSiteContentAction } from "@/lib/admin/actions";
 import Image from "next/image";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
 export const metadata: Metadata = {
   title: "Management Messages",
   description:
