@@ -835,7 +835,7 @@ export async function addMediaItemAction(item: {
 
         const supabaseAdmin = createAdminClient();
         try {
-          await supabaseAdmin.storage.createBucket("media", { public: true, fileSizeLimit: 10485760 });
+          await supabaseAdmin.storage.createBucket("media", { public: true, fileSizeLimit: 52428800 });
         } catch {}
 
         const { data: uploadRes, error: uploadErr } = await supabaseAdmin.storage

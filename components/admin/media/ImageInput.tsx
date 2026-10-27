@@ -116,9 +116,14 @@ export default function ImageInput({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ dataUrl: processed.webpDataUrl }),
         });
-        const uploadJson = await uploadRes.json();
-        if (uploadJson.success && uploadJson.url) {
-          finalPublicUrl = uploadJson.url;
+        if (uploadRes.ok) {
+          const resText = await uploadRes.text();
+          try {
+            const uploadJson = JSON.parse(resText);
+            if (uploadJson.success && uploadJson.url) {
+              finalPublicUrl = uploadJson.url;
+            }
+          } catch {}
         }
       } catch (uploadErr) {
         console.warn("Direct upload API warning, falling back to data URL:", uploadErr);

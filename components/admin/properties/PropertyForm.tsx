@@ -1375,7 +1375,7 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
               value={assetsState.layoutPlan || ""}
               onChange={(url) => handleUpdateAsset("layoutPlan", url)}
               placeholder="/Layout-Plan.pdf or https://..."
-              helperText="Upload master layout PDF, CAD export or blueprint (max 25MB)"
+              helperText="Upload master layout PDF, CAD export or blueprint (max 50MB)"
             />
 
             <FileUploadInput
@@ -1383,7 +1383,7 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
               value={assetsState.brochure || ""}
               onChange={(url) => handleUpdateAsset("brochure", url)}
               placeholder="/brochure-maple-leaf.pdf or https://..."
-              helperText="Upload official project brochure PDF (max 25MB)"
+              helperText="Upload official project brochure PDF (max 50MB)"
             />
 
             <div>
@@ -1404,7 +1404,7 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
               value={assetsState.brochureFile || ""}
               onChange={(url) => handleUpdateAsset("brochureFile", url)}
               placeholder="/brochure-maple-leaf.pdf or https://..."
-              helperText="Upload or link secondary downloadable brochure file"
+              helperText="Upload or link secondary downloadable brochure file (max 50MB)"
             />
           </div>
 

@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     try {
       const supabase = createAdminClient();
       try {
-        await supabase.storage.createBucket("media", { public: true, fileSizeLimit: 26214400 });
+        await supabase.storage.createBucket("media", { public: true, fileSizeLimit: 52428800 });
       } catch {}
 
       const { data: uploadData, error: uploadError } = await supabase.storage
