@@ -12,7 +12,7 @@ export function cn(...inputs: ClassValue[]) {
  * Normalizes image URLs so localhost/127.0.0.1 full URLs are converted to root-relative paths.
  */
 export function normalizeImageUrl(url?: string | null): string {
-  if (!url) return "/image-01.webp";
+  if (!url) return "/corona-logo.png";
   return url.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/.*)$/, "$3");
 }
 

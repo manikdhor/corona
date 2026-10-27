@@ -34,14 +34,6 @@ interface PageProps {
   params: { slug: string };
 }
 
-export async function generateStaticParams() {
-  const dynamic = await getPropertiesAction();
-  if (dynamic && dynamic.length > 0) {
-    return dynamic.map((p) => ({ slug: p.slug }));
-  }
-  return PROPERTIES.map((p) => ({ slug: p.slug }));
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const raw = (await getPropertyAction(params.slug)) || getPropertyBySlug(params.slug);
   if (!raw) return { title: "Property Not Found" };

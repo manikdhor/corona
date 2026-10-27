@@ -9,7 +9,7 @@ export const SITE_CONFIG = {
   tagline: "Transparency, Commitment, Trust",
   description:
     "Corona Properties Limited is a leading residential land developer in Bangladesh, crafting premium plots and exclusive communities with integrity, vision, and unmatched quality.",
-  logo: "/image-01.webp",
+  logo: "/corona-logo.png",
   url: "https://coronapropertiesltd.com",
 } as const;
 

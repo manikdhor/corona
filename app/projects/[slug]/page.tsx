@@ -20,6 +20,7 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import ProjectCard from "@/components/home/ProjectCard";
 import KeyAssets from "@/components/property/KeyAssets";
 import DynamicIcon from "@/components/ui/DynamicIcon";
+import PropertyGallery from "@/components/property/PropertyGallery";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -28,14 +29,6 @@ export const dynamicParams = true;
 
 interface PageProps {
   params: { slug: string };
-}
-
-export async function generateStaticParams() {
-  const dynamic = await getPropertiesAction();
-  if (dynamic && dynamic.length > 0) {
-    return dynamic.map((p) => ({ slug: p.slug }));
-  }
-  return PROJECTS.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -124,27 +117,20 @@ export default async function ProjectDetailPage({ params }: PageProps) {
       </div>
 
       {/* Hero Gallery */}
-      <section className="bg-navy-950 pb-16">
+      <section className="bg-navy-950 pb-12">
         <div className="container-luxury">
-          <div className="relative aspect-[16/9] overflow-hidden rounded-2xl lg:aspect-[21/9]">
-            <Image
-              src={project.heroImage}
-              alt={project.name}
-              fill
-              className="object-cover"
-              sizes="100vw"
-              priority
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-navy-950/60 via-navy-950/20 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-10">
-              <span className="inline-block rounded-full bg-gradient-gold px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-navy mb-3">
+          <PropertyGallery images={project.gallery} title={project.name} />
+
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-navy-800/60 pt-6">
+            <div>
+              <span className="inline-block rounded-full bg-gradient-gold px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-navy mb-2">
                 {String(project.status).replace("-", " ")}
               </span>
-              <h1 className="font-serif text-display-sm font-bold text-cream leading-[1.1]">
+              <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-cream leading-[1.1]">
                 {project.name}
               </h1>
-              <p className="mt-2 text-cream/80 flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-gold" />
+              <p className="mt-2 text-cream/80 flex items-center gap-2 text-sm sm:text-base">
+                <MapPin className="h-4 w-4 text-gold shrink-0" />
                 {project.location}
               </p>
             </div>

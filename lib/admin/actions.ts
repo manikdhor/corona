@@ -248,7 +248,10 @@ export async function getPropertyAction(idOrSlug: string): Promise<AdminProperty
     if (isUuid(idOrSlug)) {
       query = query.or(`id.eq.${idOrSlug},slug.eq.${idOrSlug}`);
     } else {
-      query = query.eq("slug", idOrSlug);
+      const altSlug = idOrSlug.endsWith("-purbachal")
+        ? idOrSlug.replace(/-purbachal$/, "")
+        : `${idOrSlug}-purbachal`;
+      query = query.or(`slug.eq.${idOrSlug},slug.eq.${altSlug}`);
     }
 
     const { data, error } = await query.maybeSingle();
@@ -1216,7 +1219,7 @@ export async function getSettingsAction(): Promise<any> {
     description:
       branding.description ||
       "Bangladesh's premier residential land developer. Crafting legacies through premium plots, transparent transactions, and enduring value since 2015.",
-    logo: branding.logoUrl || "/image-01.webp",
+    logo: branding.logoUrl || "/corona-logo.png",
     favicon: branding.faviconUrl || "/favicon.ico",
     phone: branding.phone || "+880 1805 759297",
     whatsapp: branding.whatsapp || (branding.phone || "8801805759297").replace(/[^0-9]/g, ""),

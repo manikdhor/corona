@@ -41,7 +41,7 @@ export default function SeoManagerPage() {
         name: "Corona Properties Limited",
         description: SITE_CONFIG.description,
         url: SITE_CONFIG.url,
-        logo: `${SITE_CONFIG.url}/image-01.webp`,
+        logo: `${SITE_CONFIG.url}/corona-logo.png`,
         telephone: "+8801805759297",
         email: "cplcoronapropertiesltd@gmail.com",
         address: {
