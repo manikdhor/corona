@@ -38,9 +38,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!adminProp && !baseProject) return { title: "Project Not Found" };
 
-  const title = adminProp?.title || baseProject?.seo.title || baseProject?.name || "Project";
-  const description =
-    (adminProp?.overview || baseProject?.seo.description || baseProject?.overview || "").slice(0, 160);
+  const customSeo = adminProp?.customFieldValues?.seo;
+  const title =
+    customSeo?.metaTitle ||
+    adminProp?.title ||
+    baseProject?.seo.title ||
+    baseProject?.name ||
+    "Project";
+  const description = (
+    customSeo?.metaDescription ||
+    adminProp?.overview ||
+    baseProject?.seo.description ||
+    baseProject?.overview ||
+    ""
+  ).slice(0, 160);
   const image = adminProp?.featuredImage || baseProject?.heroImage || "/image-01.webp";
 
   return {
@@ -145,11 +156,16 @@ export default async function ProjectDetailPage({ params }: PageProps) {
           <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-navy-800/60 pt-6">
             <div>
               <span className="inline-block rounded-full bg-gradient-gold px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-navy mb-2">
-                {String(project.status).replace("-", " ")}
+                {String(project.status).replace(/-/g, " ")}
               </span>
               <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-cream leading-[1.1]">
                 {project.name}
               </h1>
+              {project.tagline && (
+                <p className="mt-2 text-gold font-serif italic text-base sm:text-lg">
+                  &ldquo;{project.tagline}&rdquo;
+                </p>
+              )}
               <p className="mt-2 text-cream/80 flex items-center gap-2 text-sm sm:text-base">
                 <MapPin className="h-4 w-4 text-gold shrink-0" />
                 {project.location}

@@ -77,7 +77,7 @@ export interface Project {
   amenities: Amenity[];
   highlights: string[];
   features: string[];
-  status: "launching" | "available" | "almost-sold" | "completed";
+  status: "launching" | "available" | "almost-sold" | "completed" | (string & {});
   isFlagship: boolean;
   gallery: string[];
   specs: ProjectSpec[];
@@ -223,10 +223,13 @@ export function mapAdminPropertyToProject(
   },
   baseProj?: Project
 ): Project {
-  const normStatus = (p.status?.toLowerCase().replace(/\s+/g, "-") || "") as Project["status"];
-  const validStatus: Project["status"] = ["launching", "available", "almost-sold", "completed"].includes(normStatus)
-    ? normStatus
-    : (baseProj?.status || "available");
+  const rawStatus = (p.status || baseProj?.status || "available").toLowerCase().trim();
+  let validStatus: Project["status"] = "available";
+  if (rawStatus.includes("launch")) validStatus = "launching";
+  else if (rawStatus.includes("almost") || rawStatus.includes("urgent")) validStatus = "almost-sold";
+  else if (rawStatus.includes("sold") || rawStatus.includes("complete")) validStatus = "completed";
+  else if (p.status) validStatus = p.status;
+  else if (baseProj?.status) validStatus = baseProj.status;
 
   const customFields = p.customFieldValues || {};
 

@@ -39,6 +39,7 @@ import {
   getCategoriesAction,
   getAgentsAction,
   getCustomFieldsAction,
+  getPropertiesAction,
 } from "@/lib/admin/actions";
 
 interface PropertyFormProps {
@@ -113,6 +114,7 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
     isFeatured: initialData?.isFeatured || true,
     assignedAgentId: initialData?.assignedAgentId || "agent-1",
     customFieldValues: {
+      similarProjectSlugs: initialData?.customFieldValues?.similarProjectSlugs || [],
       amenities:
         initialData?.customFieldValues?.amenities || [
           { id: "hospital", name: "Central Hospital", icon: "HeartPulse", description: "24/7 multispecialty hospital with emergency care" },
@@ -154,16 +156,33 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
         contactCtaText: initialData?.customFieldValues?.sectionHeadings?.contactCtaText || "Book Site Visit",
         contactCtaHref: initialData?.customFieldValues?.sectionHeadings?.contactCtaHref || "/contact",
         locationTitle: initialData?.customFieldValues?.sectionHeadings?.locationTitle || "Location",
+        similarProjectsEyebrow: initialData?.customFieldValues?.sectionHeadings?.similarProjectsEyebrow || "You May Also Explore",
+        similarProjectsTitle: initialData?.customFieldValues?.sectionHeadings?.similarProjectsTitle || "Similar Projects",
+        similarProjectsSubtitle: initialData?.customFieldValues?.sectionHeadings?.similarProjectsSubtitle || "",
+      },
+      seo: {
+        metaTitle: initialData?.customFieldValues?.seo?.metaTitle || initialData?.title || "",
+        metaDescription:
+          initialData?.customFieldValues?.seo?.metaDescription ||
+          initialData?.tagline ||
+          "Corona Properties — Ultra Luxury Residential Plots in Bangladesh.",
+        focusKeyword: initialData?.customFieldValues?.seo?.focusKeyword || "residential plots Dhaka",
       },
     },
   });
 
   // SEO State
-  const [metaTitle, setMetaTitle] = useState(initialData?.title || "");
-  const [metaDescription, setMetaDescription] = useState(
-    initialData?.tagline || "Corona Properties — Ultra Luxury Residential Plots in Bangladesh."
+  const [metaTitle, setMetaTitle] = useState(
+    initialData?.customFieldValues?.seo?.metaTitle || initialData?.title || ""
   );
-  const [focusKeyword, setFocusKeyword] = useState("residential plots Dhaka");
+  const [metaDescription, setMetaDescription] = useState(
+    initialData?.customFieldValues?.seo?.metaDescription ||
+      initialData?.tagline ||
+      "Corona Properties — Ultra Luxury Residential Plots in Bangladesh."
+  );
+  const [focusKeyword, setFocusKeyword] = useState(
+    initialData?.customFieldValues?.seo?.focusKeyword || "residential plots Dhaka"
+  );
 
   // Status message
   const [saving, setSaving] = useState(false);
@@ -176,13 +195,15 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
   const [areaCats, setAreaCats] = useState<AdminCategory[]>([]);
   const [amenityCats, setAmenityCats] = useState<AdminCategory[]>([]);
   const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDef[]>([]);
+  const [allProperties, setAllProperties] = useState<AdminProperty[]>([]);
 
   React.useEffect(() => {
     Promise.all([
       getCategoriesAction(),
       getAgentsAction(),
       getCustomFieldsAction(),
-    ]).then(([cats, ags, cFields]) => {
+      getPropertiesAction(),
+    ]).then(([cats, ags, cFields, propsList]) => {
       if (cats && cats.length > 0) {
         setTypeCats(cats.filter((c) => c.scope === "property_type" && c.isActive));
         setStatusCats(cats.filter((c) => c.scope === "property_status" && c.isActive));
@@ -191,6 +212,7 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
       }
       if (ags && ags.length > 0) setAgents(ags);
       if (cFields) setCustomFieldDefs(cFields);
+      if (propsList && propsList.length > 0) setAllProperties(propsList);
     });
   }, []);
 
@@ -214,6 +236,14 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
       const payload = {
         ...formData,
         approvalStatus: publishStatus || formData.approvalStatus,
+        customFieldValues: {
+          ...formData.customFieldValues,
+          seo: {
+            metaTitle,
+            metaDescription,
+            focusKeyword,
+          },
+        },
       };
 
       const result = await savePropertyAction(payload);
@@ -793,17 +823,55 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-navy-700 block mb-1">
-                  Genesis & Project Background (The Story Behind...)
-                </label>
-                <textarea
-                  rows={4}
-                  placeholder="The origin story behind this master enclave..."
-                  value={formData.genesis || ""}
-                  onChange={(e) => setFormData({ ...formData, genesis: e.target.value })}
-                  className="w-full rounded-xl border border-navy-200 p-3 text-xs outline-none focus:border-gold"
-                />
+              <div className="rounded-xl border border-navy-100 p-4 space-y-3 bg-navy-50/20">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-navy uppercase tracking-wider">
+                    Genesis & Founding Story
+                  </h4>
+                  <span className="text-[10px] text-navy-400">
+                    Shown in the dedicated story card on the project detail page
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-semibold text-navy-600 block mb-1">
+                      Story Section Title
+                    </label>
+                    <input
+                      type="text"
+                      value={headingsState.storyTitle || ""}
+                      onChange={(e) => handleUpdateHeading("storyTitle", e.target.value)}
+                      placeholder={`The Story Behind ${formData.title || "Project"}`}
+                      className="w-full rounded-lg border border-navy-200 px-2.5 py-1.5 text-xs focus:border-gold outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-navy-600 block mb-1">
+                      Story Section Subtitle (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={headingsState.storySubtitle || ""}
+                      onChange={(e) => handleUpdateHeading("storySubtitle", e.target.value)}
+                      placeholder="e.g. Inspired by Toronto's Planned Enclaves"
+                      className="w-full rounded-lg border border-navy-200 px-2.5 py-1.5 text-xs focus:border-gold outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-semibold text-navy-600 block mb-1">
+                    Story Narrative / Genesis Body
+                  </label>
+                  <textarea
+                    rows={4}
+                    placeholder="The origin story behind this master enclave..."
+                    value={formData.genesis || ""}
+                    onChange={(e) => setFormData({ ...formData, genesis: e.target.value })}
+                    className="w-full rounded-xl border border-navy-200 p-3 text-xs outline-none focus:border-gold"
+                  />
+                </div>
               </div>
             </div>
           ) : (
@@ -1461,6 +1529,19 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
 
             <div>
               <label className="text-xs font-semibold text-navy-700 block mb-1">
+                Sidebar Location Card Title
+              </label>
+              <input
+                type="text"
+                value={headingsState.locationTitle || ""}
+                onChange={(e) => handleUpdateHeading("locationTitle", e.target.value)}
+                placeholder="Location"
+                className="w-full rounded-xl border border-navy-200 px-3.5 py-2 text-xs focus:border-gold outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-navy-700 block mb-1">
                 Custom Google Maps Embed / View Link (Optional)
               </label>
               <input
@@ -1556,6 +1637,17 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
                   className="w-full rounded-lg border border-navy-200 px-2.5 py-1.5 text-xs focus:border-gold outline-none"
                 />
               </div>
+
+              <div>
+                <label className="text-[10px] font-semibold text-navy-600 block mb-1">Sidebar Location Card Title</label>
+                <input
+                  type="text"
+                  value={headingsState.locationTitle || ""}
+                  onChange={(e) => handleUpdateHeading("locationTitle", e.target.value)}
+                  placeholder="Location"
+                  className="w-full rounded-lg border border-navy-200 px-2.5 py-1.5 text-xs focus:border-gold outline-none"
+                />
+              </div>
             </div>
 
             {/* Highlights & Features */}
@@ -1619,7 +1711,7 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
 
             {/* Portfolio, Story & Sidebar */}
             <div className="rounded-xl border border-navy-100 p-4 space-y-3 bg-navy-50/20">
-              <h4 className="text-xs font-bold text-navy uppercase tracking-wider">Portfolio & Contact Sidebar</h4>
+              <h4 className="text-xs font-bold text-navy uppercase tracking-wider">Portfolio, Story & Contact</h4>
               <div>
                 <label className="text-[10px] font-semibold text-navy-600 block mb-1">Plot Portfolio Title</label>
                 <input
@@ -1638,6 +1730,28 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
                   value={headingsState.plotPortfolioSubtitle || ""}
                   onChange={(e) => handleUpdateHeading("plotPortfolioSubtitle", e.target.value)}
                   placeholder="Explore our range of premium residential plot sizes"
+                  className="w-full rounded-lg border border-navy-200 px-2.5 py-1.5 text-xs focus:border-gold outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-semibold text-navy-600 block mb-1">Genesis / Story Section Title</label>
+                <input
+                  type="text"
+                  value={headingsState.storyTitle || ""}
+                  onChange={(e) => handleUpdateHeading("storyTitle", e.target.value)}
+                  placeholder={`The Story Behind ${formData.title || "Project"}`}
+                  className="w-full rounded-lg border border-navy-200 px-2.5 py-1.5 text-xs focus:border-gold outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-semibold text-navy-600 block mb-1">Genesis / Story Subtitle (Optional)</label>
+                <input
+                  type="text"
+                  value={headingsState.storySubtitle || ""}
+                  onChange={(e) => handleUpdateHeading("storySubtitle", e.target.value)}
+                  placeholder="e.g. Canadian Inspiration & Masterplan Journey"
                   className="w-full rounded-lg border border-navy-200 px-2.5 py-1.5 text-xs focus:border-gold outline-none"
                 />
               </div>
@@ -1700,13 +1814,16 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
             </div>
 
             {/* Similar Projects Section */}
-            <div className="rounded-xl border border-navy-100 p-4 space-y-3 bg-navy-50/20 md:col-span-2 lg:col-span-3">
-              <h4 className="text-xs font-bold text-navy uppercase tracking-wider">
-                Similar Projects Module (Bottom of Project Page)
-              </h4>
-              <p className="text-xs text-navy-400">
-                Configure the section title, eyebrow, and optional subtitle for the related projects module shown to visitors.
-              </p>
+            <div className="rounded-xl border border-navy-100 p-4 space-y-4 bg-navy-50/20 md:col-span-2 lg:col-span-3">
+              <div className="border-b border-navy-100/60 pb-2">
+                <h4 className="text-xs font-bold text-navy uppercase tracking-wider">
+                  Similar Projects Module (Bottom of Project Page)
+                </h4>
+                <p className="text-xs text-navy-400">
+                  Configure the section title, eyebrow, and choose which specific projects are recommended at the bottom of this project page.
+                </p>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="text-[10px] font-semibold text-navy-600 block mb-1">Section Eyebrow</label>
@@ -1738,6 +1855,78 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
                     className="w-full rounded-lg border border-navy-200 px-2.5 py-1.5 text-xs focus:border-gold outline-none"
                   />
                 </div>
+              </div>
+
+              {/* Project Picker for Similar Projects */}
+              <div className="pt-2 border-t border-navy-100/60">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[11px] font-bold text-navy uppercase tracking-wider">
+                    Select Featured Similar Projects (Manual Selection)
+                  </label>
+                  <span className="text-[11px] text-gold-700 font-medium">
+                    {(formData.customFieldValues?.similarProjectSlugs || []).length > 0
+                      ? `${(formData.customFieldValues?.similarProjectSlugs || []).length} project(s) manually selected`
+                      : "Automatic mode (showing up to 3 active projects)"}
+                  </span>
+                </div>
+                <p className="text-[11px] text-navy-500 mb-3">
+                  Click any project below to feature it under &ldquo;Similar Projects&rdquo;. If none are selected, the system will automatically display up to 3 other active projects from your database.
+                </p>
+
+                {allProperties.filter((p) => p.slug !== formData.slug && p.id !== formData.id).length === 0 ? (
+                  <p className="text-xs text-navy-400 italic py-2">
+                    No other projects found in database. Create more properties in Admin to link them here.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    {allProperties
+                      .filter((p) => p.slug !== formData.slug && p.id !== formData.id)
+                      .map((p) => {
+                        const isSelected =
+                          (formData.customFieldValues?.similarProjectSlugs || []).includes(p.slug) ||
+                          (formData.customFieldValues?.similarProjectSlugs || []).includes(p.id);
+
+                        return (
+                          <button
+                            key={p.id || p.slug}
+                            type="button"
+                            onClick={() => {
+                              const current: string[] = formData.customFieldValues?.similarProjectSlugs || [];
+                              const identifier = p.slug || p.id;
+                              const next = isSelected
+                                ? current.filter((s: string) => s !== p.slug && s !== p.id)
+                                : [...current, identifier];
+
+                              setFormData((prev) => ({
+                                ...prev,
+                                customFieldValues: {
+                                  ...prev.customFieldValues,
+                                  similarProjectSlugs: next,
+                                },
+                              }));
+                            }}
+                            className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all ${
+                              isSelected
+                                ? "border-gold bg-gold/15 text-navy font-semibold shadow-xs"
+                                : "border-navy-100 bg-white text-navy-600 hover:border-navy-200 hover:bg-navy-50/50"
+                            }`}
+                          >
+                            <div
+                              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-[11px] font-bold ${
+                                isSelected ? "bg-navy text-gold border-navy" : "border-navy-300 text-transparent"
+                              }`}
+                            >
+                              {isSelected ? <Check className="h-3 w-3 stroke-[3]" /> : null}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs truncate font-bold text-navy">{p.title}</p>
+                              <p className="text-[10px] text-navy-400 truncate">{p.location || p.area}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                  </div>
+                )}
               </div>
             </div>
           </div>
