@@ -522,6 +522,27 @@ export const TESTIMONIALS: Testimonial[] = [
    ============================================ */
 export const BLOG_POSTS: BlogPost[] = [
   {
+    id: "cpl-achieves-recordbreaking-success-at-real-estate-and-abasan-expo-aloki",
+    slug: "cpl-achieves-recordbreaking-success-at-real-estate-and-abasan-expo-aloki",
+    title: "Corona Properties Ltd. Achieves Record-Breaking Success at Real Estate & Abasan Expo 2026",
+    excerpt:
+      "Participating with Stall No. 12 at Aloki Convention Center, Corona Properties Ltd. recorded the highest bookings and secured landmark 2,000 kathas transaction for Maple Leaf Garden City Purbachal.",
+    content: [
+      "Corona Properties Ltd. has achieved remarkable success at the three-day Real Estate & Abasan Expo 2026, held from October 15 to 17, 2026, at Aloki Convention Center, Dhaka. Participating with Stall No. 12, the company recorded the highest number of bookings among all participating real estate companies, marking a significant milestone in its business journey.",
+      "The expo provided an important platform for Corona Properties Ltd. to strengthen its brand presence, connect with prospective buyers, showcase its flagship development, Maple Leaf Garden City Purbachal, and present new opportunities for residential land ownership and investment in Purbachal.",
+      "**Record-Breaking Booking Success and Exceptional Visitor Response.** Throughout the three-day event, Corona Properties Ltd.'s Stall No. 12 attracted the highest number of visitors, drawing considerable attention from prospective land buyers, families, and individuals interested in real estate investment.",
+      "Among the most significant achievements of the expo was the successful booking of plots covering a total of 2,000 kathas of land in a single transaction. This landmark booking, alongside the company's overall booking performance, represented a major business achievement for Corona Properties Ltd.",
+      "**Maple Leaf Garden City Purbachal: The Main Attraction.** Designed around the concept of a planned residential community inspired by Canadian master planning, the project attracted attention from visitors seeking a well-organized residential environment and long-term land investment opportunities.",
+      "Following three days of strong visitor engagement, direct bookings, and outstanding business performance, the company's team celebrated the successful completion of the expo with total bookings exceeding 6,000 kathas.",
+    ],
+    category: "Events & Expo",
+    author: "Corona Media & Research Team",
+    authorRole: "Editorial Board",
+    date: "October 28, 2026",
+    readTime: "5 min read",
+    image: "/image-01.webp",
+  },
+  {
     id: "1",
     slug: "investing-in-dhaka-land-2026-guide",
     title: "Investing in Dhaka Land: A Complete 2026 Guide",

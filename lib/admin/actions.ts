@@ -1290,9 +1290,19 @@ export async function submitLeadInquiryAction(formData: {
 
 // --- BLOG ACTIONS ---
 export async function getBlogPostsAction(): Promise<AdminBlogPost[]> {
+  const getPostTimestamp = (p: any): number => {
+    const val = p.publishedAt || p.published_at || p.date || p.createdAt || p.created_at;
+    if (!val) return 0;
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? 0 : d.getTime();
+  };
+
   try {
     const supabase = getDbClient();
-    const { data } = await supabase.from("blog_posts").select("*").order("created_at", { ascending: false });
+    const { data } = await supabase
+      .from("blog_posts")
+      .select("*")
+      .order("published_at", { ascending: false, nullsFirst: false });
     if (data && data.length > 0) {
       const dbPosts = data.map((b: any) => ({
         id: b.id,
@@ -1318,10 +1328,11 @@ export async function getBlogPostsAction(): Promise<AdminBlogPost[]> {
       const existingSlugs = new Set(dbPosts.map((p: any) => p.slug));
       const missingSeed = adminStore.getBlogPosts().filter((s: any) => !existingSlugs.has(s.slug));
 
-      return [...dbPosts, ...missingSeed];
+      const combined = [...dbPosts, ...missingSeed];
+      return combined.sort((a, b) => getPostTimestamp(b) - getPostTimestamp(a));
     }
   } catch {}
-  return adminStore.getBlogPosts();
+  return adminStore.getBlogPosts().slice().sort((a, b) => getPostTimestamp(b) - getPostTimestamp(a));
 }
 
 export async function getBlogPostAction(idOrSlug: string): Promise<AdminBlogPost | null> {

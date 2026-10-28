@@ -25,10 +25,21 @@ export default async function BlogPage() {
     getCategoriesAction("blog"),
     getSiteContentAction(),
   ]);
-  const posts =
+
+  const getPostTime = (p: any) => {
+    const val = p.publishedAt || p.published_at || p.date || p.createdAt || p.created_at;
+    if (!val) return 0;
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? 0 : d.getTime();
+  };
+
+  const rawPosts =
     dynamicPosts.length > 0
       ? dynamicPosts.filter((p) => p.status === "Published")
       : (BLOG_POSTS as any[]);
+
+  // Always ensure latest published blog is in 1st position
+  const posts = rawPosts.slice().sort((a, b) => getPostTime(b) - getPostTime(a));
 
   const bPage = (siteContent as any)?.blogPage;
 

@@ -36,7 +36,7 @@ export default function BlogCatalog({ posts, categories }: BlogCatalogProps) {
   }, [categories, posts]);
 
   const filteredPosts = useMemo(() => {
-    return posts.filter((post) => {
+    const list = posts.filter((post) => {
       const matchesCat =
         selectedCategory === "All" || post.category === selectedCategory;
       const matchesSearch =
@@ -46,6 +46,16 @@ export default function BlogCatalog({ posts, categories }: BlogCatalogProps) {
         post.category?.toLowerCase().includes(search.toLowerCase());
       return matchesCat && matchesSearch;
     });
+
+    const getPostTime = (p: any) => {
+      const val = p.publishedAt || p.published_at || p.date || p.createdAt || p.created_at;
+      if (!val) return 0;
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? 0 : d.getTime();
+    };
+
+    // Keep newest blog post strictly at 1st position
+    return list.slice().sort((a, b) => getPostTime(b) - getPostTime(a));
   }, [posts, selectedCategory, search]);
 
   const [featured, ...rest] = filteredPosts;
@@ -116,8 +126,8 @@ export default function BlogCatalog({ posts, categories }: BlogCatalogProps) {
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   priority
                 />
-                <span className="absolute top-4 left-4 rounded-full bg-gradient-gold px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-navy">
-                  Featured
+                <span className="absolute top-4 left-4 rounded-full bg-gradient-gold px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-navy shadow-md">
+                  Featured &bull; Latest Story
                 </span>
               </div>
               <div className="flex flex-col justify-center p-8 lg:pr-12">

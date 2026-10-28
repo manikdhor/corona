@@ -86,6 +86,8 @@ export default function RichTextEditor({
   const [showImageModal, setShowImageModal] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [imageAlt, setImageAlt] = useState("");
+  const [imageCaption, setImageCaption] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [showEmbedModal, setShowEmbedModal] = useState(false);
   const [embedType, setEmbedType] = useState<"youtube" | "maps">("youtube");
@@ -214,10 +216,16 @@ export default function RichTextEditor({
 
   const applyImage = () => {
     if (imageUrl) {
-      editor.chain().focus().setImage({ src: imageUrl, alt: imageAlt || "Listing visual" }).run();
+      if (imageCaption.trim()) {
+        const cleanFig = `<figure class="my-8 rounded-2xl overflow-hidden shadow-xl border border-navy-100 bg-white"><div class="relative w-full aspect-[16/9] overflow-hidden"><img src="${imageUrl}" alt="${imageAlt || imageCaption}" class="w-full h-full object-cover my-0" /></div><figcaption class="py-2.5 px-4 text-center text-xs text-navy-500 italic bg-navy-50/70 border-t border-navy-100">${imageCaption.trim()}</figcaption></figure>`;
+        editor.chain().focus().insertContent(cleanFig).run();
+      } else {
+        editor.chain().focus().setImage({ src: imageUrl, alt: imageAlt || "Article visual" }).run();
+      }
       setShowImageModal(false);
       setImageUrl("");
       setImageAlt("");
+      setImageCaption("");
     }
   };
 
@@ -616,22 +624,147 @@ export default function RichTextEditor({
       {/* --- IMAGE INSERT MODAL --- */}
       {showImageModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-navy-100">
-            <h3 className="text-lg font-serif font-bold text-navy">Insert Image into Editor</h3>
-            <p className="text-xs text-navy-400 mt-1">Paste image URL or asset link with mandatory alt-text.</p>
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-navy-100 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-serif font-bold text-navy">Insert Image into Blog Article</h3>
+            <p className="text-xs text-navy-400 mt-1">
+              Select a project asset preset, upload a new photo, or paste any image link.
+            </p>
+
+            {/* Quick Preset Assets */}
+            <div className="mt-4">
+              <label className="text-xs font-semibold text-navy-700 block mb-1.5">
+                Quick Project Presets:
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  {
+                    label: "Expo Stall 12",
+                    url: "/About-corone.webp",
+                    alt: "Corona Properties Stall No. 12 at Expo 2026",
+                    caption: "Corona Properties Ltd. team and prospective buyers at Stall No. 12 during Real Estate & Abasan Expo 2026, Aloki Dhaka.",
+                  },
+                  {
+                    label: "Purbachal Master Plan",
+                    url: "/Toronto_to_Purbachal.webp",
+                    alt: "Maple Leaf Garden City Purbachal master plan layout",
+                    caption: "Architectural master plan and planned avenues of Maple Leaf Garden City Purbachal.",
+                  },
+                  {
+                    label: "Entrance Avenue",
+                    url: "/image-01.webp",
+                    alt: "Maple Leaf Garden City Grand Entrance",
+                    caption: "Grand entrance gateway and boulevard of Maple Leaf Garden City.",
+                  },
+                  {
+                    label: "Residential Plots",
+                    url: "/image-02.webp",
+                    alt: "Planned residential plots",
+                    caption: "Delineated residential plots with underground utilities and wide road access.",
+                  },
+                  {
+                    label: "Title & Survey",
+                    url: "/image-03.webp",
+                    alt: "Land survey verification and Khatians",
+                    caption: "Comprehensive title search, AC Land verification, and legal due diligence.",
+                  },
+                  {
+                    label: "Banani Greens",
+                    url: "/image-04.webp",
+                    alt: "Banani Greens residential community",
+                    caption: "Banani Greens residential avenue and infrastructure.",
+                  },
+                  {
+                    label: "Eco Community",
+                    url: "/image-07.webp",
+                    alt: "Green residential community with parks",
+                    caption: "Lush open parks, lakes, and planned eco-friendly avenues.",
+                  },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => {
+                      setImageUrl(preset.url);
+                      setImageAlt(preset.alt);
+                      setImageCaption(preset.caption);
+                    }}
+                    className={`rounded-full px-2.5 py-1 text-[11px] font-medium border transition ${
+                      imageUrl === preset.url
+                        ? "bg-navy text-gold border-navy"
+                        : "bg-navy-50 text-navy-700 border-navy-100 hover:border-gold"
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="mt-4 space-y-3">
               <div>
                 <label className="text-xs font-medium text-navy-700 block mb-1">Image URL</label>
-                <input
-                  type="url"
-                  placeholder="https://... or /image-06.webp"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className="w-full rounded-lg border border-navy-200 px-3 py-2 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="e.g. /image-01.webp or https://..."
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    className="w-full rounded-lg border border-navy-200 px-3 py-2 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none"
+                  />
+                  <label className="cursor-pointer shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-navy-200 bg-navy-50 px-3 py-2 text-xs font-semibold text-navy hover:bg-navy-100 transition">
+                    <ImageIcon className="h-4 w-4 text-gold-700" />
+                    <span>Upload</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          setIsUploadingImage(true);
+                          const reader = new FileReader();
+                          reader.onload = async () => {
+                            const dataUrl = reader.result as string;
+                            try {
+                              const res = await fetch("/api/admin/upload", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ dataUrl }),
+                              });
+                              if (res.ok) {
+                                const json = await res.json();
+                                if (json.url) {
+                                  setImageUrl(json.url);
+                                  if (!imageAlt) setImageAlt(file.name.replace(/\.[^/.]+$/, ""));
+                                }
+                              } else {
+                                setImageUrl(dataUrl);
+                              }
+                            } catch {
+                              setImageUrl(dataUrl);
+                            }
+                            setIsUploadingImage(false);
+                          };
+                          reader.readAsDataURL(file);
+                        } catch {
+                          setIsUploadingImage(false);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+                {isUploadingImage && (
+                  <p className="text-[11px] text-gold-700 mt-1 animate-pulse">
+                    Uploading image to cloud storage...
+                  </p>
+                )}
               </div>
+
               <div>
-                <label className="text-xs font-medium text-navy-700 block mb-1">Alt Text (Accessibility & SEO)</label>
+                <label className="text-xs font-medium text-navy-700 block mb-1">
+                  Alt Text (SEO &amp; Accessibility)
+                </label>
                 <input
                   type="text"
                   placeholder="e.g. Maple Leaf Garden City central entrance"
@@ -640,7 +773,40 @@ export default function RichTextEditor({
                   className="w-full rounded-lg border border-navy-200 px-3 py-2 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none"
                 />
               </div>
+
+              <div>
+                <label className="text-xs font-medium text-navy-700 block mb-1">
+                  Caption (Optional editorial caption under photo)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. The grand boulevard leading into sector 20."
+                  value={imageCaption}
+                  onChange={(e) => setImageCaption(e.target.value)}
+                  className="w-full rounded-lg border border-navy-200 px-3 py-2 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none"
+                />
+              </div>
+
+              {imageUrl && (
+                <div className="rounded-xl border border-navy-100 p-2 bg-navy-50/50">
+                  <p className="text-[11px] font-semibold text-navy-600 mb-1">Preview:</p>
+                  <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden bg-navy-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={imageUrl}
+                      alt={imageAlt || "Preview"}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  {imageCaption && (
+                    <p className="text-center text-[11px] text-navy-500 italic mt-1.5">
+                      {imageCaption}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
+
             <div className="mt-6 flex justify-end gap-2">
               <button
                 type="button"
@@ -652,10 +818,10 @@ export default function RichTextEditor({
               <button
                 type="button"
                 onClick={applyImage}
-                disabled={!imageUrl}
+                disabled={!imageUrl || isUploadingImage}
                 className="px-4 py-2 text-xs font-medium rounded-lg bg-navy text-gold hover:bg-navy-800 disabled:opacity-40"
               >
-                Insert Image
+                Insert Image into Paragraph
               </button>
             </div>
           </div>
