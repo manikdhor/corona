@@ -25,8 +25,10 @@ export default async function BlogPage() {
     getCategoriesAction("blog"),
     getSiteContentAction(),
   ]);
-  const published = dynamicPosts.filter((p) => p.status === "Published");
-  const posts = published.length > 0 ? published : (BLOG_POSTS as any[]);
+  const posts =
+    dynamicPosts.length > 0
+      ? dynamicPosts.filter((p) => p.status === "Published")
+      : (BLOG_POSTS as any[]);
 
   const bPage = (siteContent as any)?.blogPage;
 

@@ -24,6 +24,17 @@ import {
 } from "@/lib/admin/actions";
 import { AdminBlogPost, AdminCategory } from "@/lib/admin/seed";
 
+function formatAdminDate(dateStr?: string | null) {
+  if (!dateStr) return "Not set";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr.split("T")[0];
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  } catch {
+    return dateStr;
+  }
+}
+
 export default function BlogAdminPage() {
   const [posts, setPosts] = useState<AdminBlogPost[]>([]);
   const [blogCats, setBlogCats] = useState<AdminCategory[]>([]);
@@ -258,7 +269,7 @@ export default function BlogAdminPage() {
                     </span>
                   </td>
                   <td className="py-3.5 px-4 whitespace-nowrap text-navy-400">
-                    {post.publishedAt || "Not set"}
+                    {formatAdminDate(post.publishedAt)}
                   </td>
                   <td className="py-3.5 px-4 text-right whitespace-nowrap">
                     <div className="inline-flex items-center gap-1">

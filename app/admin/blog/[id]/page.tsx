@@ -24,6 +24,7 @@ import {
 } from "@/lib/admin/actions";
 import type { AdminCategory } from "@/lib/admin/seed";
 import RichTextEditor from "@/components/admin/editor/RichTextEditor";
+import ImageInput from "@/components/admin/media/ImageInput";
 
 export default function BlogPostEditorPage() {
   const params = useParams();
@@ -238,9 +239,14 @@ export default function BlogPostEditorPage() {
             {activeTab === "en" ? (
               <>
                 <div>
-                  <label className="block text-xs font-bold text-navy uppercase tracking-wider mb-1">
-                    Article Title (English) *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-navy uppercase tracking-wider">
+                      Article Title (English) *
+                    </label>
+                    <span className="text-[10px] text-navy-400 font-mono">
+                      {title.length} / 70 chars
+                    </span>
+                  </div>
                   <input
                     type="text"
                     value={title}
@@ -279,9 +285,14 @@ export default function BlogPostEditorPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-navy uppercase tracking-wider mb-1">
-                    Short Excerpt / Meta Description *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-navy uppercase tracking-wider">
+                      Short Excerpt / Meta Description *
+                    </label>
+                    <span className="text-[10px] text-navy-400 font-mono">
+                      {excerpt.length} / 160 chars
+                    </span>
+                  </div>
                   <textarea
                     rows={2}
                     value={excerpt}
@@ -464,37 +475,21 @@ export default function BlogPostEditorPage() {
           </div>
 
           {/* Featured Image */}
-          <div className="rounded-2xl border border-navy-100 bg-white p-5 shadow-xs space-y-3">
+          <div className="rounded-2xl border border-navy-100 bg-white p-5 shadow-xs space-y-4">
             <h3 className="text-xs font-bold text-navy uppercase tracking-wider flex items-center gap-1.5">
               <ImageIcon className="h-3.5 w-3.5 text-gold-700" />
               Cover Image
             </h3>
 
-            <div>
-              <label className="block text-xs font-medium text-navy-600 mb-1">Image URL</label>
-              <input
-                type="text"
-                value={image}
-                onChange={(e) => setImage(e.target.value)}
-                placeholder="/image-01.webp or external image URL"
-                className="w-full rounded-xl border border-navy-200 px-3 py-2 text-xs text-navy focus:border-gold focus:outline-none"
-              />
-            </div>
+            <ImageInput
+              label="Article Featured Cover Image"
+              value={image}
+              onChange={(url) => setImage(url)}
+              requiredAlt={false}
+            />
 
-            {/* Image Preview */}
-            <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-navy-100 bg-navy-50">
-              <img
-                src={image}
-                alt="Cover Preview"
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = "/image-01.webp";
-                }}
-              />
-            </div>
-
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              <span className="text-[10px] text-navy-400 w-full mb-1">Quick Select Presets:</span>
+            <div className="flex flex-wrap gap-1.5 pt-2 border-t border-navy-50">
+              <span className="text-[10px] text-navy-400 w-full mb-1">Stock Presets:</span>
               {[
                 "/image-01.webp",
                 "/image-02.webp",
@@ -508,13 +503,32 @@ export default function BlogPostEditorPage() {
                   onClick={() => setImage(imgUrl)}
                   className={`text-[10px] px-2 py-0.5 rounded border transition ${
                     image === imgUrl
-                      ? "bg-gold/20 text-gold-900 border-gold"
-                      : "bg-slate-50 text-navy-500 border-navy-100"
+                      ? "bg-gold/20 text-gold-900 border-gold font-bold"
+                      : "bg-slate-50 text-navy-500 border-navy-100 hover:bg-slate-100"
                   }`}
                 >
                   {imgUrl.replace("/", "")}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Search Engine SERP Snippet Preview */}
+          <div className="rounded-2xl border border-navy-100 bg-white p-5 shadow-xs space-y-3">
+            <h3 className="text-xs font-bold text-navy uppercase tracking-wider flex items-center gap-1.5">
+              <Eye className="h-3.5 w-3.5 text-gold-700" />
+              Google SERP Preview
+            </h3>
+            <div className="rounded-xl border border-navy-100 p-3.5 bg-slate-50 space-y-1">
+              <p className="text-[11px] text-navy-500 font-mono truncate">
+                https://coronapropertiesbd.com/blog/{slug || "article-url"}
+              </p>
+              <p className="text-sm font-semibold text-blue-700 hover:underline cursor-pointer line-clamp-1">
+                {title || "Article Title | Corona Properties Blog"}
+              </p>
+              <p className="text-xs text-navy-600 line-clamp-2">
+                {excerpt || "Article excerpt will appear here in Google search engine result snippets..."}
+              </p>
             </div>
           </div>
         </div>

@@ -1294,7 +1294,7 @@ export async function getBlogPostsAction(): Promise<AdminBlogPost[]> {
     const supabase = getDbClient();
     const { data } = await supabase.from("blog_posts").select("*").order("created_at", { ascending: false });
     if (data && data.length > 0) {
-      return data.map((b: any) => ({
+      const dbPosts = data.map((b: any) => ({
         id: b.id,
         slug: b.slug,
         title: b.title,
@@ -1313,21 +1313,47 @@ export async function getBlogPostsAction(): Promise<AdminBlogPost[]> {
         createdAt: b.created_at,
         updatedAt: b.updated_at,
       }));
+
+      // Ensure any default seed posts not yet in DB are accessible
+      const existingSlugs = new Set(dbPosts.map((p: any) => p.slug));
+      const missingSeed = adminStore.getBlogPosts().filter((s: any) => !existingSlugs.has(s.slug));
+
+      return [...dbPosts, ...missingSeed];
     }
   } catch {}
   return adminStore.getBlogPosts();
 }
 
-export async function getBlogPostAction(idOrSlug: string) {
+export async function getBlogPostAction(idOrSlug: string): Promise<AdminBlogPost | null> {
   try {
     const supabase = getDbClient();
     const query = isUuid(idOrSlug)
       ? supabase.from("blog_posts").select("*").or(`id.eq.${idOrSlug},slug.eq.${idOrSlug}`)
       : supabase.from("blog_posts").select("*").eq("slug", idOrSlug);
     const { data } = await query.maybeSingle();
-    if (data) return data;
+    if (data) {
+      return {
+        id: data.id,
+        slug: data.slug,
+        title: data.title,
+        titleBn: data.title_bn,
+        excerpt: data.excerpt || "",
+        excerptBn: data.excerpt_bn,
+        content: data.content,
+        contentBn: data.content_bn,
+        category: data.category,
+        author: data.author,
+        authorRole: data.author_role,
+        image: data.image,
+        readTime: data.read_time,
+        status: data.status,
+        publishedAt: data.published_at,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      };
+    }
   } catch {}
-  return adminStore.getBlogPostByIdOrSlug(idOrSlug);
+  return adminStore.getBlogPostByIdOrSlug(idOrSlug) || null;
 }
 
 export async function saveBlogPostAction(formData: any) {
@@ -1344,10 +1370,31 @@ export async function saveBlogPostAction(formData: any) {
     contentBn: cleanContentBn,
   };
 
+  let savedId = formData.id;
+
   try {
     const supabase = getDbClient();
-    const id = isUuid(formData.id) ? formData.id : crypto.randomUUID();
-    await supabase.from("blog_posts").upsert({
+    let existingId = isUuid(formData.id) ? formData.id : null;
+
+    if (!existingId && parsed.data.slug) {
+      const { data: existingBySlug } = await supabase
+        .from("blog_posts")
+        .select("id")
+        .eq("slug", parsed.data.slug)
+        .maybeSingle();
+      if (existingBySlug?.id) {
+        existingId = existingBySlug.id;
+      }
+    }
+
+    const id = existingId || crypto.randomUUID();
+    savedId = id;
+    const now = new Date().toISOString();
+    const publishedAt = parsed.data.publishedAt
+      ? new Date(parsed.data.publishedAt).toISOString()
+      : now;
+
+    const dbPayload = {
       id,
       slug: parsed.data.slug,
       title: parsed.data.title,
@@ -1362,15 +1409,24 @@ export async function saveBlogPostAction(formData: any) {
       image: parsed.data.image,
       read_time: parsed.data.readTime || "5 min read",
       status: parsed.data.status || "Published",
-      updated_at: new Date().toISOString(),
-    });
+      published_at: publishedAt,
+      updated_at: now,
+    };
+
+    const { error: upsertErr } = await supabase.from("blog_posts").upsert(dbPayload);
+    if (upsertErr) {
+      console.error("Error saving blog post to DB:", upsertErr);
+    }
   } catch (err) {
     console.error("Error saving blog post to DB:", err);
   }
 
-  const saved = adminStore.saveBlogPost({ id: formData.id, ...postPayload });
+  const saved = adminStore.saveBlogPost({ id: savedId, ...postPayload });
   revalidatePath("/admin/blog");
   revalidatePath("/blog");
+  if (parsed.data.slug) {
+    revalidatePath(`/blog/${parsed.data.slug}`);
+  }
   return { success: true, post: saved };
 }
 
@@ -1379,6 +1435,8 @@ export async function deleteBlogPostAction(id: string) {
     const supabase = getDbClient();
     if (isUuid(id)) {
       await supabase.from("blog_posts").delete().eq("id", id);
+    } else {
+      await supabase.from("blog_posts").delete().eq("slug", id);
     }
   } catch {}
   const deleted = adminStore.deleteBlogPost(id);

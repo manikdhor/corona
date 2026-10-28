@@ -8,6 +8,7 @@ import { getBlogPostAction, getBlogPostsAction } from "@/lib/admin/actions";
 import Button from "@/components/ui/Button";
 import CTABanner from "@/components/home/CTABanner";
 import LeadForm from "@/components/lead/LeadForm";
+import BlogArticleBody from "@/components/blog/BlogArticleBody";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -16,6 +17,17 @@ export const dynamicParams = true;
 
 interface PageProps {
   params: { slug: string };
+}
+
+function formatDate(dateStr?: string | null) {
+  if (!dateStr) return "Recent";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  } catch {
+    return dateStr;
+  }
 }
 
 export async function generateStaticParams() {
@@ -39,21 +51,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       images: [post.image],
     },
   };
-}
-
-function renderContent(paragraph: string) {
-  // Render bold markdown **text**
-  const parts = paragraph.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return (
-        <strong key={i} className="font-bold text-navy">
-          {part.slice(2, -2)}
-        </strong>
-      );
-    }
-    return <span key={i}>{part}</span>;
-  });
 }
 
 export default async function BlogDetailPage({ params }: PageProps) {
@@ -94,12 +91,15 @@ export default async function BlogDetailPage({ params }: PageProps) {
           </Link>
 
           <div className="flex items-center gap-4 text-xs uppercase tracking-wider text-gold mb-4">
-            <span className="rounded-full bg-gold/20 px-3 py-1">
+            <Link
+              href="/blog"
+              className="rounded-full bg-gold/20 px-3 py-1 text-gold hover:bg-gold/30 transition font-semibold"
+            >
               {post.category}
-            </span>
+            </Link>
             <span className="flex items-center gap-1.5 text-cream/70">
               <Calendar className="h-3.5 w-3.5" />
-              {(post as any).publishedAt || (post as any).date || "Recent"}
+              {formatDate((post as any).publishedAt || (post as any).date)}
             </span>
             <span className="flex items-center gap-1.5 text-cream/70">
               <Clock className="h-3.5 w-3.5" />
@@ -116,48 +116,27 @@ export default async function BlogDetailPage({ params }: PageProps) {
       {/* Article Content */}
       <article className="section-padding bg-cream">
         <div className="container-narrow">
-          {/* Author */}
-          <div className="mb-10 flex items-center gap-4 border-b border-navy-50 pb-8">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-gold">
-              <User className="h-6 w-6 text-navy" />
-            </div>
-            <div>
-              <p className="font-serif text-lg font-bold text-navy">
-                {typeof post.author === "object" ? (post.author as any)?.name : (post.author || "Corona Team")}
-              </p>
-              <p className="text-sm text-navy-400">
-                {typeof post.author === "object" ? (post.author as any)?.role : (post.authorRole || "Managing Director")}
-              </p>
-            </div>
-          </div>
-
-          {/* Excerpt */}
-          <p className="font-display text-2xl leading-relaxed text-navy-600 italic mb-10 border-l-4 border-gold pl-6">
-            {post.excerpt}
-          </p>
-
-          {/* Body Content (Handles HTML string or string array) */}
-          <div className="space-y-6">
-            {Array.isArray(post.content) ? (
-              post.content.map((paragraph: string, i: number) => (
-                <p key={i} className="text-lg leading-relaxed text-navy-400">
-                  {renderContent(paragraph)}
-                </p>
-              ))
-            ) : typeof post.content === "string" && post.content.includes("<") ? (
-              <div
-                className="prose prose-lg prose-navy max-w-none text-navy-600 leading-relaxed [&>p]:mb-4 [&>h2]:font-serif [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:text-navy [&>h2]:mt-8 [&>h2]:mb-3 [&>h3]:font-serif [&>h3]:text-xl [&>h3]:font-bold [&>h3]:text-navy [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&>blockquote]:border-l-4 [&>blockquote]:border-gold [&>blockquote]:pl-4 [&>blockquote]:italic"
-                dangerouslySetInnerHTML={{ __html: post.content }}
-              />
-            ) : (
-              <p className="text-lg leading-relaxed text-navy-400">
-                {String(post.content)}
-              </p>
-            )}
-          </div>
+          <BlogArticleBody
+            title={post.title}
+            titleBn={(post as any).titleBn}
+            excerpt={post.excerpt}
+            excerptBn={(post as any).excerptBn}
+            content={post.content}
+            contentBn={(post as any).contentBn}
+            author={
+              typeof post.author === "object"
+                ? (post.author as any)?.name
+                : post.author || "Corona Research Team"
+            }
+            authorRole={
+              typeof post.author === "object"
+                ? (post.author as any)?.role
+                : (post as any).authorRole || "Senior Market Analyst"
+            }
+          />
 
           {/* CTA */}
-          <div className="mt-12 rounded-2xl bg-gradient-navy p-8 text-center text-cream">
+          <div className="mt-16 rounded-2xl bg-gradient-navy p-8 text-center text-cream shadow-navy">
             <h3 className="font-serif text-2xl font-bold text-cream">
               Ready to Invest in Premium Land?
             </h3>

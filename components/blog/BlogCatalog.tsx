@@ -12,6 +12,17 @@ interface BlogCatalogProps {
   categories?: AdminCategory[];
 }
 
+function formatDate(dateStr?: string | null) {
+  if (!dateStr) return "Recent";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  } catch {
+    return dateStr;
+  }
+}
+
 export default function BlogCatalog({ posts, categories }: BlogCatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [search, setSearch] = useState("");
@@ -116,7 +127,7 @@ export default function BlogCatalog({ posts, categories }: BlogCatalogProps) {
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />
-                    {featured.publishedAt || (featured as any).date || "Recent"}
+                    {formatDate(featured.publishedAt || (featured as any).date)}
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="h-3.5 w-3.5" />
@@ -179,7 +190,7 @@ export default function BlogCatalog({ posts, categories }: BlogCatalogProps) {
                             : post.author || "Corona Team"}
                         </p>
                         <p className="text-xs text-navy-400">
-                          {post.publishedAt || (post as any).date}
+                          {formatDate(post.publishedAt || (post as any).date)}
                         </p>
                       </div>
                       <ArrowRight className="h-5 w-5 text-gold transition-transform group-hover:translate-x-1" />
