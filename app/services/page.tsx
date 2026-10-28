@@ -22,9 +22,7 @@ import { getServicesAction, getSiteContentAction } from "@/lib/admin/actions";
 import Link from "next/link";
 import DynamicIcon from "@/components/ui/DynamicIcon";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";
+export const revalidate = 60;
 
 export default async function ServicesPage() {
   const [dynamicServices, siteContent] = await Promise.all([

@@ -56,7 +56,6 @@ export default function Hero({ data }: HeroProps = {}) {
               alt={`${SITE_CONFIG.name} Slide ${i + 1}`}
               fill
               priority={i === 0}
-              loading={i === 0 ? "eager" : "lazy"}
               sizes="100vw"
               className="object-cover object-top"
             />

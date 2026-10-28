@@ -5,6 +5,8 @@ import { PROJECTS, mapAdminPropertyToProject } from "@/lib/projects";
 import LeadForm from "@/components/lead/LeadForm";
 import { getPropertiesAction, getSiteContentAction } from "@/lib/admin/actions";
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Our Projects",
   description:

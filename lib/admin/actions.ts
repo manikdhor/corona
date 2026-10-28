@@ -46,6 +46,26 @@ function getDbClient(): any {
   return createAdminClient() as any;
 }
 
+// --- HIGH-PERFORMANCE IN-MEMORY ACTION CACHE (WITH AUTOMATIC INVALIDATION) ---
+interface CacheEntry<T> {
+  data: T;
+  expiresAt: number;
+}
+const ACTION_MEM_CACHE = new Map<string, CacheEntry<any>>();
+const CACHE_TTL_MS = 60 * 1000; // 60s TTL for public read actions
+
+export async function invalidateAdminActionCache(pattern?: string) {
+  if (!pattern) {
+    ACTION_MEM_CACHE.clear();
+    return;
+  }
+  for (const key of Array.from(ACTION_MEM_CACHE.keys())) {
+    if (key.includes(pattern)) {
+      ACTION_MEM_CACHE.delete(key);
+    }
+  }
+}
+
 // --- UUID & MAPPING HELPERS ---
 function isUuid(str?: string | null): boolean {
   if (!str) return false;
@@ -186,6 +206,13 @@ function mapDbSocialLink(row: any): SocialLink {
 
 // --- SETTINGS HELPER (JSON STORE IN SUPABASE) ---
 async function getSetting<T>(key: string, fallback: T): Promise<T> {
+  const cacheKey = `setting:${key}`;
+  const now = Date.now();
+  const cached = ACTION_MEM_CACHE.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.data as T;
+  }
+
   try {
     const supabase = getDbClient();
     const { data, error } = await supabase
@@ -195,9 +222,12 @@ async function getSetting<T>(key: string, fallback: T): Promise<T> {
       .maybeSingle();
 
     if (error || !data || data.value === null || data.value === undefined) {
+      ACTION_MEM_CACHE.set(cacheKey, { data: fallback, expiresAt: now + CACHE_TTL_MS });
       return fallback;
     }
-    return data.value as T;
+    const val = data.value as T;
+    ACTION_MEM_CACHE.set(cacheKey, { data: val, expiresAt: now + CACHE_TTL_MS });
+    return val;
   } catch {
     return fallback;
   }
@@ -215,6 +245,10 @@ async function saveSetting<T>(key: string, value: T): Promise<boolean> {
       },
       { onConflict: "key" }
     );
+    ACTION_MEM_CACHE.delete(`setting:${key}`);
+    ACTION_MEM_CACHE.delete("settings:composite");
+    ACTION_MEM_CACHE.delete("site_content:all");
+    ACTION_MEM_CACHE.delete("navigation:main");
     return !error;
   } catch {
     return false;
@@ -223,6 +257,13 @@ async function saveSetting<T>(key: string, value: T): Promise<boolean> {
 
 // --- PROPERTIES ACTIONS ---
 export async function getPropertiesAction(): Promise<AdminProperty[]> {
+  const cacheKey = "properties:all";
+  const now = Date.now();
+  const cached = ACTION_MEM_CACHE.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.data;
+  }
+
   try {
     const supabase = getDbClient();
     const { data, error } = await supabase
@@ -231,9 +272,13 @@ export async function getPropertiesAction(): Promise<AdminProperty[]> {
       .order("created_at", { ascending: false });
 
     if (error || !data || data.length === 0) {
-      return adminStore.getProperties();
+      const fallback = adminStore.getProperties();
+      ACTION_MEM_CACHE.set(cacheKey, { data: fallback, expiresAt: now + CACHE_TTL_MS });
+      return fallback;
     }
-    return data.map(mapDbPropertyToAdmin);
+    const result = data.map(mapDbPropertyToAdmin);
+    ACTION_MEM_CACHE.set(cacheKey, { data: result, expiresAt: now + CACHE_TTL_MS });
+    return result;
   } catch (err) {
     console.error("Error fetching properties from Supabase:", err);
     return adminStore.getProperties();
@@ -241,6 +286,13 @@ export async function getPropertiesAction(): Promise<AdminProperty[]> {
 }
 
 export async function getPropertyAction(idOrSlug: string): Promise<AdminProperty | undefined> {
+  const cacheKey = `property:${idOrSlug}`;
+  const now = Date.now();
+  const cached = ACTION_MEM_CACHE.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.data;
+  }
+
   try {
     const supabase = getDbClient();
     let query = supabase.from("properties").select("*, property_images(*)");
@@ -256,9 +308,15 @@ export async function getPropertyAction(idOrSlug: string): Promise<AdminProperty
 
     const { data, error } = await query.maybeSingle();
     if (error || !data) {
-      return adminStore.getPropertyById(idOrSlug);
+      const fallback = adminStore.getPropertyById(idOrSlug);
+      if (fallback) {
+        ACTION_MEM_CACHE.set(cacheKey, { data: fallback, expiresAt: now + CACHE_TTL_MS });
+      }
+      return fallback;
     }
-    return mapDbPropertyToAdmin(data);
+    const result = mapDbPropertyToAdmin(data);
+    ACTION_MEM_CACHE.set(cacheKey, { data: result, expiresAt: now + CACHE_TTL_MS });
+    return result;
   } catch {
     return adminStore.getPropertyById(idOrSlug);
   }
@@ -372,6 +430,8 @@ export async function savePropertyAction(formData: any) {
       overviewBn: cleanOverviewBn,
     });
 
+    invalidateAdminActionCache("propert");
+
     revalidatePath("/admin/properties");
     revalidatePath(`/admin/properties/${savedRow.id}`);
     revalidatePath("/properties");
@@ -398,6 +458,7 @@ export async function deletePropertyAction(id: string) {
     }
 
     adminStore.deleteProperty(id);
+    invalidateAdminActionCache("propert");
 
     revalidatePath("/admin/properties");
     revalidatePath("/properties");
@@ -408,6 +469,7 @@ export async function deletePropertyAction(id: string) {
   } catch (err) {
     console.error("Error deleting property from Supabase:", err);
     adminStore.deleteProperty(id);
+    invalidateAdminActionCache("propert");
     return { success: true };
   }
 }
@@ -655,6 +717,13 @@ export async function addLeadActivityAction(leadId: string, type: any, title: st
 
 // --- SOCIAL LINKS ACTIONS ---
 export async function getSocialLinksAction(): Promise<SocialLink[]> {
+  const cacheKey = "social_links:all";
+  const now = Date.now();
+  const cached = ACTION_MEM_CACHE.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.data;
+  }
+
   try {
     const supabase = getDbClient();
     const { data, error } = await supabase
@@ -663,9 +732,13 @@ export async function getSocialLinksAction(): Promise<SocialLink[]> {
       .order("sort_order", { ascending: true });
 
     if (error || !data || data.length === 0) {
-      return adminStore.getSocialLinks();
+      const fallback = adminStore.getSocialLinks();
+      ACTION_MEM_CACHE.set(cacheKey, { data: fallback, expiresAt: now + CACHE_TTL_MS });
+      return fallback;
     }
-    return data.map(mapDbSocialLink);
+    const result = data.map(mapDbSocialLink);
+    ACTION_MEM_CACHE.set(cacheKey, { data: result, expiresAt: now + CACHE_TTL_MS });
+    return result;
   } catch {
     return adminStore.getSocialLinks();
   }
@@ -1045,11 +1118,18 @@ export async function deleteRedirectAction(id: string) {
 
 // --- CUSTOM SCRIPTS ACTIONS ---
 export async function getCustomScriptsAction(): Promise<CustomScript[]> {
+  const cacheKey = "custom_scripts:all";
+  const now = Date.now();
+  const cached = ACTION_MEM_CACHE.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.data;
+  }
+
   try {
     const supabase = getDbClient();
     const { data } = await supabase.from("custom_scripts").select("*").order("created_at", { ascending: false });
     if (data && data.length > 0) {
-      return data.map((c: any) => ({
+      const result = data.map((c: any) => ({
         id: c.id,
         name: c.name,
         placement: c.placement,
@@ -1058,9 +1138,13 @@ export async function getCustomScriptsAction(): Promise<CustomScript[]> {
         createdBy: c.created_by || "Admin",
         createdAt: c.created_at,
       }));
+      ACTION_MEM_CACHE.set(cacheKey, { data: result, expiresAt: now + CACHE_TTL_MS });
+      return result;
     }
   } catch {}
-  return adminStore.getCustomScripts();
+  const fallback = adminStore.getCustomScripts();
+  ACTION_MEM_CACHE.set(cacheKey, { data: fallback, expiresAt: now + CACHE_TTL_MS });
+  return fallback;
 }
 
 export async function saveCustomScriptAction(formData: any) {
@@ -1089,6 +1173,7 @@ export async function saveCustomScriptAction(formData: any) {
       .single();
 
     adminStore.saveCustomScript({ id, ...parsed.data });
+    ACTION_MEM_CACHE.delete("custom_scripts:all");
     revalidatePath("/admin/seo/scripts");
     return { success: true, script: data };
   } catch (err: any) {
@@ -1106,6 +1191,7 @@ export async function deleteCustomScriptAction(id: string) {
     }
   } catch {}
   const deleted = adminStore.deleteCustomScript(id);
+  ACTION_MEM_CACHE.delete("custom_scripts:all");
   revalidatePath("/admin/seo/scripts");
   return { success: deleted };
 }
@@ -1199,45 +1285,73 @@ export async function deleteAgentAction(id: string) {
 }
 
 export async function getSettingsAction(): Promise<any> {
+  const cacheKey = "settings:composite";
+  const now = Date.now();
+  const cached = ACTION_MEM_CACHE.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.data;
+  }
+
   const base = adminStore.getSettings();
-  const savedBranding = await getSetting("branding", base.branding);
-  const branding = { ...base.branding, ...(savedBranding || {}) };
-  const webhooks = await getSetting("webhooks", base.webhooks);
-  const mapConfig = await getSetting("mapConfig", base.mapConfig);
-  const seo = await getSetting("seo", null);
-  const rolePermissions = await getSetting("role_permissions", null);
+  try {
+    const supabase = getDbClient();
+    const { data } = await supabase
+      .from("site_settings")
+      .select("key, value")
+      .in("key", ["branding", "webhooks", "mapConfig", "seo", "role_permissions"]);
 
-  // Normalized `company` object so Navbar, Footer, TopBar, BottomNav, and Contact page always stay in sync with `branding`
-  const company = {
-    name: branding.companyName || "Corona Properties Limited",
-    shortName: branding.shortName || "Corona Properties",
-    tagline: branding.tagline || "Transparency, Commitment, Trust",
-    taglineBn: branding.taglineBn || "",
-    about:
-      branding.description ||
-      "Bangladesh's premier residential land developer. Crafting legacies through premium plots, transparent transactions, and enduring value since 2015.",
-    description:
-      branding.description ||
-      "Bangladesh's premier residential land developer. Crafting legacies through premium plots, transparent transactions, and enduring value since 2015.",
-    logo: branding.logoUrl || "/corona-logo.png",
-    favicon: branding.faviconUrl || "/favicon.ico",
-    phone: branding.phone || "+880 1805 759297",
-    whatsapp: branding.whatsapp || (branding.phone || "8801805759297").replace(/[^0-9]/g, ""),
-    email: branding.email || "info@coronapropertiesltd.com",
-    address: branding.address || "Mar Garden, House #145, Flat #704, Road #3, Block A, Niketan, Gulshan 01, Dhaka - 1212",
-    hours: branding.hours || "Saturday – Thursday: 9:00 AM – 6:00 PM | Friday: Closed",
-    ctaText: branding.headerCtaText || "Book a Visit",
-    ctaLink: branding.headerCtaLink || "/contact",
-    mapEmbedUrl: branding.mapEmbedUrl || "",
-    directionsUrl: branding.directionsUrl || "https://maps.google.com/?q=Niketon+Gulshan+1+Dhaka+1212",
-  };
+    const map = new Map<string, any>();
+    if (Array.isArray(data)) {
+      data.forEach((r: any) => {
+        if (r && r.key) map.set(r.key, r.value);
+      });
+    }
 
-  return { ...base, branding, company, webhooks, mapConfig, seo, rolePermissions };
+    const savedBranding = map.get("branding") ?? base.branding;
+    const branding = { ...base.branding, ...(savedBranding || {}) };
+    const webhooks = map.get("webhooks") ?? base.webhooks;
+    const mapConfig = map.get("mapConfig") ?? base.mapConfig;
+    const seo = map.get("seo") ?? null;
+    const rolePermissions = map.get("role_permissions") ?? null;
+
+    // Normalized `company` object so Navbar, Footer, TopBar, BottomNav, and Contact page always stay in sync with `branding`
+    const company = {
+      name: branding.companyName || "Corona Properties Limited",
+      shortName: branding.shortName || "Corona Properties",
+      tagline: branding.tagline || "Transparency, Commitment, Trust",
+      taglineBn: branding.taglineBn || "",
+      about:
+        branding.description ||
+        "Bangladesh's premier residential land developer. Crafting legacies through premium plots, transparent transactions, and enduring value since 2015.",
+      description:
+        branding.description ||
+        "Bangladesh's premier residential land developer. Crafting legacies through premium plots, transparent transactions, and enduring value since 2015.",
+      logo: branding.logoUrl || "/corona-logo.png",
+      favicon: branding.faviconUrl || "/favicon.ico",
+      phone: branding.phone || "+880 1805 759297",
+      whatsapp: branding.whatsapp || (branding.phone || "8801805759297").replace(/[^0-9]/g, ""),
+      email: branding.email || "info@coronapropertiesltd.com",
+      address: branding.address || "Mar Garden, House #145, Flat #704, Road #3, Block A, Niketan, Gulshan 01, Dhaka - 1212",
+      hours: branding.hours || "Saturday – Thursday: 9:00 AM – 6:00 PM | Friday: Closed",
+      ctaText: branding.headerCtaText || "Book a Visit",
+      ctaLink: branding.headerCtaLink || "/contact",
+      mapEmbedUrl: branding.mapEmbedUrl || "",
+      directionsUrl: branding.directionsUrl || "https://maps.google.com/?q=Niketon+Gulshan+1+Dhaka+1212",
+    };
+
+    const result = { ...base, branding, company, webhooks, mapConfig, seo, rolePermissions };
+    ACTION_MEM_CACHE.set(cacheKey, { data: result, expiresAt: now + CACHE_TTL_MS });
+    return result;
+  } catch {
+    return base;
+  }
 }
 
 export async function updateSettingsAction(key: string, value: any) {
   await saveSetting(key, value);
   adminStore.updateSettings(key, value);
+  ACTION_MEM_CACHE.delete("settings:composite");
+  ACTION_MEM_CACHE.delete(`setting:${key}`);
   revalidatePath("/", "layout");
   revalidatePath("/");
   revalidatePath("/contact");
@@ -1290,6 +1404,13 @@ export async function submitLeadInquiryAction(formData: {
 
 // --- BLOG ACTIONS ---
 export async function getBlogPostsAction(): Promise<AdminBlogPost[]> {
+  const cacheKey = "blog_posts:all";
+  const now = Date.now();
+  const cached = ACTION_MEM_CACHE.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.data;
+  }
+
   const getPostTimestamp = (p: any): number => {
     const val = p.publishedAt || p.published_at || p.date || p.createdAt || p.created_at;
     if (!val) return 0;
@@ -1329,13 +1450,24 @@ export async function getBlogPostsAction(): Promise<AdminBlogPost[]> {
       const missingSeed = adminStore.getBlogPosts().filter((s: any) => !existingSlugs.has(s.slug));
 
       const combined = [...dbPosts, ...missingSeed];
-      return combined.sort((a, b) => getPostTimestamp(b) - getPostTimestamp(a));
+      const result = combined.sort((a, b) => getPostTimestamp(b) - getPostTimestamp(a));
+      ACTION_MEM_CACHE.set(cacheKey, { data: result, expiresAt: now + CACHE_TTL_MS });
+      return result;
     }
   } catch {}
-  return adminStore.getBlogPosts().slice().sort((a, b) => getPostTimestamp(b) - getPostTimestamp(a));
+  const fallback = adminStore.getBlogPosts().slice().sort((a, b) => getPostTimestamp(b) - getPostTimestamp(a));
+  ACTION_MEM_CACHE.set(cacheKey, { data: fallback, expiresAt: now + CACHE_TTL_MS });
+  return fallback;
 }
 
 export async function getBlogPostAction(idOrSlug: string): Promise<AdminBlogPost | null> {
+  const cacheKey = `blog_post:${idOrSlug}`;
+  const now = Date.now();
+  const cached = ACTION_MEM_CACHE.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.data;
+  }
+
   try {
     const supabase = getDbClient();
     const query = isUuid(idOrSlug)
@@ -1343,7 +1475,7 @@ export async function getBlogPostAction(idOrSlug: string): Promise<AdminBlogPost
       : supabase.from("blog_posts").select("*").eq("slug", idOrSlug);
     const { data } = await query.maybeSingle();
     if (data) {
-      return {
+      const result: AdminBlogPost = {
         id: data.id,
         slug: data.slug,
         title: data.title,
@@ -1362,9 +1494,15 @@ export async function getBlogPostAction(idOrSlug: string): Promise<AdminBlogPost
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };
+      ACTION_MEM_CACHE.set(cacheKey, { data: result, expiresAt: now + CACHE_TTL_MS });
+      return result;
     }
   } catch {}
-  return adminStore.getBlogPostByIdOrSlug(idOrSlug) || null;
+  const fallback = adminStore.getBlogPostByIdOrSlug(idOrSlug) || null;
+  if (fallback) {
+    ACTION_MEM_CACHE.set(cacheKey, { data: fallback, expiresAt: now + CACHE_TTL_MS });
+  }
+  return fallback;
 }
 
 export async function saveBlogPostAction(formData: any) {
@@ -1433,6 +1571,7 @@ export async function saveBlogPostAction(formData: any) {
   }
 
   const saved = adminStore.saveBlogPost({ id: savedId, ...postPayload });
+  invalidateAdminActionCache("blog");
   revalidatePath("/admin/blog");
   revalidatePath("/blog");
   if (parsed.data.slug) {
@@ -1451,6 +1590,7 @@ export async function deleteBlogPostAction(id: string) {
     }
   } catch {}
   const deleted = adminStore.deleteBlogPost(id);
+  invalidateAdminActionCache("blog");
   revalidatePath("/admin/blog");
   revalidatePath("/blog");
   return { success: deleted };
@@ -1767,9 +1907,16 @@ export async function deletePageAction(id: string) {
 
 // --- SITE CONTENT ACTIONS (STORED IN SUPABASE SITE_SETTINGS) ---
 export async function getSiteContentAction(): Promise<AdminSiteContent> {
+  const cacheKey = "site_content:all";
+  const now = Date.now();
+  const cached = ACTION_MEM_CACHE.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.data;
+  }
+
   const defaults = adminStore.getSiteContent();
   const saved = await getSetting<Partial<AdminSiteContent>>("site_content", {});
-  return {
+  const result: AdminSiteContent = {
     ...defaults,
     ...(saved || {}),
     hero: { ...defaults.hero, ...(saved?.hero || {}) },
@@ -1817,6 +1964,8 @@ export async function getSiteContentAction(): Promise<AdminSiteContent> {
     blogPage: { ...defaults.blogPage!, ...(saved?.blogPage || {}) },
     contactPage: { ...defaults.contactPage!, ...(saved?.contactPage || {}) },
   };
+  ACTION_MEM_CACHE.set(cacheKey, { data: result, expiresAt: now + CACHE_TTL_MS });
+  return result;
 }
 
 export async function updateSiteContentAction(section: string, data: any) {
@@ -1826,6 +1975,7 @@ export async function updateSiteContentAction(section: string, data: any) {
     [section]: data,
   };
 
+  ACTION_MEM_CACHE.delete("site_content:all");
   await saveSetting("site_content", updatedContent);
   adminStore.updateSiteContent(section as any, data);
 
@@ -1846,9 +1996,16 @@ export async function updateSiteContentAction(section: string, data: any) {
 
 // --- NAVIGATION ACTIONS (STORED IN SUPABASE SITE_SETTINGS) ---
 export async function getNavigationAction(): Promise<AdminNavigation> {
+  const cacheKey = "navigation:main";
+  const now = Date.now();
+  const cached = ACTION_MEM_CACHE.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.data;
+  }
+
   const defaults = adminStore.getNavigation();
   const saved = await getSetting<Partial<AdminNavigation>>("navigation", {});
-  return {
+  const result: AdminNavigation = {
     header: saved?.header && saved.header.length > 0 ? saved.header : defaults.header,
     footer: {
       company: saved?.footer?.company || defaults.footer.company,
@@ -1858,9 +2015,12 @@ export async function getNavigationAction(): Promise<AdminNavigation> {
     },
     categories: saved?.categories && saved.categories.length > 0 ? saved.categories : defaults.categories,
   };
+  ACTION_MEM_CACHE.set(cacheKey, { data: result, expiresAt: now + CACHE_TTL_MS });
+  return result;
 }
 
 export async function updateNavigationAction(navData: any) {
+  ACTION_MEM_CACHE.delete("navigation:main");
   await saveSetting("navigation", navData);
   adminStore.updateNavigation(navData);
 

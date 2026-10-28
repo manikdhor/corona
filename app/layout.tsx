@@ -10,9 +10,7 @@ import {
   getCustomScriptsAction,
 } from "@/lib/admin/actions";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";
+export const revalidate = 60;
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -121,6 +119,12 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={`${playfair.variable} ${cormorant.variable} ${inter.variable}`}>
+      <head>
+        <link rel="preconnect" href="https://xtilpfcqhecqhifftrop.supabase.co" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://xtilpfcqhecqhifftrop.supabase.co" />
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+      </head>
       <body className="font-sans antialiased">
         <SiteChrome
           initialSettings={settings}

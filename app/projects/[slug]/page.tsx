@@ -23,9 +23,7 @@ import KeyAssets from "@/components/property/KeyAssets";
 import DynamicIcon from "@/components/ui/DynamicIcon";
 import PropertyGallery from "@/components/property/PropertyGallery";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";
+export const revalidate = 60;
 export const dynamicParams = true;
 
 interface PageProps {

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Phone, Diamond, Mail, ChevronDown } from "lucide-react";
+import { Menu, X, Phone, Diamond, Mail, ChevronDown, Sparkles } from "lucide-react";
 import { SITE_CONFIG, CONTACT_INFO } from "@/lib/constants";
 import { PROJECTS } from "@/lib/projects";
 import NavDropdown from "@/components/ui/NavDropdown";
@@ -58,7 +58,7 @@ export default function Navbar({ initialCompany, initialNavigation }: NavbarProp
   }, [initialNavigation]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
+    const onScroll = () => setScrolled(window.scrollY > 35);
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
@@ -76,14 +76,12 @@ export default function Navbar({ initialCompany, initialNavigation }: NavbarProp
   }, [mobileOpen]);
 
   useEffect(() => {
-    // Fetch dynamic navigation if not provided by server
     if (!initialNavigation) {
       getNavigationAction().then((nav) => {
         if (nav) setNavData(nav);
       });
     }
 
-    // Fetch dynamic company info if not provided by server
     if (!initialCompany) {
       getSettingsAction().then((s) => {
         if (s?.company) {
@@ -129,15 +127,15 @@ export default function Navbar({ initialCompany, initialNavigation }: NavbarProp
       {/* === MOBILE NAVBAR === */}
       <header
         className={cn(
-          "sticky top-0 z-50 transition-all duration-600 md:hidden",
+          "sticky top-0 z-50 transition-all duration-500 lg:hidden",
           scrolled
-            ? "bg-cream/90 backdrop-blur-2xl shadow-[0_1px_0_0_rgba(201,169,110,0.15),0_8px_40px_rgba(10,26,62,0.06)]"
-            : "bg-navy-950/70 backdrop-blur-lg"
+            ? "bg-[#050c1e]/95 backdrop-blur-xl border-b border-gold-500/20 shadow-[0_8px_30px_rgba(0,0,0,0.5)]"
+            : "bg-[#060c1c]/90 backdrop-blur-lg border-b border-white/[0.08]"
         )}
       >
-        <nav className="flex h-14 items-center justify-between px-5">
-          <Link href="/" className="flex items-center gap-2.5" aria-label={companyInfo.name}>
-            <div className="relative h-9 w-9 overflow-hidden rounded-lg bg-white/10 p-1" style={{ position: "relative" }}>
+        <nav className="flex h-16 items-center justify-between px-5">
+          <Link href="/" className="flex items-center gap-3" aria-label={companyInfo.name}>
+            <div className="relative h-9 w-9 overflow-hidden rounded-xl bg-gradient-to-br from-white/10 to-white/[0.02] p-1.5 border border-gold-500/30 shadow-sm" style={{ position: "relative" }}>
               <Image
                 src={normalizeImageUrl(companyInfo.logo)}
                 alt={companyInfo.name}
@@ -148,62 +146,59 @@ export default function Navbar({ initialCompany, initialNavigation }: NavbarProp
               />
             </div>
             <div className="flex items-center gap-2 leading-none">
-              <span
-                className={cn(
-                  "font-serif text-sm font-bold tracking-wide transition-colors duration-500",
-                  scrolled ? "text-navy" : "text-cream"
-                )}
-              >
+              <span className="font-serif text-base font-bold tracking-wide text-cream">
                 Corona
               </span>
               <span className="h-3 w-px bg-gold-500/40" />
-              <span
-                className={cn(
-                  "text-[8px] uppercase tracking-[0.25em] font-semibold transition-colors duration-500",
-                  scrolled ? "text-gold-600" : "text-gold-champagne"
-                )}
-              >
+              <span className="text-[8px] uppercase tracking-[0.25em] font-semibold text-gold-400">
                 Properties
               </span>
             </div>
           </Link>
 
-          <button
-            onClick={() => setMobileOpen(true)}
-            aria-label="Open menu"
-            className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-sm transition-all",
-              scrolled
-                ? "text-navy hover:bg-navy-50"
-                : "text-cream hover:bg-white/15"
-            )}
-          >
-            <Menu className="h-5 w-5" strokeWidth={1.5} />
-          </button>
+          <div className="flex items-center gap-2">
+            <a
+              href={`tel:${companyInfo.phoneRaw}`}
+              aria-label="Call Hotline"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.05] border border-white/[0.1] text-gold-400 hover:border-gold-400 hover:bg-gold-500/20 transition-all"
+            >
+              <Phone className="h-4 w-4" />
+            </a>
+            <button
+              onClick={() => setMobileOpen(true)}
+              aria-label="Open menu"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-gold-500/10 border border-gold-500/30 text-gold-300 transition-all hover:bg-gold-500/20"
+            >
+              <Menu className="h-5 w-5" strokeWidth={1.75} />
+            </button>
+          </div>
         </nav>
-        <div
-          className={cn(
-            "h-px w-full transition-opacity duration-600",
-            scrolled
-              ? "bg-gradient-to-r from-transparent via-gold/40 to-transparent opacity-100"
-              : "opacity-0"
-          )}
-        />
       </header>
 
       {/* === DESKTOP NAVBAR === */}
       <header
         className={cn(
-          "sticky top-0 z-50 hidden md:block transition-all duration-600",
+          "sticky top-0 z-50 hidden lg:block transition-all duration-500",
           scrolled
-            ? "bg-cream/90 backdrop-blur-2xl shadow-[0_1px_0_0_rgba(201,169,110,0.15),0_8px_40px_rgba(10,26,62,0.06)]"
-            : "bg-navy-950/70 backdrop-blur-lg"
+            ? "bg-[#050c1e]/95 backdrop-blur-xl border-b border-gold-500/20 shadow-[0_12px_36px_rgba(0,0,0,0.55)]"
+            : "bg-[#060c1c]/80 backdrop-blur-md border-b border-white/[0.08]"
         )}
       >
-        <nav className="container-luxury flex h-20 items-center justify-between">
-          {/* Logo */}
+        <nav
+          className={cn(
+            "container-luxury flex items-center justify-between transition-all duration-300",
+            scrolled ? "h-16" : "h-20"
+          )}
+        >
+          {/* Zone 1: Logo & Brand Signature */}
           <Link href="/" className="group flex items-center gap-3.5" aria-label={companyInfo.name}>
-            <div className="relative h-11 w-11 overflow-hidden rounded-xl bg-white/10 p-1 transition-all duration-500 group-hover:bg-white/20" style={{ position: "relative" }}>
+            <div
+              className={cn(
+                "relative overflow-hidden rounded-xl bg-gradient-to-br from-white/10 to-white/[0.02] border border-gold-500/30 shadow-[0_2px_12px_rgba(0,0,0,0.3)] transition-all duration-500 group-hover:border-gold-400 group-hover:shadow-[0_0_20px_rgba(201,169,110,0.3)]",
+                scrolled ? "h-10 w-10 p-1" : "h-11 w-11 p-1.5"
+              )}
+              style={{ position: "relative" }}
+            >
               <Image
                 src={normalizeImageUrl(companyInfo.logo)}
                 alt={companyInfo.name}
@@ -213,30 +208,19 @@ export default function Navbar({ initialCompany, initialNavigation }: NavbarProp
                 sizes="44px"
               />
             </div>
-            <div className="flex items-center gap-2 leading-none">
-              <span
-                className={cn(
-                  "font-serif text-[1.15rem] font-bold tracking-wide transition-colors duration-500",
-                  scrolled ? "text-navy" : "text-cream"
-                )}
-              >
+            <div className="flex items-center gap-2.5 leading-none">
+              <span className="font-serif text-[1.28rem] font-bold tracking-wide text-cream group-hover:text-gold-200 transition-colors">
                 Corona
               </span>
-              <span className="h-4 w-px bg-gold-500/40" />
-              <span
-                className={cn(
-                  "text-[9px] uppercase tracking-[0.25em] font-semibold transition-colors duration-500",
-                  scrolled ? "text-gold-600" : "text-gold-champagne"
-                )}
-              >
+              <span className="h-4 w-[1.5px] bg-gradient-to-b from-transparent via-gold-400 to-transparent" />
+              <span className="text-[9px] uppercase tracking-[0.28em] font-semibold text-gold-400/90 group-hover:text-gold-300 transition-colors">
                 Properties Limited
               </span>
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="mx-6 h-8 w-px bg-white/[0.08]" />
-          <div className="hidden items-center gap-1.5 lg:flex">
+          {/* Zone 2: Centered Desktop Navigation */}
+          <div className="flex items-center gap-1 xl:gap-1.5">
             {headerLinks.map((item, idx) => {
               const labelLower = item.label.toLowerCase();
               const isDropdown = Boolean(
@@ -251,9 +235,9 @@ export default function Navbar({ initialCompany, initialNavigation }: NavbarProp
                 dropdownItems = item.children;
               } else if (labelLower === "about") {
                 dropdownItems = [
-                  { label: "About Us", href: "/about" },
-                  { label: "Group Profile", href: "/corona-group" },
-                  { label: "Management Messages", href: "/team" },
+                  { label: "About Us", href: "/about", description: "Our legacy, vision & leadership" },
+                  { label: "Group Profile", href: "/corona-group", description: "The overarching enterprise" },
+                  { label: "Management Messages", href: "/team", description: "Words from our leadership" },
                 ];
               } else if (labelLower === "properties" || labelLower === "projects") {
                 dropdownItems = propertyDropdownItems;
@@ -275,52 +259,47 @@ export default function Navbar({ initialCompany, initialNavigation }: NavbarProp
                   key={idx}
                   href={item.href || "/"}
                   className={cn(
-                    "relative px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.1em] transition-all duration-300",
-                    scrolled
-                      ? isCurrent
-                        ? "text-gold-600"
-                        : "text-navy-700 hover:text-gold-600"
-                      : isCurrent
-                      ? "text-gold-champagne"
-                      : "text-cream/90 hover:text-gold-champagne"
+                    "relative px-3.5 py-1.5 rounded-full text-[12px] font-semibold uppercase tracking-[0.14em] transition-all duration-300",
+                    isCurrent
+                      ? "text-gold-300 bg-white/[0.05]"
+                      : "text-cream/80 hover:text-cream hover:bg-white/[0.04]"
                   )}
                 >
                   <span className="relative z-10">{item.label}</span>
-                  <span
-                    className={cn(
-                      "absolute bottom-0 left-1/2 h-[2px] -translate-x-1/2 rounded-full bg-gradient-to-r from-gold-400 to-gold-600 transition-all duration-400",
-                      isCurrent ? "w-5" : "w-0"
-                    )}
-                  />
+                  {isCurrent && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-5 rounded-full bg-gradient-to-r from-gold-400 via-gold-300 to-gold-500 shadow-[0_0_8px_rgba(201,169,110,0.8)]" />
+                  )}
                 </Link>
               );
             })}
           </div>
 
-          {/* Right Side: CTA */}
+          {/* Zone 3: Actions & High-Conversion CTA */}
           <div className="flex items-center gap-3">
+            <a
+              href={`tel:${companyInfo.phoneRaw}`}
+              className="hidden 2xl:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] text-[11px] text-cream/70 hover:border-gold-500/40 hover:text-gold-200 transition-all duration-300"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-gold-500"></span>
+              </span>
+              <span className="font-medium tracking-wide">VIP Concierge</span>
+            </a>
+
             <Link
               href={companyInfo.ctaLink || "/contact"}
-              className={cn(
-                "hidden lg:inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-[12px] font-bold uppercase tracking-[0.15em] transition-all duration-400 hover:-translate-y-0.5",
-                scrolled
-                  ? "bg-gradient-to-r from-gold-400 via-gold-500 to-gold-600 text-navy shadow-gold hover:shadow-gold-lg"
-                  : "bg-white/15 backdrop-blur-sm text-cream border border-white/20 hover:bg-white/25 hover:border-gold/40"
-              )}
+              className="relative group overflow-hidden inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-[11.5px] font-bold uppercase tracking-[0.16em] bg-gradient-to-r from-[#d4ab53] via-[#c9a96e] to-[#b8924a] text-navy-950 shadow-[0_4px_20px_rgba(201,169,110,0.35)] hover:shadow-[0_8px_30px_rgba(201,169,110,0.55)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
             >
-              <Diamond className="h-3.5 w-3.5" />
-              {companyInfo.ctaText || "Book a Visit"}
+              <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+              <Diamond className="h-3.5 w-3.5 fill-navy-950/20 text-navy-950" />
+              <span className="relative z-10">{companyInfo.ctaText || "Book a Visit"}</span>
             </Link>
           </div>
         </nav>
-        <div
-          className={cn(
-            "h-px w-full transition-opacity duration-600",
-            scrolled
-              ? "bg-gradient-to-r from-transparent via-gold/40 to-transparent opacity-100"
-              : "opacity-0"
-          )}
-        />
+
+        {/* Ambient bottom gold hairline */}
+        <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-gold-400/25 to-transparent" />
       </header>
 
       {/* === MOBILE MENU OVERLAY === */}
@@ -331,11 +310,11 @@ export default function Navbar({ initialCompany, initialNavigation }: NavbarProp
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[100] xl:hidden"
+            className="fixed inset-0 z-[100] lg:hidden"
           >
             {/* Backdrop */}
             <motion.div
-              className="absolute inset-0 bg-navy-950/90 backdrop-blur-md"
+              className="absolute inset-0 bg-navy-950/85 backdrop-blur-md"
               onClick={() => setMobileOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -347,13 +326,13 @@ export default function Navbar({ initialCompany, initialNavigation }: NavbarProp
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute right-0 top-0 flex h-full w-[88%] max-w-[400px] flex-col bg-gradient-to-b from-navy-900 via-navy-950 to-navy-950 shadow-2xl"
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute right-0 top-0 flex h-full w-[88%] max-w-[400px] flex-col bg-gradient-to-b from-[#081329] via-[#050c1a] to-[#030712] border-l border-gold-500/20 shadow-2xl"
             >
               {/* Drawer header */}
-              <div className="flex items-center justify-between border-b border-white/[0.06] px-8 py-5">
+              <div className="flex items-center justify-between border-b border-white/[0.08] px-7 py-5">
                 <div className="flex items-center gap-3">
-                  <div className="relative h-10 w-10 overflow-hidden rounded-lg bg-white/10 p-1.5">
+                  <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-gradient-to-br from-white/10 to-white/[0.02] p-1.5 border border-gold-500/30">
                     <Image
                       src={normalizeImageUrl(companyInfo.logo)}
                       alt={companyInfo.name}
@@ -363,43 +342,49 @@ export default function Navbar({ initialCompany, initialNavigation }: NavbarProp
                   </div>
                   <div>
                     <p className="font-serif text-base font-bold text-cream">Corona</p>
-                    <p className="text-[8px] uppercase tracking-[0.3em] text-gold">
-                      Properties
+                    <p className="text-[8px] uppercase tracking-[0.25em] text-gold-400 font-semibold">
+                      Properties Limited
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setMobileOpen(false)}
                   aria-label="Close menu"
-                  className="flex h-10 w-10 items-center justify-center rounded-full text-cream/70 transition-all hover:bg-white/10 hover:text-cream"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.05] border border-white/[0.1] text-cream/70 transition-all hover:bg-gold-500/20 hover:text-gold hover:border-gold-500/40"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-4 w-4" />
                 </button>
               </div>
 
-              {/* Quick Contact */}
-              <div className="flex items-center gap-4 border-b border-white/[0.06] px-8 py-3">
+              {/* Quick Contact Bar */}
+              <div className="flex items-center justify-around border-b border-white/[0.06] bg-white/[0.02] px-6 py-3 text-xs">
                 <a
                   href={`tel:${companyInfo.phoneRaw}`}
-                  className="flex items-center gap-2 text-xs text-cream/60 transition-colors hover:text-gold"
+                  className="flex items-center gap-2 text-cream/75 transition-colors hover:text-gold"
                 >
-                  <Phone className="h-3.5 w-3.5 text-gold-500" />
-                  <span>{companyInfo.phone}</span>
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gold-500/15 text-gold">
+                    <Phone className="h-3 w-3" />
+                  </span>
+                  <span>Call Us</span>
                 </a>
+                <span className="h-4 w-px bg-white/[0.1]" />
                 <a
                   href={`mailto:${companyInfo.email}`}
-                  className="flex items-center gap-2 text-xs text-cream/60 transition-colors hover:text-gold"
+                  className="flex items-center gap-2 text-cream/75 transition-colors hover:text-gold"
                 >
-                  <Mail className="h-3.5 w-3.5 text-gold-500" />
-                  <span>{companyInfo.email}</span>
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gold-500/15 text-gold">
+                    <Mail className="h-3 w-3" />
+                  </span>
+                  <span>Email</span>
                 </a>
               </div>
 
-              <nav className="flex-1 overflow-y-auto px-8 py-4">
-                <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-cream/30">
-                  Main Navigation
+              {/* Navigation Links */}
+              <nav className="flex-1 overflow-y-auto px-6 py-5">
+                <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-gold-400/80 font-semibold">
+                  Navigation
                 </p>
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   {headerLinks.map((item, idx) => {
                     const labelLower = item.label.toLowerCase();
                     const isDropdown = Boolean(
@@ -424,12 +409,12 @@ export default function Navbar({ initialCompany, initialNavigation }: NavbarProp
 
                     if (isDropdown && dropdownItems.length > 0) {
                       return (
-                        <div key={idx} className="py-1">
-                          <p className="px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-gold/80 flex items-center justify-between">
+                        <div key={idx} className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-2">
+                          <p className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-gold-400 flex items-center justify-between">
                             <span>{item.label}</span>
-                            <ChevronDown className="h-3 w-3 text-gold/50" />
+                            <ChevronDown className="h-3.5 w-3.5 text-gold-400/60" />
                           </p>
-                          <div className="space-y-1 pl-2 border-l border-gold/20 ml-4 mb-2">
+                          <div className="space-y-1 pl-2 border-l border-gold-500/30 ml-3 my-1">
                             {dropdownItems.map((child, cIdx) => {
                               const isChildActive = child.href === "/" ? pathname === "/" : pathname.startsWith(child.href);
                               return (
@@ -438,18 +423,13 @@ export default function Navbar({ initialCompany, initialNavigation }: NavbarProp
                                   href={child.href}
                                   onClick={() => setMobileOpen(false)}
                                   className={cn(
-                                    "group flex flex-col rounded-xl px-3 py-2 text-[13px] font-medium transition-all duration-300",
+                                    "flex flex-col rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-200",
                                     isChildActive
-                                      ? "bg-gold/15 text-gold font-semibold"
-                                      : "text-cream/80 hover:bg-white/[0.04] hover:text-cream"
+                                      ? "bg-gold/15 text-gold-300 font-semibold"
+                                      : "text-cream/70 hover:bg-white/[0.04] hover:text-cream"
                                   )}
                                 >
                                   <span>{child.label}</span>
-                                  {child.description && (
-                                    <span className="text-[10px] text-cream/40 leading-tight">
-                                      {child.description}
-                                    </span>
-                                  )}
                                 </Link>
                               );
                             })}
@@ -464,9 +444,9 @@ export default function Navbar({ initialCompany, initialNavigation }: NavbarProp
                         href={item.href}
                         onClick={() => setMobileOpen(false)}
                         className={cn(
-                          "group flex items-center justify-between rounded-xl px-4 py-3.5 text-[14px] font-medium transition-all duration-300",
+                          "flex items-center justify-between rounded-xl px-4 py-3 text-[13.5px] font-medium transition-all duration-200",
                           isCurrent
-                            ? "bg-gold/10 text-gold"
+                            ? "bg-gold-500/15 text-gold-300 font-semibold border-l-2 border-gold-400"
                             : "text-cream/80 hover:bg-white/[0.04] hover:text-cream"
                         )}
                       >
@@ -477,21 +457,20 @@ export default function Navbar({ initialCompany, initialNavigation }: NavbarProp
                 </div>
               </nav>
 
-              <div className="border-t border-white/[0.06] px-8 py-4">
-                <a
-                  href={`tel:${companyInfo.phoneRaw}`}
-                  className="flex items-center gap-3 text-sm text-cream/70 transition-colors hover:text-gold"
+              {/* Drawer Footer CTA */}
+              <div className="border-t border-white/[0.08] p-6 space-y-3 bg-[#040813]">
+                <Link
+                  href={companyInfo.ctaLink || "/contact"}
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-center gap-2 w-full rounded-full py-3 text-[12px] font-bold uppercase tracking-[0.16em] bg-gradient-to-r from-gold-400 via-gold-500 to-gold-600 text-navy-950 shadow-[0_4px_20px_rgba(201,169,110,0.35)]"
                 >
-                  <Phone className="h-4 w-4 text-gold" />
-                  {companyInfo.phone}
-                </a>
-                <a
-                  href={`mailto:${companyInfo.email}`}
-                  className="flex items-center gap-3 text-sm text-cream/70 transition-colors hover:text-gold mt-2"
-                >
-                  <Mail className="h-4 w-4 text-gold" />
-                  {companyInfo.email}
-                </a>
+                  <Diamond className="h-4 w-4 fill-navy-950/20 text-navy-950" />
+                  <span>{companyInfo.ctaText || "Book a Visit"}</span>
+                </Link>
+
+                <p className="text-center text-[10px] tracking-wider text-cream/40">
+                  Niketan, Gulshan-1, Dhaka • Bangladesh
+                </p>
               </div>
             </motion.div>
           </motion.div>

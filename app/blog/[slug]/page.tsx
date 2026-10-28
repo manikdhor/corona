@@ -20,9 +20,7 @@ import LeadForm from "@/components/lead/LeadForm";
 import BlogArticleBody from "@/components/blog/BlogArticleBody";
 import BlogShareBar from "@/components/blog/BlogShareBar";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";
+export const revalidate = 60;
 export const dynamicParams = true;
 
 interface PageProps {

@@ -4,9 +4,7 @@ import PropertyFilter from "@/components/property/PropertyFilter";
 import LeadForm from "@/components/lead/LeadForm";
 import { getPropertiesAction, getSiteContentAction, getCategoriesAction } from "@/lib/admin/actions";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Properties",

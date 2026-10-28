@@ -8,6 +8,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import BottomNav from "./BottomNav";
 import ScrollProgress from "@/components/ui/ScrollProgress";
+import RouteProgressBar from "@/components/ui/RouteProgressBar";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { SITE_CONFIG } from "@/lib/constants";
 import { getCustomScriptsAction, getSettingsAction } from "@/lib/admin/actions";
@@ -93,6 +94,7 @@ export default function SiteChrome({
       ))}
 
       <Preloader logo={company?.logo} name={company?.name} />
+      <RouteProgressBar />
       <ScrollProgress />
       <TopBar initialCompany={company} initialSocials={initialSocialLinks} />
       <Navbar initialCompany={company} initialNavigation={initialNavigation} />

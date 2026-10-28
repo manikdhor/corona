@@ -4,9 +4,7 @@ import GalleryGrid from "@/components/gallery/GalleryGrid";
 import LeadForm from "@/components/lead/LeadForm";
 import { getMediaAction, getCategoriesAction, getSiteContentAction } from "@/lib/admin/actions";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Gallery",

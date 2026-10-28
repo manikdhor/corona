@@ -10,9 +10,7 @@ import LeadForm from "@/components/lead/LeadForm";
 import CTABanner from "@/components/home/CTABanner";
 import { getSiteContentAction, getTestimonialsAction, getPropertiesAction } from "@/lib/admin/actions";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";
+export const revalidate = 60;
 
 export default async function HomePage() {
   const [siteContent, testimonials, adminProperties] = await Promise.all([
