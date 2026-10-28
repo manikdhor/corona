@@ -82,32 +82,32 @@ export function getGoogleMapsDirectionsUrl(
 
 /**
  * Returns a clean Google Maps view link for external opening in a new tab.
+ * IMPORTANT: Never returns an /embed URL because Google blocks opening embed URLs directly in a browser tab.
  */
 export function getGoogleMapsViewUrl(
   query?: string | null,
   coordinates?: { lat: number; lng: number } | null,
   customUrl?: string | null
 ): string {
+  // If customUrl is a direct non-embed map link (like maps.google.com/?q=... or maps.app.goo.gl/...), use it
   if (customUrl && typeof customUrl === "string") {
     const trimmed = customUrl.trim();
-    // If it's an iframe, extract the src
-    if (trimmed.includes("<iframe")) {
-      const match = trimmed.match(/src=["']([^"']+)["']/i);
-      if (match && match[1]) {
-        // Embed URLs open fine or can be converted to search
-        return match[1].trim();
+    if (!trimmed.includes("/maps/embed") && !trimmed.includes("<iframe")) {
+      if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+        return trimmed;
       }
-    }
-    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-      return trimmed;
     }
   }
 
-  if (coordinates && coordinates.lat && coordinates.lng) {
-    return `https://www.google.com/maps/search/?api=1&query=${coordinates.lat},${coordinates.lng}`;
-  }
+  // Use query if provided (best user experience in Google Maps)
   if (query && query.trim()) {
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query.trim())}`;
   }
-  return "https://www.google.com/maps/search/?api=1&query=23.86489,90.5647";
+
+  // Use coordinates if provided
+  if (coordinates && coordinates.lat && coordinates.lng) {
+    return `https://www.google.com/maps/search/?api=1&query=${coordinates.lat},${coordinates.lng}`;
+  }
+
+  return "https://www.google.com/maps/search/?api=1&query=Maple+Leaf+Garden+City+Purbachal";
 }

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { ProjectAssets } from "@/lib/projects";
-import { extractMapEmbedUrl, getGoogleMapsViewUrl } from "@/lib/maps";
+import { extractMapEmbedUrl, getGoogleMapsViewUrl, getGoogleMapsDirectionsUrl } from "@/lib/maps";
 import {
   Download,
   ExternalLink,
@@ -28,6 +28,7 @@ interface KeyAssetsProps {
   mapCoordinates?: { lat: number; lng: number };
   mapHref?: string;
   mapViewHref?: string;
+  projectName?: string;
   className?: string;
   eyebrow?: string;
   title?: string;
@@ -41,12 +42,12 @@ const ASSET_ICONS = {
 } as const;
 
 function buildAssetList(props: KeyAssetsProps): KeyAsset[] {
-  const { assets, mapCoordinates, mapHref, mapViewHref } = props;
+  const { assets, mapCoordinates, mapHref, mapViewHref, projectName } = props;
 
-  const resolvedEmbedUrl = extractMapEmbedUrl(mapHref || assets.mapHref, mapCoordinates);
   const resolvedViewUrl =
     mapViewHref ||
-    getGoogleMapsViewUrl(undefined, mapCoordinates, mapHref || assets.mapHref);
+    getGoogleMapsViewUrl(projectName, mapCoordinates, mapHref || assets.mapHref);
+  const resolvedDirectionsUrl = getGoogleMapsDirectionsUrl(projectName, mapCoordinates);
 
   const items: KeyAsset[] = [
     {
@@ -54,10 +55,10 @@ function buildAssetList(props: KeyAssetsProps): KeyAsset[] {
       description:
         "Interactive Google Maps view with project location, nearby landmarks, and connectivity.",
       icon: "map",
-      viewHref: resolvedEmbedUrl,
-      downloadHref: resolvedViewUrl,
-      downloadLabel: "Open in Maps",
-      badge: "View",
+      viewHref: resolvedViewUrl,
+      downloadHref: resolvedDirectionsUrl,
+      downloadLabel: "Get Directions",
+      badge: "Map",
       badgeColor: "bg-emerald-100 text-emerald-700 border-emerald-200",
     },
     {
@@ -156,7 +157,11 @@ export default function KeyAssets({
                   className="inline-flex items-center gap-2 rounded-xl bg-gradient-gold px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-navy transition-all hover:shadow-gold hover:-translate-y-0.5"
                 >
                   {asset.downloadLabel}
-                  <Download className="h-3.5 w-3.5" />
+                  {asset.icon === "map" ? (
+                    <MapPin className="h-3.5 w-3.5" />
+                  ) : (
+                    <Download className="h-3.5 w-3.5" />
+                  )}
                 </Link>
               </div>
             </div>

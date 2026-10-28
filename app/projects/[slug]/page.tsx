@@ -178,6 +178,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                   mapCoordinates={project.coordinates}
                   mapHref={mapEmbedUrl}
                   mapViewHref={mapViewUrl}
+                  projectName={`${project.name} ${project.location}`}
                   eyebrow={project.sectionHeadings?.keyAssetsEyebrow}
                   title={project.sectionHeadings?.keyAssetsTitle}
                   subtitle={project.sectionHeadings?.keyAssetsSubtitle}
