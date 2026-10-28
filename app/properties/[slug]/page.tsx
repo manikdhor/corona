@@ -320,7 +320,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                   <div className="mt-4 flex flex-col gap-2">
                     <a
                       href={getGoogleMapsDirectionsUrl(
-                        `${property.title} ${property.location}`,
+                        property.title,
                         (property as any).coordinates
                       )}
                       target="_blank"

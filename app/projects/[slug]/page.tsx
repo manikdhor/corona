@@ -102,18 +102,22 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const phoneRaw = phoneDisplay.replace(/[^0-9+]/g, "") || CONTACT_INFO.phoneRaw;
   const emailDisplay = project.sectionHeadings?.contactEmail || CONTACT_INFO.email;
 
+  const targetPlace = project.name.includes("Purbachal")
+    ? project.name
+    : `${project.name} Purbachal`;
+
   const mapEmbedUrl = extractMapEmbedUrl(
     project.assets?.mapHref,
     project.coordinates,
-    `${project.name} ${project.location}`
+    targetPlace
   );
   const mapViewUrl = getGoogleMapsViewUrl(
-    `${project.name} ${project.location}`,
+    targetPlace,
     project.coordinates,
     project.assets?.mapHref
   );
   const directionsUrl = getGoogleMapsDirectionsUrl(
-    `${project.name} ${project.location}`,
+    targetPlace,
     project.coordinates
   );
 
@@ -178,7 +182,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                   mapCoordinates={project.coordinates}
                   mapHref={mapEmbedUrl}
                   mapViewHref={mapViewUrl}
-                  projectName={`${project.name} ${project.location}`}
+                  projectName={targetPlace}
                   eyebrow={project.sectionHeadings?.keyAssetsEyebrow}
                   title={project.sectionHeadings?.keyAssetsTitle}
                   subtitle={project.sectionHeadings?.keyAssetsSubtitle}

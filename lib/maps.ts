@@ -66,22 +66,24 @@ export function extractMapEmbedUrl(
 
 /**
  * Returns a clean Google Maps directions link for external opening ("Get Directions").
+ * Prioritizes place name so Google Maps explicitly targets the project name (e.g. "Maple Leaf Garden City Purbachal").
  */
 export function getGoogleMapsDirectionsUrl(
   query?: string | null,
   coordinates?: { lat: number; lng: number } | null
 ): string {
-  if (coordinates && coordinates.lat && coordinates.lng) {
-    return `https://www.google.com/maps/dir/?api=1&destination=${coordinates.lat},${coordinates.lng}`;
-  }
   if (query && query.trim()) {
     return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(query.trim())}`;
   }
-  return "https://www.google.com/maps/dir/?api=1&destination=23.86489,90.5647";
+  if (coordinates && coordinates.lat && coordinates.lng) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${coordinates.lat},${coordinates.lng}`;
+  }
+  return "https://www.google.com/maps/dir/?api=1&destination=Maple+Leaf+Garden+City+Purbachal";
 }
 
 /**
- * Returns a clean Google Maps view link for external opening in a new tab.
+ * Returns a clean Google Maps place/search view link for external opening in a new tab.
+ * Uses /maps/place/ query to display the official Google Maps business profile (Image 3).
  * IMPORTANT: Never returns an /embed URL because Google blocks opening embed URLs directly in a browser tab.
  */
 export function getGoogleMapsViewUrl(
@@ -89,6 +91,11 @@ export function getGoogleMapsViewUrl(
   coordinates?: { lat: number; lng: number } | null,
   customUrl?: string | null
 ): string {
+  // If query / place name is provided, use Google Maps Place URL directly (e.g. /maps/place/Maple+Leaf+Garden+City+Purbachal)
+  if (query && query.trim()) {
+    return `https://www.google.com/maps/place/${encodeURIComponent(query.trim())}`;
+  }
+
   // If customUrl is a direct non-embed map link (like maps.google.com/?q=... or maps.app.goo.gl/...), use it
   if (customUrl && typeof customUrl === "string") {
     const trimmed = customUrl.trim();
@@ -99,15 +106,10 @@ export function getGoogleMapsViewUrl(
     }
   }
 
-  // Use query if provided (best user experience in Google Maps)
-  if (query && query.trim()) {
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query.trim())}`;
-  }
-
   // Use coordinates if provided
   if (coordinates && coordinates.lat && coordinates.lng) {
     return `https://www.google.com/maps/search/?api=1&query=${coordinates.lat},${coordinates.lng}`;
   }
 
-  return "https://www.google.com/maps/search/?api=1&query=Maple+Leaf+Garden+City+Purbachal";
+  return "https://www.google.com/maps/place/Maple+Leaf+Garden+City+Purbachal";
 }
