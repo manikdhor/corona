@@ -16,7 +16,9 @@ import {
   Droplets,
   Flame,
   Construction,
+  ExternalLink,
 } from "lucide-react";
+import { extractMapEmbedUrl, getGoogleMapsDirectionsUrl } from "@/lib/maps";
 import { PROPERTIES, getPropertyBySlug, getRelatedProperties } from "@/lib/data";
 import { getPropertyAction, getPropertiesAction } from "@/lib/admin/actions";
 import PropertyGallery from "./PropertyGallery";
@@ -306,14 +308,28 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                   <div className="relative aspect-video overflow-hidden rounded-xl bg-navy-50">
                     <iframe
                       title={`${property.title} location`}
-                      src={
-                        (property as any).coordinates?.lat && (property as any).coordinates?.lng
-                          ? `https://www.google.com/maps?q=${(property as any).coordinates.lat},${(property as any).coordinates.lng}&z=14&output=embed`
-                          : `https://www.google.com/maps?q=${encodeURIComponent(property.location)}&z=14&output=embed`
-                      }
+                      src={extractMapEmbedUrl(
+                        (property as any).customFieldValues?.assets?.mapHref,
+                        (property as any).coordinates,
+                        `${property.title} ${property.location}`
+                      )}
                       className="absolute inset-0 h-full w-full"
                       loading="lazy"
                     />
+                  </div>
+                  <div className="mt-4 flex flex-col gap-2">
+                    <a
+                      href={getGoogleMapsDirectionsUrl(
+                        `${property.title} ${property.location}`,
+                        (property as any).coordinates
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-gold px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-navy transition-all hover:shadow-gold hover:-translate-y-0.5"
+                    >
+                      Get Directions
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
                   </div>
                   <p className="mt-3 text-sm text-navy-400">{property.location}</p>
                 </div>

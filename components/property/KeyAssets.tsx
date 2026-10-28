@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { ProjectAssets } from "@/lib/projects";
+import { extractMapEmbedUrl, getGoogleMapsViewUrl } from "@/lib/maps";
 import {
   Download,
   ExternalLink,
@@ -26,6 +27,7 @@ interface KeyAssetsProps {
   assets: ProjectAssets;
   mapCoordinates?: { lat: number; lng: number };
   mapHref?: string;
+  mapViewHref?: string;
   className?: string;
   eyebrow?: string;
   title?: string;
@@ -39,7 +41,12 @@ const ASSET_ICONS = {
 } as const;
 
 function buildAssetList(props: KeyAssetsProps): KeyAsset[] {
-  const { assets, mapCoordinates, mapHref } = props;
+  const { assets, mapCoordinates, mapHref, mapViewHref } = props;
+
+  const resolvedEmbedUrl = extractMapEmbedUrl(mapHref || assets.mapHref, mapCoordinates);
+  const resolvedViewUrl =
+    mapViewHref ||
+    getGoogleMapsViewUrl(undefined, mapCoordinates, mapHref || assets.mapHref);
 
   const items: KeyAsset[] = [
     {
@@ -47,10 +54,8 @@ function buildAssetList(props: KeyAssetsProps): KeyAsset[] {
       description:
         "Interactive Google Maps view with project location, nearby landmarks, and connectivity.",
       icon: "map",
-      viewHref:
-        mapHref ||
-        `https://www.google.com/maps?q=${mapCoordinates?.lat ?? 0},${mapCoordinates?.lng ?? 0}&z=14&output=embed`,
-      downloadHref: mapHref || "#",
+      viewHref: resolvedEmbedUrl,
+      downloadHref: resolvedViewUrl,
       downloadLabel: "Open in Maps",
       badge: "View",
       badgeColor: "bg-emerald-100 text-emerald-700 border-emerald-200",

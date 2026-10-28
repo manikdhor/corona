@@ -16,6 +16,7 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import LeadForm from "@/components/lead/LeadForm";
 import FAQ from "@/components/contact/FAQ";
 import { CONTACT_INFO, SOCIAL_LINKS } from "@/lib/constants";
+import { extractMapEmbedUrl } from "@/lib/maps";
 import PinterestIcon from "@/components/ui/PinterestIcon";
 import {
   getFaqsAction,
@@ -76,9 +77,11 @@ export default async function ContactPage() {
   const directionsUrl =
     company?.directionsUrl ||
     "https://maps.google.com/?q=Mar+garden,+House+%23145,+Flat+%23704,+Road+%233,+Block+A,+Niketon,+Gulshan+01,+Dhaka+1212";
-  const mapEmbedUrl =
-    company?.mapEmbedUrl ||
-    "https://www.google.com/maps?q=Mar+garden,+House+%23145,+Flat+%23704,+Road+%233,+Block+A,+Niketon,+Gulshan+01,+Dhaka+1212&z=16&output=embed";
+  const mapEmbedUrl = extractMapEmbedUrl(
+    company?.mapEmbedUrl,
+    null,
+    address || "Niketon, Gulshan 01, Dhaka"
+  );
 
   const contactCards = [
     {

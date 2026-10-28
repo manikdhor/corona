@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import { extractMapEmbedUrl } from "@/lib/maps";
 
 export interface Amenity {
   id: string;
@@ -241,7 +242,11 @@ export function mapAdminPropertyToProject(
     brochure: customFields.assets?.brochure || baseProj?.assets?.brochure || "/brochure-maple-leaf.pdf",
     brochureLabel: customFields.assets?.brochureLabel || baseProj?.assets?.brochureLabel || "Project Brochure",
     brochureFile: customFields.assets?.brochureFile || baseProj?.assets?.brochureFile || "/brochure-maple-leaf.pdf",
-    mapHref: customFields.assets?.mapHref || baseProj?.assets?.mapHref,
+    mapHref: extractMapEmbedUrl(
+      customFields.assets?.mapHref || baseProj?.assets?.mapHref,
+      customFields.assets?.mapCoordinates || p.coordinates || baseProj?.coordinates,
+      `${p.title || baseProj?.name || "Project"} ${p.location || baseProj?.location || ""}`
+    ),
     mapCoordinates: customFields.assets?.mapCoordinates || p.coordinates || baseProj?.coordinates,
   };
 

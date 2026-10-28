@@ -33,6 +33,7 @@ import GalleryManager from "@/components/admin/media/GalleryManager";
 import IconPicker from "@/components/admin/icons/IconPicker";
 import DynamicIcon from "@/components/ui/DynamicIcon";
 import { AdminProperty, AdminCategory, CustomFieldDef, adminStore } from "@/lib/admin/seed";
+import { extractMapEmbedUrl } from "@/lib/maps";
 import {
   savePropertyAction,
   getCategoriesAction,
@@ -382,13 +383,17 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
   // --- ASSETS & HEADINGS HELPERS ---
   const assetsState = formData.customFieldValues?.assets || {};
   const handleUpdateAsset = (field: string, val: string) => {
+    let cleanVal = val;
+    if (field === "mapHref" && val && val.includes("<iframe")) {
+      cleanVal = extractMapEmbedUrl(val);
+    }
     setFormData((prev) => ({
       ...prev,
       customFieldValues: {
         ...prev.customFieldValues,
         assets: {
           ...prev.customFieldValues?.assets,
-          [field]: val,
+          [field]: cleanVal,
         },
       },
     }));
@@ -1462,16 +1467,31 @@ export default function PropertyForm({ initialData, isNew = false }: PropertyFor
                 type="text"
                 value={assetsState.mapHref || ""}
                 onChange={(e) => handleUpdateAsset("mapHref", e.target.value)}
-                placeholder="Leave blank to auto-generate from coordinates and project name"
+                placeholder="Paste Google Maps embed URL or full <iframe> embed code"
                 className="w-full rounded-xl border border-navy-200 px-3.5 py-2 text-xs focus:border-gold outline-none"
               />
+              <p className="mt-1 text-[11px] text-navy-400">
+                You can paste a direct embed URL or the entire &lt;iframe&gt;...&lt;/iframe&gt; code. It will automatically extract the clean embed URL.
+              </p>
             </div>
 
-            <div className="rounded-xl bg-navy-50/50 p-4 border border-navy-100 text-xs text-navy-600 space-y-1">
-              <p className="font-semibold text-navy">Location Map Preview</p>
+            <div className="rounded-xl bg-navy-50/50 p-4 border border-navy-100 text-xs text-navy-600 space-y-2">
+              <p className="font-semibold text-navy">Location Map Live Preview</p>
               <p className="text-navy-400">
-                Visitors will see a 1-click &quot;Get Directions&quot; button and an embedded map pinned to this location.
+                This is how the interactive map will appear to visitors on the project page:
               </p>
+              <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-navy-200 bg-white shadow-xs">
+                <iframe
+                  title="Map Preview"
+                  src={extractMapEmbedUrl(
+                    assetsState.mapHref,
+                    formData.coordinates,
+                    `${formData.title} ${formData.location}`
+                  )}
+                  className="absolute inset-0 h-full w-full"
+                  loading="lazy"
+                />
+              </div>
             </div>
           </div>
         </div>

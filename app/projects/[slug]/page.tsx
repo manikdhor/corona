@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { PROJECTS, getProjectBySlug, getRelatedProjects, mapAdminPropertyToProject } from "@/lib/projects";
 import { CONTACT_INFO } from "@/lib/constants";
+import { extractMapEmbedUrl, getGoogleMapsDirectionsUrl, getGoogleMapsViewUrl } from "@/lib/maps";
 import { getPropertyAction, getPropertiesAction } from "@/lib/admin/actions";
 import LeadForm from "@/components/lead/LeadForm";
 import Button from "@/components/ui/Button";
@@ -101,6 +102,21 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const phoneRaw = phoneDisplay.replace(/[^0-9+]/g, "") || CONTACT_INFO.phoneRaw;
   const emailDisplay = project.sectionHeadings?.contactEmail || CONTACT_INFO.email;
 
+  const mapEmbedUrl = extractMapEmbedUrl(
+    project.assets?.mapHref,
+    project.coordinates,
+    `${project.name} ${project.location}`
+  );
+  const mapViewUrl = getGoogleMapsViewUrl(
+    `${project.name} ${project.location}`,
+    project.coordinates,
+    project.assets?.mapHref
+  );
+  const directionsUrl = getGoogleMapsDirectionsUrl(
+    `${project.name} ${project.location}`,
+    project.coordinates
+  );
+
   return (
     <>
       {/* Back link */}
@@ -160,10 +176,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 <KeyAssets
                   assets={project.assets}
                   mapCoordinates={project.coordinates}
-                  mapHref={
-                    project.assets.mapHref ||
-                    `https://www.google.com/maps?q=${encodeURIComponent(project.name + " " + project.location)}&z=14&output=embed`
-                  }
+                  mapHref={mapEmbedUrl}
+                  mapViewHref={mapViewUrl}
                   eyebrow={project.sectionHeadings?.keyAssetsEyebrow}
                   title={project.sectionHeadings?.keyAssetsTitle}
                   subtitle={project.sectionHeadings?.keyAssetsSubtitle}
@@ -374,19 +388,14 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                   <div className="relative aspect-video overflow-hidden rounded-xl bg-navy-50">
                     <iframe
                       title={`${project.name} location`}
-                      src={
-                        project.assets?.mapHref ||
-                        `https://www.google.com/maps?q=${encodeURIComponent(project.name + " " + project.location)}&z=14&output=embed`
-                      }
+                      src={mapEmbedUrl}
                       className="absolute inset-0 h-full w-full"
                       loading="lazy"
                     />
                   </div>
                   <div className="mt-4 flex flex-col gap-2">
                     <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-                        project.name + " " + project.location
-                      )}`}
+                      href={directionsUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-gold px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-navy transition-all hover:shadow-gold hover:-translate-y-0.5"
