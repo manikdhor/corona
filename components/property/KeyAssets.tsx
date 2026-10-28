@@ -95,12 +95,20 @@ export default function KeyAssets({
   assets,
   mapCoordinates,
   mapHref,
+  mapViewHref,
+  projectName,
   className = "",
   eyebrow = "Project Assets",
   title = "Key Documents & Maps",
   subtitle = "Download or view essential project documents for your reference.",
 }: KeyAssetsProps) {
-  const items = buildAssetList({ assets, mapCoordinates, mapHref });
+  const items = buildAssetList({
+    assets,
+    mapCoordinates,
+    mapHref,
+    mapViewHref,
+    projectName,
+  });
 
   return (
     <div className={className}>
