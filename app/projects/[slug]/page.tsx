@@ -118,7 +118,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   );
   const directionsUrl = getGoogleMapsDirectionsUrl(
     targetPlace,
-    project.coordinates
+    project.coordinates,
+    project.assets?.mapHref
   );
 
   return (

@@ -47,7 +47,7 @@ function buildAssetList(props: KeyAssetsProps): KeyAsset[] {
   const resolvedViewUrl =
     mapViewHref ||
     getGoogleMapsViewUrl(projectName, mapCoordinates, mapHref || assets.mapHref);
-  const resolvedDirectionsUrl = getGoogleMapsDirectionsUrl(projectName, mapCoordinates);
+  const resolvedDirectionsUrl = getGoogleMapsDirectionsUrl(projectName, mapCoordinates, mapHref || assets.mapHref);
 
   const items: KeyAsset[] = [
     {
