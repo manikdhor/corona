@@ -1571,9 +1571,11 @@ export async function saveBlogPostAction(formData: any) {
   }
 
   const saved = adminStore.saveBlogPost({ id: savedId, ...postPayload });
+  ACTION_MEM_CACHE.clear();
   invalidateAdminActionCache("blog");
   revalidatePath("/admin/blog");
   revalidatePath("/blog");
+  revalidatePath("/blog/[slug]", "page");
   if (parsed.data.slug) {
     revalidatePath(`/blog/${parsed.data.slug}`);
   }

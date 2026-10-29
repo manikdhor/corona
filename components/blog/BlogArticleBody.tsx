@@ -209,6 +209,7 @@ export default function BlogArticleBody({
               [&>blockquote]:border-l-4 [&>blockquote]:border-gold [&>blockquote]:bg-navy-50/50 [&>blockquote]:p-6 [&>blockquote]:rounded-r-2xl [&>blockquote]:italic [&>blockquote]:text-navy-800 [&>blockquote]:my-8 [&>blockquote]:text-lg
               [&_img]:rounded-2xl md:[&_img]:rounded-3xl [&_img]:shadow-xl [&_img]:border [&_img]:border-navy-100/80 [&_img]:my-8 [&_img]:w-full [&_img]:object-cover [&_img]:max-h-[520px]
               [&_figure]:my-10 [&_figure]:rounded-2xl md:[&_figure]:rounded-3xl [&_figure]:overflow-hidden [&_figure]:shadow-xl [&_figure]:border [&_figure]:border-navy-100/80 [&_figure]:bg-white
+              [&_figure_img]:my-0 [&_figure_img]:rounded-none [&_figure_img]:shadow-none [&_figure_img]:border-0 [&_figure_img]:max-h-none
               [&_figcaption]:py-3 [&_figcaption]:px-5 [&_figcaption]:text-center [&_figcaption]:text-xs md:[&_figcaption]:text-sm [&_figcaption]:text-navy-500 [&_figcaption]:italic [&_figcaption]:border-t [&_figcaption]:border-navy-100/60 [&_figcaption]:bg-navy-50/60
               [&>a]:text-gold-700 [&>a]:underline [&>a]:font-semibold hover:[&>a]:text-navy"
             dangerouslySetInnerHTML={{ __html: processedHtml }}

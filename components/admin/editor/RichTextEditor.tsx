@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
+import { Node } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import ImageExtension from "@tiptap/extension-image";
 import LinkExtension from "@tiptap/extension-link";
@@ -55,6 +56,74 @@ import {
 } from "lucide-react";
 import { sanitizeHtml } from "@/lib/admin/sanitize";
 
+export const FigureExtension = Node.create({
+  name: "figure",
+  group: "block",
+  atom: true,
+  draggable: true,
+  selectable: true,
+  addAttributes() {
+    return {
+      src: {
+        default: null,
+        parseHTML: (element) => {
+          const img = element.querySelector("img");
+          return img ? img.getAttribute("src") : element.getAttribute("src");
+        },
+      },
+      alt: {
+        default: "",
+        parseHTML: (element) => {
+          const img = element.querySelector("img");
+          return img ? img.getAttribute("alt") || "" : element.getAttribute("alt") || "";
+        },
+      },
+      caption: {
+        default: "",
+        parseHTML: (element) => {
+          const caption = element.querySelector("figcaption");
+          return caption ? caption.textContent || "" : "";
+        },
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: "figure" }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    const { src, alt, caption } = HTMLAttributes;
+    if (!src) return ["div", { class: "hidden" }];
+    const figureAttrs = {
+      class: "my-8 rounded-2xl md:rounded-3xl overflow-hidden shadow-xl border border-navy-100 bg-white",
+    };
+    const divAttrs = {
+      class: "relative w-full aspect-[16/9] overflow-hidden bg-navy-50",
+    };
+    const imgAttrs = {
+      src,
+      alt: alt || caption || "Article visual",
+      class: "w-full h-full object-cover my-0",
+      loading: "lazy",
+    };
+    if (caption && String(caption).trim()) {
+      const figcaptionAttrs = {
+        class: "py-3 px-5 text-center text-xs md:text-sm text-navy-500 italic bg-navy-50/70 border-t border-navy-100",
+      };
+      return [
+        "figure",
+        figureAttrs,
+        ["div", divAttrs, ["img", imgAttrs]],
+        ["figcaption", figcaptionAttrs, String(caption).trim()],
+      ];
+    }
+    return [
+      "figure",
+      figureAttrs,
+      ["div", divAttrs, ["img", imgAttrs]],
+    ];
+  },
+});
+
 interface RichTextEditorProps {
   content: string;
   onChange?: (html: string) => void;
@@ -104,6 +173,7 @@ export default function RichTextEditor({
         heading: { levels: [1, 2, 3] },
       }),
       UnderlineExtension,
+      FigureExtension,
       LinkExtension.configure({
         openOnClick: false,
         HTMLAttributes: {
@@ -111,10 +181,10 @@ export default function RichTextEditor({
         },
       }),
       ImageExtension.configure({
-        inline: true,
+        inline: false,
         allowBase64: true,
         HTMLAttributes: {
-          class: "rounded-lg max-w-full my-4 border border-navy-100 shadow-md",
+          class: "rounded-2xl max-w-full my-6 border border-navy-100 shadow-lg object-cover",
         },
       }),
       TextAlign.configure({
@@ -216,12 +286,18 @@ export default function RichTextEditor({
 
   const applyImage = () => {
     if (imageUrl) {
-      if (imageCaption.trim()) {
-        const cleanFig = `<figure class="my-8 rounded-2xl overflow-hidden shadow-xl border border-navy-100 bg-white"><div class="relative w-full aspect-[16/9] overflow-hidden"><img src="${imageUrl}" alt="${imageAlt || imageCaption}" class="w-full h-full object-cover my-0" /></div><figcaption class="py-2.5 px-4 text-center text-xs text-navy-500 italic bg-navy-50/70 border-t border-navy-100">${imageCaption.trim()}</figcaption></figure>`;
-        editor.chain().focus().insertContent(cleanFig).run();
-      } else {
-        editor.chain().focus().setImage({ src: imageUrl, alt: imageAlt || "Article visual" }).run();
-      }
+      editor
+        .chain()
+        .focus()
+        .insertContent({
+          type: "figure",
+          attrs: {
+            src: imageUrl,
+            alt: imageAlt.trim() || imageCaption.trim() || "Article visual",
+            caption: imageCaption.trim(),
+          },
+        })
+        .run();
       setShowImageModal(false);
       setImageUrl("");
       setImageAlt("");
@@ -821,7 +897,7 @@ export default function RichTextEditor({
                 disabled={!imageUrl || isUploadingImage}
                 className="px-4 py-2 text-xs font-medium rounded-lg bg-navy text-gold hover:bg-navy-800 disabled:opacity-40"
               >
-                Insert Image into Paragraph
+                Insert Image into Article
               </button>
             </div>
           </div>

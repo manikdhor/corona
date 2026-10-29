@@ -54,7 +54,7 @@ export function sanitizeHtml(dirty: string): string {
       "colspan", "rowspan", "border", "align",
       "frameborder", "allow", "allowfullscreen",
     ],
-    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
   }) as string;
 }
 
