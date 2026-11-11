@@ -247,6 +247,7 @@ export default async function CoronaGroupPage() {
                     alt="Corona Group corporate operations"
                     fill
                     className="object-cover"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
                   />
                 </div>
                 <div className="absolute -top-6 -right-6 -z-10 h-full w-full rounded-2xl border-2 border-gold/30" />

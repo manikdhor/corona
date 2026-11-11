@@ -118,14 +118,14 @@ export default async function RootLayout({
   ]);
 
   return (
-    <html lang="en" className={`${playfair.variable} ${cormorant.variable} ${inter.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${playfair.variable} ${cormorant.variable} ${inter.variable}`}>
       <head>
         <link rel="preconnect" href="https://xtilpfcqhecqhifftrop.supabase.co" crossOrigin="" />
         <link rel="dns-prefetch" href="https://xtilpfcqhecqhifftrop.supabase.co" />
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
       </head>
-      <body className="font-sans antialiased">
+      <body suppressHydrationWarning className="font-sans antialiased">
         <SiteChrome
           initialSettings={settings}
           initialNavigation={navigation}

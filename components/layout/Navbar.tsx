@@ -141,7 +141,6 @@ export default function Navbar({ initialCompany, initialNavigation }: NavbarProp
                 alt={companyInfo.name}
                 fill
                 className="object-contain"
-                priority
                 sizes="36px"
               />
             </div>
@@ -338,6 +337,7 @@ export default function Navbar({ initialCompany, initialNavigation }: NavbarProp
                       alt={companyInfo.name}
                       fill
                       className="object-contain"
+                      sizes="40px"
                     />
                   </div>
                   <div>
